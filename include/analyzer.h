@@ -9,94 +9,58 @@
 #include "TLorentzVector.h"
 #include "TString.h"
 #include "cutValues.h"
+#include "electrons.h"
+#include "pions.h"
+#include "e_pid.h"
+#include "DCfid_SIDIS.h"
 
 using namespace cutValues;
+using namespace constants;
 
-class SIDISatBAND_auxiliary {
+class analyzer {
 public:
-    SIDISatBAND_auxiliary(int _fdebug_=0,int _torusBending_=-1);
-    ~SIDISatBAND_auxiliary();
+	analyzer(int _mode, int _torusBending_=-1);
+	~analyzer();
 
-    Double_t Chi2PID_pion_upperBound (Double_t p, Double_t C);
-    Double_t Chi2PID_pion_lowerBound (Double_t p, Double_t C);
-        
-    bool applyElectronKinematics( Double_t Ebeam,
-                                       Double_t omega,
-                                       Double_t Q2,
-                                       Double_t y,
-                                       Double_t W,
-                                       TLorentzVector pi,
-                                       TLorentzVector e );
-    
-    bool applyPionKinematics( Double_t Ebeam,
-                                       Double_t omega,
-                                       Double_t Q2,
-                                       Double_t y,
-                                       Double_t W,
-                                       TLorentzVector pi,
-                                       TLorentzVector e );
+	void loadElectron( electron *iE ){ e = iE; } 
+	void loadPion( pion *iPi ){ pi = iPi; } 
 
-    void                loadAcceptanceMatching (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
-    void                loadCorrections (TFile corrFileName); //  -1 for In-bending, +1 for Out-bending
-    void                loadCutValues (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
-    void               printCutValues ();
-    void              SetTorusBending (int _torusBending_)   {torusBending = _torusBending_;};
-    double               FindCutValue ( std::string cutName );
-    double   ComputeLightConeFraction ( TLorentzVector p );
-    double                  calcQStar ( TVector3 eP3, TVector3 piP3, double Ebeam );
-    
-    
-    
-    
-    
-    
+	double	Chi2PID_pion_upperBound (Double_t p, Double_t C);
+	double 	Chi2PID_pion_lowerBound (Double_t p, Double_t C);
 
-    int                           fdebug;
-    int                     torusBending; // -1 for In-bending, +1 for Out-bending
+	bool 	applyElectronDetectorCuts( electron e );
+	//bool 	applyElectronKinematics( electron e );
 
-    
-    std::vector<std::pair<std::string, double>> cutValues;
-    double               cutValue_Vz_min;
-    double               cutValue_Vz_max;
-    double             cutValue_e_PCAL_W;
-    double             cutValue_e_PCAL_V;
-    double             cutValue_e_E_PCAL;
-    double cutValue_SamplingFraction_min;
-    double     cutValue_PCAL_ECIN_SF_min;
-    double        cutValue_Ve_Vpi_dz_max;
-    double               cutValue_Q2_min;
-    double               cutValue_Q2_max;
-    double                cutValue_W_min;
-    double                cutValue_y_max;
-    double          cutValue_e_theta_min;
-    double          cutValue_e_theta_max;
-    double         cutValue_pi_theta_min;
-    double         cutValue_pi_theta_max;
-    double              cutValue_Ppi_min;
-    double              cutValue_Ppi_max;
-    double               cutValue_Pe_min;
-    double               cutValue_Pe_max;
-    double              cutValue_Zpi_min;
-    double              cutValue_Zpi_max;
-    
-    
-    
-    double       Me  = 0.00051099895; // GeV/c2
-    double            Mpi = 0.139570; // GeV/c2
-    double       Mpims  = 0.13957039; // GeV/c2
-    double       Mpips  = 0.13957039; // GeV/c2
-    double            Mp  = 0.938272; // GeV/c2
-    double             Mn = 0.939565; // GeV/c2
-    double                Md = 1.875; // GeV/c2
-    double             Mp2 = Mp * Mp;
+	bool 	applyPionKinematics( pion pi );
+	//bool 	applyPionDetectorCuts( pion pi );
 
+	void	loadCutValues (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
+	//void	loadAcceptanceMatching (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
+	//void	loadCorrections (TFile corrFileName); //  -1 for In-bending, +1 for Out-bending
+	//void	getCorrections ( electron e, pion pi);
+	//void	applyAcceptanceMatching( pion pi );	
+	void	printCutValues ();
+	void	SetTorusBending (int _torusBending_)   {torusBending = _torusBending_;};
+	//double	ComputeLightConeFraction ( TLorentzVector p );
+	//double	calcQStar ( TVector3 eP3, TVector3 piP3, double Ebeam );
+	//double	fillDetectorHistograms();
 
-protected:
-    
-    
 private:
-    
-    
+	int	fdebug;
+	int	torusBending; // -1 for In-bending, +1 for Out-bending
+	
+	TH3F *	accCorrection;
+	TH3F *	binCorrection;
+	TH3F *	kaonCorrection;
+	TH3F *	rhoCorrection;
+	
+	e_pid ePID;
+	DCfid_SIDIS DC_fid;
+	electron * e;
+	pion * pi;
+		
+	
+
 };
 
 #endif
