@@ -25,15 +25,7 @@ list (APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 include(${ROOT_USE_FILE})
 
 
-#set symlink for various data files
-#set (source "${CMAKE_SOURCE_DIR}/data")
-#set (destination "${CMAKE_CURRENT_BINARY_DIR}/data")
-#add_custom_command(
-#	TARGET ${PROJECT_NAME} POST_BUILD
-# 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${source} ${destination} 
-# 	DEPENDS ${destination}
-# 	COMMENT "symbolic link resources folder from ${source} => ${destination}"
-#)
+ADD_DEFINITIONS( -D_DATA="${CMAKE_SOURCE_DIR}/data" )
 
 
 add_subdirectory(classes)

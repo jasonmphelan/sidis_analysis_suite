@@ -84,22 +84,9 @@ void clashit::Clear(){
 	Scint_y		.clear();
 	Scint_z		.clear();
 
-	rich_beta = 0;
-		
-	Selection = false;
-
-
-
-
-
-
-
-
-
-
-
+	detectorSelection = false;
+	kinematicSelection = false;
 }
-
 
 void clashit::Print(){
 
@@ -116,5 +103,63 @@ void clashit::Print(){
 	std::cout << "clashit Information Kinematics: Momentum " << Momentum << " , Theta " << Theta << " ,Phi " << Phi;
 	std::cout << ", Q2 " << Q2 << " , Omega/nu " << Omega << " , Xb " << Xb << " , W2 " << W2 << std::endl;
 	std::cout << "clashit Information q-vector: Magitude(q) " << Q << " , ThetaQ " << ThetaQ << " ,PhiQ " << PhiQ << std::endl;
+	
+}
 
+void ExtractParticleInformation(region_part_ptr rp){
+	// set leading electron 4-momentum
+	SetLorentzVector(pe, rp);
+	// set leading electron vertex
+	Ve              = GetParticleVertex( rp );
+	
+	e.setMomentum( pe.Vect().Mag() );
+	
+	e.setCharge( rp->par()->getCharge() );
+
+	e.setChi2(rp->par()->getChi2Pid());
+
+	// detector information on electron
+	auto e_PCAL_info= rp->cal(PCAL);
+	e.setEpcal(e_PCAL_info->getEnergy());
+	e.setSector(e_PCAL_info->getSector());
+	e.setV( e_PCAL_info->getLv());
+	e.setW(e_PCAL_info->getLw());
+	e.setEecin(rp->cal(ECIN)->getEnergy());
+	e.setEecout(rp->cal(ECOUT)->getEnergy());
+
+	// hit position in PCAL
+	e.setPCal_X(e_PCAL_info->getX());
+	e.setPCal_Y( e_PCAL_info->getY());
+	e.setPCal_Z(e_PCAL_info->getZ());
+
+	// Sampling Fraction		
+	e.setEoP((e.getEpcal() + e.getEecin() + e.getEecout())/pe.P());
+
+	// Drift Chamber tracking system
+	auto e_DC_info  = rp->trk(DC);
+	e.setDC_sector(e_DC_info->getSector()); // tracking sector
+	e.setDC_chi2(e_DC_info->getChi2());  // tracking chi^2/NDF
+	e.setDC_NDF(e_DC_info->getNDF());  // tracking chi^2/NDF
+
+	e.setDC_x1(rp->traj(DC,DC_layers[0])->getX());
+	e.setDC_y1(rp->traj(DC,DC_layers[0])->getY());	
+	e.setDC_z1(rp->traj(DC,DC_layers[0])->getZ());
+
+	e.setDC_x2(rp->traj(DC,DC_layers[1])->getX());
+	e.setDC_y2(rp->traj(DC,DC_layers[1])->getY());	
+	e.setDC_z2(rp->traj(DC,DC_layers[1])->getZ());
+
+	e.setDC_x3(rp->traj(DC,DC_layers[2])->getX());
+	e.setDC_y3(rp->traj(DC,DC_layers[2])->getY());	
+	e.setDC_z3(rp->traj(DC,DC_layers[2])->getZ());
+	e.setBeta(rp->par()->getBeta());
+
+	// RICH info
+	auto RICH_info = rp->rich();
+	double temp_rich_angle = RICH_info->getBest_ch();
+
+	if( temp_rich_angle > 0. ){
+		e.setRich_beta( 1./(rich_n*cos(temp_rich_angle)) );
+	}
+	else{ e.setRich_beta(0.); }
 }

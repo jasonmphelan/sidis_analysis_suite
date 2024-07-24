@@ -2,7 +2,7 @@
 #include "SIDISatBAND_auxiliary.h"
 #define NMAXPIONS 5 // maximal allowed number of pions
 #define r2d 180./3.1415 // radians to degrees
-
+#define CUT_PATH _DATA
 
 
 SIDISatBAND_auxiliary::SIDISatBAND_auxiliary(int _fdebug_, int _torusBending_){
@@ -74,14 +74,16 @@ Double_t SIDISatBAND_auxiliary::Chi2PID_pion_upperBound( Double_t p, Double_t C)
 //}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-void SIDISatBAND_auxiliary::loadCutValues(std::string cutValuesFilename,
-                                          int torusBending){
+void SIDISatBAND_auxiliary::loadCutValues(int torusBending){
     if (fdebug>2) {
         std::cout << "SIDISatBAND_auxiliary::loadCutValues()" << std::endl;
     }
     // read cut values csv file
     csv_reader csvr;
-    cutValues = csvr.read_csv(cutValuesFilename);
+    char cutFileName[100];
+    sprintf(cutFileName,"%s/BANDcutValues.csv",std::string(_DATA).c_str());
+    
+    cutValues = csvr.read_csv(cutFileName);
     
     // assign specific cut values - to speed things up
     // by avoiding recalling FindCutValue() on every event

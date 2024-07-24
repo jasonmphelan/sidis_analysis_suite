@@ -10,7 +10,7 @@
 #include <fstream>
 #include <unistd.h>
 
-//#define PID_DIR _VAR
+#define PID_DIR _DATA
 
 using namespace std;
 
@@ -66,30 +66,30 @@ bool e_pid::isElectronLoose(clashit * eHit){
 }
 
 void e_pid::setParamsRGB(double Ebeam){
-	string PID_DIR = "/work/clas12/users/jphelan/SIDIS_at_BAND/clas12pid";
+	//string pid_dir = "/work/clas12/users/jphelan/SIDIS_at_BAND/clas12pid";
 	//Determine correct file name
 	if(std::fabs(Ebeam-10.6) < 0.05){
-		sprintf(paramFileNameEpcal,"%s/SFvEpcal_Params_106_RGB.dat",std::string(PID_DIR).c_str());
-		sprintf(paramFileNameMom,"%s/SFvMom_Params_106_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameEpcal,"%s/clas12pid/SFvEpcal_Params_106_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameMom,"%s/clas12pid/SFvMom_Params_106_RGB.dat",std::string(PID_DIR).c_str());
 	}
 	else if(std::fabs(Ebeam-10.2) < 0.05){
-		sprintf(paramFileNameEpcal,"%s/SFvEpcal_Params_102_RGB.dat",std::string(PID_DIR).c_str());
-		sprintf(paramFileNameMom,"%s/SFvMom_Params_102_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameEpcal,"%s/clas12pid/SFvEpcal_Params_102_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameMom,"%s/clas12pid/SFvMom_Params_102_RGB.dat",std::string(PID_DIR).c_str());
 	}
 	else if(std::fabs(Ebeam-4.247) < 0.2){//10.2 seems to work well for the low energy run data set
-		sprintf(paramFileNameEpcal,"%s/SFvEpcal_Params_102_RGB.dat",std::string(PID_DIR).c_str());
-		sprintf(paramFileNameMom,"%s/SFvMom_Params_102_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameEpcal,"%s/clas12pid/SFvEpcal_Params_102_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameMom,"%s/clas12pid/SFvMom_Params_102_RGB.dat",std::string(PID_DIR).c_str());
 	}
 	else if(std::fabs(Ebeam-2.07) < 0.2){//10.2 default for RGM 2.1 deuterium run at the moment
-		sprintf(paramFileNameEpcal,"%s/SFvEpcal_Params_102_RGB.dat",std::string(PID_DIR).c_str());
-		sprintf(paramFileNameMom,"%s/SFvMom_Params_102_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameEpcal,"%s/clas12pid/SFvEpcal_Params_102_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameMom,"%s/clas12pid/SFvMom_Params_102_RGB.dat",std::string(PID_DIR).c_str());
 	}
 	else{
 		std::cout<<"Attempting to set a beam energy "<< Ebeam <<" GeV\n"
 			<<"without a defined RGB fiducal cut\n"
 			<<"\t Using E=10.6 GeV as Default. \n\n\n";
-		sprintf(paramFileNameEpcal,"%s/SFvEpcal_Params_106_RGB.dat",std::string(PID_DIR).c_str());
-		sprintf(paramFileNameMom,"%s/SFvMom_Params_106_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameEpcal,"%s/clas12pid/SFvEpcal_Params_106_RGB.dat",std::string(PID_DIR).c_str());
+		sprintf(paramFileNameMom,"%s/clas12pid/SFvMom_Params_106_RGB.dat",std::string(PID_DIR).c_str());
 	}
 	cout<<"FILLING PARAMETERS\n";
 	//Load file data

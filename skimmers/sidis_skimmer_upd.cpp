@@ -119,7 +119,7 @@ int main( int argc, char** argv){
 	int RunType = atoi(argv[4]);
 	int inclusive =atoi( argv[5]);
 	TString outFileName = argv[6]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
-	int cuts = atoi(argv[8]); //0 - all tight, 1 - tight e  && pi vtx, 2 - tight SF, 3 - all loose 
+	int cuts = atoi(argv[7]); //0 - all tight, 1 - tight e  && pi vtx, 2 - tight SF, 3 - all loose 
 
 	
 	// Check valid beam energy
@@ -130,7 +130,7 @@ int main( int argc, char** argv){
     	
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
-    	aux.loadCutValues("/work/clas12/users/jphelan/SIDIS_at_BAND/macros/cuts/BANDcutValues.csv",torusBending);
+    	aux.loadCutValues(torusBending);
 	auto db = TDatabasePDG::Instance();
 	DCfid_SIDIS dcfid;
 	e_pid pid;

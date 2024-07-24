@@ -138,7 +138,7 @@ int main( int argc, char** argv){
 */
     	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
-    	aux.loadCutValues("macros/cuts/BANDcutValues.csv",torusBending);
+    	aux.loadCutValues(torusBending);
 	auto db = TDatabasePDG::Instance();
 	DCfid_SIDIS dcfid;
 	e_pid pid;

@@ -2,7 +2,6 @@
 #define CUT_VALUES_H_
 
 namespace cutVals{
-	const double rad_to_deg = 180./TMath::Pi();
 
 	const double Z_min = 0.3;
 	const double Z_max = 1.0;
@@ -48,7 +47,6 @@ namespace cutVals{
 
 	const double p_bin_edges[5] = { 1.25, 2.00, 2.50, 3.5, 5.00};
 	
-	const double rich_n = 1.05;
 }
 
 #endif
