@@ -1,6 +1,6 @@
 // Erez O. C., Oct-6, 2021
-#ifndef __SIDISatBAND_auxiliary_H__
-#define __SIDISatBAND_auxiliary_H__
+#ifndef __ANALYZER__
+#define __ANALYZER__
 
 #include "csv_reader.h"
 #include <sstream>
@@ -8,20 +8,22 @@
 #include <iostream>
 #include "TLorentzVector.h"
 #include "TString.h"
-#include "cutValues.h"
-#include "electrons.h"
-#include "pions.h"
+#include "cut_values.h"
+#include "constants.h"
+#include "electron.h"
+#include "pion.h"
 #include "e_pid.h"
 #include "DCfid_SIDIS.h"
+#include "TH3F.h"
 
-using namespace cutValues;
+using namespace cutVals;
 using namespace constants;
 
-class analyzer {
+class analyzer{
 public:
-	analyzer(int _mode, int _torusBending_=-1);
+	analyzer(int _mode, int _torusBending_);
 	~analyzer();
-
+	void setAnalyzerLevel( int _mode ){ mode = _mode; }
 	void loadElectron( electron *iE ){ e = iE; } 
 	void loadPion( pion *iPi ){ pi = iPi; } 
 
@@ -29,33 +31,36 @@ public:
 	double 	Chi2PID_pion_lowerBound (Double_t p, Double_t C);
 
 	bool 	applyElectronDetectorCuts( electron e );
-	//bool 	applyElectronKinematics( electron e );
+	bool 	applyElectronKinematicCuts( electron e );
 
-	bool 	applyPionKinematics( pion pi );
-	//bool 	applyPionDetectorCuts( pion pi );
+	bool 	applyPionKinematicCuts( pion pi );
+	bool 	applyPionDetectorCuts( pion pi, electron e );
 
-	void	loadCutValues (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
+	void	loadCutValues (int torusBending, double EBeam); //  -1 for In-bending, +1 for Out-bending
 	//void	loadAcceptanceMatching (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
 	//void	loadCorrections (TFile corrFileName); //  -1 for In-bending, +1 for Out-bending
 	//void	getCorrections ( electron e, pion pi);
-	//void	applyAcceptanceMatching( pion pi );	
+	bool	applyAcceptanceMatching( pion pi, int dim );
+
 	void	printCutValues ();
-	void	SetTorusBending (int _torusBending_)   {torusBending = _torusBending_;};
-	//double	ComputeLightConeFraction ( TLorentzVector p );
-	//double	calcQStar ( TVector3 eP3, TVector3 piP3, double Ebeam );
+	void	SetTorusBending (int _torusBending_)   {torusBending = _torusBending_;}
+	double	ComputeLightConeFraction ( TLorentzVector p );
+	double	calcQStar ( TVector3 eP3, TVector3 piP3, double Ebeam );
 	//double	fillDetectorHistograms();
 
 private:
 	int	fdebug;
 	int	torusBending; // -1 for In-bending, +1 for Out-bending
-	
+	int 	mode;
+
+
 	TH3F *	accCorrection;
 	TH3F *	binCorrection;
 	TH3F *	kaonCorrection;
 	TH3F *	rhoCorrection;
 	
-	e_pid ePID;
-	DCfid_SIDIS DC_fid;
+	e_pid epid;
+	DCfid_SIDIS dcfid;
 	electron * e;
 	pion * pi;
 		

@@ -4,23 +4,23 @@
 
 
 analyzer::analyzer(int _fdebug_, int _torusBending_){
-    SetVerbosity    (_fdebug_);
+    //SetVerbosity    (_fdebug_);
     SetTorusBending (_torusBending_);
 }
 
 analyzer::~analyzer(){}
 
-bool 	applyElectronDetectorCuts( electron e );
+//bool 	applyElectronDetectorCuts( electron e );
 //bool 	applyElectronKinematics( electron e );
 
-bool 	applyPionKinematics( pion pi );
+//bool 	applyPionKinematics( pion pi );
 //bool 	applyPionDetectorCuts( pion pi );
 
 //void	loadAcceptanceMatching (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
 //void	loadCorrections (TFile corrFileName); //  -1 for In-bending, +1 for Out-bending
 //void	getCorrections ( electron e, pion pi);
 //void	applyAcceptanceMatching( pion pi );	
-void	printCutValues ();
+//void	printCutValues ();
 //double	fillDetectorHistograms();
 
 
@@ -68,23 +68,274 @@ double analyzer::Chi2PID_pion_upperBound( Double_t p, Double_t C){
     
 }
 
+void analyzer::loadCutValues(int torusBending, double EBeam){
+	epid.setParamsRGB(EBeam);
+}
+
+
+bool analyzer::applyElectronDetectorCuts( electron e ){
+	if (e.getDC_sector() == 0) return false;
+
+
+	double e_DC_x[3] = {e.getDC_x1(), e.getDC_x2(), e.getDC_x3()};
+	double e_DC_y[3] = {e.getDC_y1(), e.getDC_y2(), e.getDC_y3()};
+	double e_DC_z[3] = {e.getDC_z1(), e.getDC_z2(), e.getDC_z3()};
+
+
+
+	for (int regionIdx=0; regionIdx<3; regionIdx++) {
+		// DC_e_fid:
+		// sector:  1-6
+		// layer:   1-3
+		// bending: 0(out)/1(in)
+
+		int bending  = 1 ? (torusBending==-1) : 0;
+		bool DC_fid  = dcfid.DC_fid_xy_sidis( 11,                 // particle PID,
+						e_DC_x[regionIdx],  // x
+						e_DC_y[regionIdx],  // y
+						e.getDC_sector(),        // sector
+						regionIdx+1,        // layer
+						bending );           // torus bending
+		if (DC_fid == false) { return false; }
+	}	
+	
+	if( ! (// fiducial cuts on PCAL
+		e.getW() > e_PCAL_W_min
+		&&  e.getV() > e_PCAL_V_min)) return false;
+
+
+	if( ! (
+		// Electron Identification Refinement  - PCAL Minimum Energy Deposition Cut
+		e.getEpcal() > e_E_PCAL_min)) return false;
+		
+	if(  !(epid.isElectron(&e)) ) return false;
+
+	if( ! (
+		// Sampling fraction cut
+		( (e.getEpcal() + e.getEecin() + e.getEecout())/e.get3Momentum().Mag()) > SamplingFraction_min
+		&& ( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() ) // RGA AN puts "<" here mistakenly
+
+		// Cut on z-vertex position: in-bending torus field -13.0 cm < Vz < +12.0 cm
+		// Spring 19 and Spring 2020 in-bending.
+		// Fall	 2019 (without low-energy-run) was out-bending.
+	) ) return false;
+	
+	/*
+	if( !((aux.cutValue_Vz_min < v_e.Z()) && (v_e.Z() < aux.cutValue_Vz_max))
+	) return false;
+	*/
+
+	if( ! ((e.getVt().Z() > -5) && (e.getVt().Z() < -1))
+		) return false;
+	
+	
+	//dcElectrons++;
+	return true;
+}
+
+bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
+	// decide if pion (pi+ or pi-) passed event selection cuts
+	//
+	// input:
+	// --------
+	// DC_x, DC_y   pi drift-chamber coordinates
+	// chi2PID      pi chi2PID     (pips_chi2PID)
+	// p            pi momentum    (pi.P())
+	//
+
+	if (pi.getDC_sector() == 0) { return false;}
+
+	
+	int PDGcode;
+	double    C;
+	
+	if (pi.getCharge() > 0){
+		C       = 0.88;
+	} 
+	else if (pi.getCharge() < 0) {
+		C       = 0.93;
+	} 
+	else {
+		std::cout << "π charge ill-defined, returning false" << std::endl;
+		return false;
+	}
+
+	double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
+	double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
+	double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
+
+	for (int regionIdx=0; regionIdx<3; regionIdx++) {
+		// DC_e_fid:
+		// sector:  1-6
+		// layer:   1-3
+		// bending: 0(out)/1(in)
+		
+		int bending  = 1 ? (torusBending==-1) : 0;
+		bool DC_fid  = dcfid.DC_fid_th_ph_sidis(pi.getPID(),            // particle PID
+							DC_x[regionIdx],    // x
+							DC_y[regionIdx],    // y
+							DC_z[regionIdx],    // z
+							pi.getDC_sector(),          // sector
+							regionIdx+1,        // layer
+							bending);           // torus bending
+		
+		if (DC_fid == false) { return false; }
+	}
+
+
+	//double chi2PID = pi.getDC_chi2() / pi.getDC_NDF();
+	if(! (
+	
+	// pi+ Identification Refinement - chi2PID vs. momentum
+	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
+         && pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) )
+	
+	)) { return false; }
+       
+	//if( (cuts == 1 || cuts == 3 ) &&  !( fabs((v_e-v_pi).Z()) < aux.cutValue_Ve_Vpi_dz_max )
+	//) { return false; }
+
+	if( !( (pi.getVt() - e.getVt()).Z() > -7 && (pi.getVt() - e.getVt()).Z() < 5 ) ) { return false; }
+	
+	return true;
+}
+
+
+bool analyzer::applyElectronKinematicCuts( electron e ){
+		if( sqrt(e.getW2()) < W_min ) { return false; }
+		if( e.getQ2() < Q2_min || e.getQ2() > Q2_max ) { return false; }
+                if( e.getXb() < xB_min || e.getXb() > xB_max ) { return false; }
+                if( e.getY() > y_max ) { return false; }
+                double p = e.get3Momentum().Mag();
+		if( p < P_e_min || p > P_e_max ) { return false; }
+                double theta = e.get3Momentum().Theta()*rad_to_deg;
+		if( theta < theta_min || theta > theta_max ){ return false; }
+		
+		return true;
+}
+
+
+bool analyzer::applyPionKinematicCuts( pion pi ){
+
+	if ( ( pi.getMx() < Mx_min || pi.getMx() > Mx_max) ) { return false; }
+	//if ( cut_type == 1 && ( M_x[i] < 1.5 || M_x[i] > 5.) ) { return false; }
+	double p = pi.get3Momentum().Mag();
+	if ( p < P_pi_min || p > P_pi_max ) { return false; }
+	if ( pi.getZ() < Z_min  ||  pi.getZ() > Z_max ) { return false; }
+	double theta = pi.get3Momentum().Theta();
+	if ( theta < theta_min || theta > theta_max ){ return false; }
+	return true;
+}
+
+
+bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
+	double theta = pi.get3Momentum().Theta()*rad_to_deg;
+	double p = pi.get3Momentum().Mag();
+	int sector_i = pi.getDC_sector();
+	
+	if( dim == 2 ){
+		
+		double acc_map_pip_min = pips_parameters[sector_i-1][0] + pips_parameters[sector_i-1][1]/p;                      
+                double acc_map_pim_min = pims_parameters[sector_i-1][0] + pims_parameters[sector_i-1][1]/p;
+
+		if ( theta > acc_map_pip_min && theta > acc_map_pim_min ){return true;}
+		else { return false; }
+	}
+	//else if( dim == 3 ){
+
+	//	double phi = pi.get3Momentum().Phi()*rad_to_deg;
+		//if( acceptance_match_3d( phi, theta, p, 0 ) && acceptance_match_3d( phi, theta, p, 1) ){
+	//	if( acceptance_match_3d_cont( phi, theta, p, match3d ) ){ return true; }
+	//	else{ return false; }
+	
+	//}
+	else{
+		std::cout<<"Bad argument for dimensionality of acceptance matching... returning false\n";
+		return false;
+	}
+}
+
+bool acceptance_match_3d( double phi_part, double theta, double p, int charge){
+	
+	//set momentum bins
+	int this_bin_p;
+	for( int i = 0; i < 4; i++ ){
+		if( p > p_bin_edges[i] && p < p_bin_edges[i+1]){ this_bin_p = i; }
+	}
+
+	bool passCut = false;
+	
+	for( int sector = 1; sector <=6; sector++ ){
+		double phi = phi_part;
+		if( sector ==4 && phi < 100. ){ phi += 360; }
+
+		//Get parameters from constants
+		double theta_0 = phi_theta_bowl_theta_min[sector - 1][this_bin_p][1];
+		double phi_0 = phi_theta_bowl_phi0[sector-1][this_bin_p][charge];
+
+		//compute cut value
+		double theta_min = theta_0 + pow( (phi-phi_0), 2 )/( theta_bowl_width - pow( ( phi - phi_0 ), 2 ) );
+
+		//If phi is outside bowl, set theta_min = theta_max
+		if( theta_bowl_width - pow( (phi - phi_0), 2 ) < 0 ){
+			theta_min = 35.;
+		}
+
+		if( theta > theta_min ){ passCut = true; }		
+	}
+	return passCut;
+}
+/*
+bool acceptance_match_3d_cont( double phi_part, double theta, double p, TF1 * fitFuncs[6][3]){
+	
+	//set momentum bins
+	//int this_bin_p;
+	//for( int i = 0; i < 4; i++ ){
+	//	if( p > p_bin_edges[i] && p < p_bin_edges[i+1]){ this_bin_p = i; }
+	//}
+
+	bool passCut[2] = {false, false};
+	for( int charge = 1; charge <= 2; charge++){
+		for( int sector = 0; sector < 6; sector++ ){
+			double phi = phi_part;
+			if( sector ==3 && phi < 100. ){ phi += 360; }
+
+			//Get parameters from constants
+			double theta_0 = fitFuncs[sector][0]->Eval(p);//phi_theta_bowl_theta_min[sector - 1][this_bin_p][1];
+			double phi_0 = fitFuncs[sector][charge]->Eval(p);//phi_theta_bowl_phi0[sector-1][this_bin_p][charge];
+
+			//compute cut value
+			double theta_min = theta_0 + pow( (phi-phi_0), 2 )/( theta_bowl_width - pow( ( phi - phi_0 ), 2 ) );
+
+			//If phi is outside bowl, set theta_min = theta_max
+			if( theta_bowl_width - pow( (phi - phi_0), 2 ) < 0 ){
+				theta_min = 35.;
+			}
+			//cout<<"theta min cont"<<theta_min<<endl;
+			if( theta > theta_min ){ passCut[charge-1] = true; }		
+		}
+	}
+	return (passCut[0] && passCut[1]);
+}
+*/
+/*
 void analyzer::loadCutValues(int torusBending){
-    // read cut values csv file
-    
-    char cutFileName[100];
-    sprintf(cutFileName,"%s/BANDcutValues.csv",std::string(_DATA).c_str());
-    
-    cutValues = csvr.read_csv(cutFileName);
-    
-    if (torusBending==-1){ // in-bending torus field
-        // Spring 19 and Spring 2020 in-bending.
-        cutValue_Vz_min = FindCutValue("Vz_e_min_inbending");
-        cutValue_Vz_max = FindCutValue("Vz_e_max_inbending");
-    } else if (torusBending==1){ // Out-bending torus field
-        // Fall 2019 (without low-energy-run) was out-bending.
-        cutValue_Vz_min = FindCutValue("Vz_e_min_outbending");
-        cutValue_Vz_max = FindCutValue("Vz_e_max_outbending");
-        
+// read cut values csv file
+
+char cutFileName[100];
+sprintf(cutFileName,"%s/BANDcutValues.csv",std::string(_DATA).c_str());
+
+cutValues = csvr.read_csv(cutFileName);
+
+if (torusBending==-1){ // in-bending torus field
+// Spring 19 and Spring 2020 in-bending.
+cutValue_Vz_min = FindCutValue("Vz_e_min_inbending");
+cutValue_Vz_max = FindCutValue("Vz_e_max_inbending");
+} else if (torusBending==1){ // Out-bending torus field
+// Fall 2019 (without low-energy-run) was out-bending.
+cutValue_Vz_min = FindCutValue("Vz_e_min_outbending");
+cutValue_Vz_max = FindCutValue("Vz_e_max_outbending");
+
     } else {
         std::cout
         << "Un-identified torus bending "
@@ -116,6 +367,7 @@ void analyzer::loadCutValues(int torusBending){
     
     if (fdebug>2) { printCutValues(); }
 }
+
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 void analyzer::printCutValues(){
@@ -166,7 +418,7 @@ void analyzer::SetTorusBendingFromRunNumber ( Int_t RunNumber ){
         this->torusBending = 0;
     }
 }
-
+*/
 
 
 // Oo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.
@@ -177,7 +429,7 @@ double analyzer::ComputeLightConeFraction( TLorentzVector p ){
     return alpha;
 }
 
-
+/*
 // Oo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.
 bool analyzer::eepiPassedKinematicalCriteria(Double_t Ebeam,
                                                           Double_t omega,
@@ -207,7 +459,7 @@ bool analyzer::eepiPassedKinematicalCriteria(Double_t Ebeam,
     
     return false;
 }
-
+*/
 
 
 // Oo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.

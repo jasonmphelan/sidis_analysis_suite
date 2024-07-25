@@ -158,7 +158,8 @@ void pion::setKinematicInformation(TLorentzVector q, TLorentzVector pe, clas12::
 
 
 void pion::setDetectorInformation(clas12::region_part_ptr rp){
-	//setCharge( rp->par()->getCharge() );
+	setCharge( rp->par()->getCharge() );
+	setPID ( (int) (211*Charge) );
 
 	//check if momentum set:
 	if( pi4.P() == 0 ){ setMomentum(rp); }

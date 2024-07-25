@@ -5,7 +5,7 @@
 #include "TString.h"
 #include "TMath.h"
 
-#include "clashit.h"
+#include "electron.h"
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
@@ -28,7 +28,7 @@ e_pid::~e_pid(){
 }
 
 
-bool e_pid::isElectron(clashit * eHit){
+bool e_pid::isElectron(electron * eHit){
 
 	//if any of the energy values is 0, cut away the electron
 	if (eHit->getEpcal() == 0 || eHit->getEoP() == 0 || eHit->getEecin() == 0) {
@@ -36,8 +36,8 @@ bool e_pid::isElectron(clashit * eHit){
 	}
 	
 	//bool passSFEpcal = SF_Epcal_Cut(eHit->getSector()-1,eHit->getEpcal(),eHit->getEoP());
-	bool passSFMom = SF_Mom_Cut(eHit->getSector()-1,eHit->getMomentum(),eHit->getEoP());
-	//bool passSFpi = SFpcal_SFecin_Cut(eHit->getMomentum(),eHit->getEpcal(),eHit->getEecin());
+	bool passSFMom = SF_Mom_Cut(eHit->getSector()-1,eHit->get3Momentum().Mag(),eHit->getEoP());
+	//bool passSFpi = SFpcal_SFecin_Cut(eHit->get3Momentum().Mag(),eHit->getEpcal(),eHit->getEecin());
 
 	//For Debugging
 	//std::cout << "ePID: passSFEpcal = " << passSFEpcal << " , passSFMom = " << passSFMom << " , passSFpi = " << passSFpi << std::endl;
@@ -52,11 +52,11 @@ bool e_pid::isElectron(clashit * eHit){
 	return true;
 
 }
-bool e_pid::isElectronLoose(clashit * eHit){
+bool e_pid::isElectronLoose(electron * eHit){
 
 	bool passSFEpcal = SF_Epcal_Cut(eHit->getSector()-1,eHit->getEpcal(),eHit->getEoP());
-	bool passSFMom = SF_Mom_Cut(eHit->getSector()-1,eHit->getMomentum(),eHit->getEoP());
-	bool passSFpi = SFpcal_SFecin_Cut(eHit->getMomentum(),eHit->getEpcal(),eHit->getEecin());
+	bool passSFMom = SF_Mom_Cut(eHit->getSector()-1,eHit->get3Momentum().Mag(),eHit->getEoP());
+	bool passSFpi = SFpcal_SFecin_Cut(eHit->get3Momentum().Mag(),eHit->getEpcal(),eHit->getEecin());
 
 	if(eHit->getPID() != 11){ return false; }
 	if(eHit->getCharge() != -1){ return false; }

@@ -136,7 +136,7 @@ void electron::setKinematicInformation( double Ebeam, clas12::region_part_ptr rp
 	setOmega( q.E() );
     	setXb( Q2/(2. * Mp * q.E()) );
 	setY( Omega / Ebeam );
-    	setW( (double)sqrt((p_rest + q).Mag2()) );
+    	setW2( (double)((p_rest + q).Mag2()) );
     	//setW_d( sqrt((d_rest + q).Mag2()) );
 	return;
 }

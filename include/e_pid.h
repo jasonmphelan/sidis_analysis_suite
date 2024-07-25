@@ -4,7 +4,7 @@
 #include "TF1.h"
 #include "TCanvas.h"
 
-class clashit;
+class electron;
 class e_pid{
 
 public:
@@ -12,8 +12,8 @@ public:
 	e_pid();
 	~e_pid();
 
-	bool isElectron(clashit * eHit);
-	bool isElectronLoose(clashit * eHit);
+	bool isElectron(electron * eHit);
+	bool isElectronLoose(electron * eHit);
 
 	void setParamsRGB(double Ebeam);
 	void fillParams();

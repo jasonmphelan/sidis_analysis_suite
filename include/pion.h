@@ -1,5 +1,5 @@
-#ifndef __ELECTRON_H__
-#define __ELECTRON_H__
+#ifndef __PION_H__
+#define __PION_H__
 
 #include "TObject.h"
 #include "TVector3.h"

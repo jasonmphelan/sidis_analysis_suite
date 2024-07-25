@@ -14,7 +14,35 @@ namespace cutVals{
 	const double xB_min = .1;
 	const double xB_max = .6;
 	const int bins_xB = 10;
+
 	
+	const double e_PCAL_W_min=15.0;
+	const double e_PCAL_V_min=15.0;
+	const double e_E_PCAL_min=0.07;
+	const double PCAL_ECIN_SF_min=0;
+	
+	const double y_max=0.75;
+	const double W_min=2.5;
+	const double W_max=100;
+	const double theta_min=5.; //For both e and pi
+	const double theta_max=35.;
+	const double P_pi_min=1.25;
+	const double P_pi_max=5.0;
+	const double P_e_min=3.0;
+	const double P_e_max=10.6;
+
+	const double Mx_min = 1.7;
+	const double Mx_max = 5.0;
+
+	//Legacy cuts ("loose")
+	const double SamplingFraction_min=0.17;
+	const double Vz_e_min_inbending_loose = -13.0;	
+	const double Vz_e_max_inbending_loose = 12.0;
+	const double Vz_e_min_outbending_loose = -18.0;
+	const double Vz_e_max_outbending_loose = 10.0;
+	const double deltaVz_loose	=	20.0;
+	const double Mx_min_loose = 1.5;
+
 	const double pips_parameters[6][2] = {{5.83055147, 1.16171268},
                        {5.78469108, 0.80349681},
                        {5.844136,   0.53329847},
