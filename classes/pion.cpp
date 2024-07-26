@@ -88,7 +88,7 @@ void pion::Clear(){
 	Beta_rich	= 0;
 }
 
-void pion::Print(){
+void pion::PrintDetectorInfo(){
 
 	std::cout << "clashit Information REC: PID " << PID << " , Charge " << Charge << " , Status " << Status;
 	std::cout << ", Sector(Calo) " << Sector << " , Chi2 " << Chi2 << ", Time " << Time << " , Beta " << Beta << std::endl;
@@ -104,6 +104,15 @@ void pion::Print(){
 	//std::cout << ", Q2 " << Q2 << " , Omega/nu " << Omega << " , Xb " << Xb << " , W2 " << W2 << std::endl;
 	//std::cout << "clashit Information q-vector: Magitude(q) " << Q << " , ThetaQ " << ThetaQ << " ,PhiQ " << PhiQ << std::endl;
 	
+}
+
+void pion::PrintKinematicInfo(){
+	double Momentum = pi3.Mag();
+	double Theta = pi3.Theta();
+	double Phi = pi3.Phi();
+
+	std::cout << "clashit Information Kinematics: Momentum " << Momentum << " , Theta " << Theta << " ,Phi " << Phi << std::endl;
+	std::cout << ", Z " << Z << " , Mx " << Mx << std::endl;
 }
 
 void pion::setVt(clas12::region_part_ptr rp){

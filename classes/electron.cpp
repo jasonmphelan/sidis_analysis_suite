@@ -89,7 +89,7 @@ void electron::Clear(){
 	Beta_rich	= 0;
 }
 
-void electron::Print(){
+void electron::PrintDetectorInfo(){
 
 	std::cout << "clashit Information REC: PID " << PID << " , Charge " << Charge << " , Status " << Status;
 	std::cout << ", Sector(Calo) " << Sector << " , Chi2 " << Chi2 << ", Time " << Time << " , Beta " << Beta << std::endl;
@@ -101,7 +101,14 @@ void electron::Print(){
 	std::cout << ", DC_x1 " << DC_x1 << " , DC_y1 " << DC_y1 << " , DC_z1 " << DC_z1 << std::endl;
 	std::cout << "clashit Information DC: DC_x2 " << DC_x2 << " , DC_y2 " << DC_y2<< " , DC_z2 " << DC_z2;
 	std::cout << ", DC_x3 " << DC_x3 << " , DC_y3 " << DC_y3 << " , DC_z3 " << DC_z3 << std::endl;
-	//std::cout << "clashit Information Kinematics: Momentum " << Momentum << " , Theta " << Theta << " ,Phi " << Phi;
+}
+
+void electron::PrintKinematicInfo(){
+	double Momentum = e3.Mag();
+	double Theta = e3.Theta();
+	double Phi = e3.Phi();
+
+	std::cout << "clashit Information Kinematics: Momentum " << Momentum << " , Theta " << Theta << " ,Phi " << Phi;
 	std::cout << ", Q2 " << Q2 << " , Omega/nu " << Omega << " , Xb " << Xb << " , W2 " << W2 << std::endl;
 	//std::cout << "clashit Information q-vector: Magitude(q) " << Q << " , ThetaQ " << ThetaQ << " ,PhiQ " << PhiQ << std::endl;
 	

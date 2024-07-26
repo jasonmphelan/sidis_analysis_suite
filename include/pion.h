@@ -14,7 +14,8 @@ class pion{// : public TObject {
 
 
 		void Clear();
-		void Print();
+		void PrintDetectorInfo();
+		void PrintKinematicInfo();
 
 
 		// Particle

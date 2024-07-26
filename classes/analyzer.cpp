@@ -217,12 +217,13 @@ bool analyzer::applyElectronKinematicCuts( electron e ){
 
 bool analyzer::applyPionKinematicCuts( pion pi ){
 
+
 	if ( ( pi.getMx() < Mx_min || pi.getMx() > Mx_max) ) { return false; }
 	//if ( cut_type == 1 && ( M_x[i] < 1.5 || M_x[i] > 5.) ) { return false; }
 	double p = pi.get3Momentum().Mag();
 	if ( p < P_pi_min || p > P_pi_max ) { return false; }
 	if ( pi.getZ() < Z_min  ||  pi.getZ() > Z_max ) { return false; }
-	double theta = pi.get3Momentum().Theta();
+	double theta = pi.get3Momentum().Theta()*rad_to_deg;
 	if ( theta < theta_min || theta > theta_max ){ return false; }
 	return true;
 }
