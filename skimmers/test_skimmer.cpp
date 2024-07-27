@@ -167,7 +167,6 @@ int main( int argc, char** argv){
 		
 			
 			e.Clear();
-
 			pi.clear();
 			
 			Ne = Npi = Npips = Npims = 0;
@@ -183,17 +182,10 @@ int main( int argc, char** argv){
 			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );
 			
 			Ne      = electrons.size();
-			//Npips   = pipluses.size();
-			//Npims   = piminuses.size();
 			Npi 	= pions.size();
 			
-			//if( Ne != 1 ){ continue; } //Keep only events with one electron...
 			if( Ne < 1 ){ continue; } //Keep only events with one electron...
 			if( Npi == 0 && inclusive != 1 ){ continue; }	
-			//if( Npi != Npips + Npims ){ 
-			//	cout<<"ERROR IN COMBINING PIPLUS AND PIMINUS!!!\n";
-			//	break;
-			//}
 		
 			
 			//////////////electron analysis////////////////////
@@ -212,7 +204,6 @@ int main( int argc, char** argv){
 			
 				pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
 				if( !anal.applyPionDetectorCuts( pi_dummy, e ) ) {continue;}
-
 				pi.push_back(pi_dummy);
 
 			}

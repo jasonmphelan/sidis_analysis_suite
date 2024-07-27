@@ -5,6 +5,7 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
 #include "region_particle.h"
+#include "rich.h"
 #include <vector>
 
 class pion{// : public TObject {

@@ -1,5 +1,6 @@
 // Erez O. C., Oct-6, 2021
 #include "analyzer.h"
+#include "TFile.h"
 #define CUT_PATH _DATA
 
 
@@ -242,21 +243,22 @@ bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
 		if ( theta > acc_map_pip_min && theta > acc_map_pim_min ){return true;}
 		else { return false; }
 	}
-	//else if( dim == 3 ){
+	else if( dim == 3 ){
 
-	//	double phi = pi.get3Momentum().Phi()*rad_to_deg;
+		double phi = pi.get3Momentum().Phi()*rad_to_deg;
 		//if( acceptance_match_3d( phi, theta, p, 0 ) && acceptance_match_3d( phi, theta, p, 1) ){
-	//	if( acceptance_match_3d_cont( phi, theta, p, match3d ) ){ return true; }
-	//	else{ return false; }
+		if( acceptance_match_3d_cont( phi, theta, p, match3d, 0 ) > -1
+			&& acceptance_match_3d_cont( phi, theta, p, match3d, 1 ) > -1   ){ return true; }
+		else{ return false; }
 	
-	//}
+	}
 	else{
 		std::cout<<"Bad argument for dimensionality of acceptance matching... returning false\n";
 		return false;
 	}
 }
 
-bool acceptance_match_3d( double phi_part, double theta, double p, int charge){
+int analyzer::acceptance_match_3d( double phi_part, double theta, double p, int charge){
 	
 	//set momentum bins
 	int this_bin_p;
@@ -264,7 +266,7 @@ bool acceptance_match_3d( double phi_part, double theta, double p, int charge){
 		if( p > p_bin_edges[i] && p < p_bin_edges[i+1]){ this_bin_p = i; }
 	}
 
-	bool passCut = false;
+	int passCut = -1;
 	
 	for( int sector = 1; sector <=6; sector++ ){
 		double phi = phi_part;
@@ -282,43 +284,52 @@ bool acceptance_match_3d( double phi_part, double theta, double p, int charge){
 			theta_min = 35.;
 		}
 
-		if( theta > theta_min ){ passCut = true; }		
+		if( theta > theta_min ){ passCut = sector - 1; }		
 	}
 	return passCut;
 }
-/*
-bool acceptance_match_3d_cont( double phi_part, double theta, double p, TF1 * fitFuncs[6][3]){
-	
-	//set momentum bins
-	//int this_bin_p;
-	//for( int i = 0; i < 4; i++ ){
-	//	if( p > p_bin_edges[i] && p < p_bin_edges[i+1]){ this_bin_p = i; }
-	//}
-
-	bool passCut[2] = {false, false};
-	for( int charge = 1; charge <= 2; charge++){
-		for( int sector = 0; sector < 6; sector++ ){
-			double phi = phi_part;
-			if( sector ==3 && phi < 100. ){ phi += 360; }
-
-			//Get parameters from constants
-			double theta_0 = fitFuncs[sector][0]->Eval(p);//phi_theta_bowl_theta_min[sector - 1][this_bin_p][1];
-			double phi_0 = fitFuncs[sector][charge]->Eval(p);//phi_theta_bowl_phi0[sector-1][this_bin_p][charge];
-
-			//compute cut value
-			double theta_min = theta_0 + pow( (phi-phi_0), 2 )/( theta_bowl_width - pow( ( phi - phi_0 ), 2 ) );
-
-			//If phi is outside bowl, set theta_min = theta_max
-			if( theta_bowl_width - pow( (phi - phi_0), 2 ) < 0 ){
-				theta_min = 35.;
-			}
-			//cout<<"theta min cont"<<theta_min<<endl;
-			if( theta > theta_min ){ passCut[charge-1] = true; }		
-		}
+int analyzer::acceptance_match_3d_cont( double phi_part, double theta, double p, TF1 * fitFuncs[6][3], int chargeIdx){
+	if( chargeIdx < 0 || chargeIdx > 1 ){
+		std::cout<<"Invalid Charge Index... returning -1\n";
+		return -1;
 	}
-	return (passCut[0] && passCut[1]);
+	
+	for( int sector = 0; sector < 6; sector++ ){
+		double phi = phi_part;
+		if( sector ==3 && phi < 100. ){ phi += 360; }
+		//Get parameters from constants
+		double theta_0 = fitFuncs[sector][0]->Eval(p);//phi_theta_bowl_theta_min[sector - 1][this_bin_p][1];
+		double phi_0 = fitFuncs[sector][chargeIdx]->Eval(p);//phi_theta_bowl_phi0[sector-1][this_bin_p][charge];
+
+		//compute cut value
+		double theta_min = theta_0 + pow( (phi-phi_0), 2 )/( theta_bowl_width - pow( ( phi - phi_0 ), 2 ) );
+
+		//If phi is outside bowl, set theta_min = theta_max
+		if( theta_bowl_width - pow( (phi - phi_0), 2 ) < 0 ){
+			theta_min = 35.;
+		}
+		if( theta > theta_min ){ return sector; }		
+	}
+	return -1;
 }
-*/
+
+void analyzer::loadMatchingFunctions( TString fileName ){
+
+	TFile matchFile3D( (TString) CUT_PATH + "/acceptance_matching/" + fileName);
+
+	TString chargeType[2] = {"pip", "pim"};	
+
+	for( int i = 0; i < 6; i++ ){
+		
+		match3d[i][0] = (TF1 *)matchFile3D.Get(Form("fTheta0_%i", i));
+		match3d[i][1] = (TF1 *)matchFile3D.Get(Form("fPhi0_pip_%i", i));
+		match3d[i][2] = (TF1 *)matchFile3D.Get(Form("fPhi0_pim_%i", i));
+	}
+}
+
+void analyzer::loadMatchingFunctions(){
+	loadMatchingFunctions("matchCut3d.root");
+}
 /*
 void analyzer::loadCutValues(int torusBending){
 // read cut values csv file

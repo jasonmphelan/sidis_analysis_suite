@@ -46,6 +46,10 @@ public:
 	void	SetTorusBending (int _torusBending_)   {torusBending = _torusBending_;}
 	double	ComputeLightConeFraction ( TLorentzVector p );
 	double	calcQStar ( TVector3 eP3, TVector3 piP3, double Ebeam );
+	void loadMatchingFunctions( TString fileName );
+	void loadMatchingFunctions();
+	int acceptance_match_3d_cont( double phi_part, double theta, double p, TF1 * fitFuncs[6][3], int chargeIdx);
+	int acceptance_match_3d( double phi_part, double theta, double p, int charge);
 	//double	fillDetectorHistograms();
 
 private:
@@ -58,7 +62,10 @@ private:
 	TH3F *	binCorrection;
 	TH3F *	kaonCorrection;
 	TH3F *	rhoCorrection;
-	
+
+
+	TF1 * match3d[6][3];
+
 	e_pid epid;
 	DCfid_SIDIS dcfid;
 	electron * e;

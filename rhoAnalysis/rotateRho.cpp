@@ -21,24 +21,14 @@
 #include "TTreeReaderArray.h"
 #include "TEventList.h"
 #include "TRandom3.h"
-
-#ifdef __CINT__
-#pragma link C++ class std::vector<TVector3>+;
-#pragma link C++ class vector<TVector3>+;
-#pragma link C++ class std::vector<TLorentzVector>+;
-#pragma link C++ class vector<TLorentzVector>+;
-#pragma link C++ class std::vector<clashit>+;
-#pragma link C++ class vector<clashit>+;
-#endif
+#include "CLAS.h"
+#include "electron.h"
+#include "pion.h"
 
 using std::cerr;
 using std::isfinite;
 using std::cout;
 using std::ofstream;
-
-const double m_e = 0.0005;
-const double m_p = 0.9383;
-const double m_pi = 0.1296;
 
 TVector3 rotate_to_beam_frame( TLorentzVector q, TLorentzVector p_e, TLorentzVector pi_q );
 
@@ -60,15 +50,8 @@ int main( int argc, char** argv){
 	//Load input tree
         TTreeReader reader_rec("ePi", file_rec);
 
-	TTreeReaderValue<double> Ebeam_ptr(reader_rec, "Ebeam");
-        TTreeReaderValue<TLorentzVector> p_e(reader_rec, "p_e");
-        TTreeReaderValue<TVector3> v_e(reader_rec, "v_e");
-        TTreeReaderValue<TLorentzVector> q(reader_rec, "q");
-
-        TTreeReaderArray<TLorentzVector> p_pi(reader_rec, "p_pi");
-        TTreeReaderArray<TLorentzVector> pi_q(reader_rec, "pi_q");
-        TTreeReaderArray<TVector3> v_pi(reader_rec, "v_pi");
-	TTreeReaderArray<int> charge(reader_rec, "charge");
+	TTreeReaderValue<electron> e(reader_rec, "e");
+	TTreeReaderArray<pion> pi(reader_rec, "pi");
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
@@ -80,15 +63,15 @@ int main( int argc, char** argv){
 		double deltaPhi_lab = 2*TMath::Pi()*(gen.Rndm());
 		double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm()); 
 		
-		TVector3 e_mom = p_e->Vect();
+		TVector3 e_mom = e->get3Momentum();
 		TVector3 pi_mom[2];
 
 		for( int i = 0; i < 2; i++ ){	
 			//rotate pion
-			TVector3 pi_q_mom = pi_q[i].Vect();
+			TVector3 pi_q_mom = pi[i].getPi_q().Vect();
 			pi_q_mom.RotateZ( deltaPhi_q );
 			
-			pi_mom[i] = rotate_to_beam_frame( *q, *p_e, pi_q[i] );
+			pi_mom[i] = rotate_to_beam_frame( e->getQ(), e->get4Momentum(), pi[i].getPi_q() );
 			pi_mom[i].RotateZ( deltaPhi_lab );
 
 		}	

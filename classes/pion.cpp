@@ -100,6 +100,7 @@ void pion::PrintDetectorInfo(){
 	std::cout << ", DC_x1 " << DC_x1 << " , DC_y1 " << DC_y1 << " , DC_z1 " << DC_z1 << std::endl;
 	std::cout << "clashit Information DC: DC_x2 " << DC_x2 << " , DC_y2 " << DC_y2<< " , DC_z2 " << DC_z2;
 	std::cout << ", DC_x3 " << DC_x3 << " , DC_y3 " << DC_y3 << " , DC_z3 " << DC_z3 << std::endl;
+	std::cout << "RICH information: Beta "<<Beta_rich<<std::endl;
 	//std::cout << "clashit Information Kinematics: Momentum " << Momentum << " , Theta " << Theta << " ,Phi " << Phi;
 	//std::cout << ", Q2 " << Q2 << " , Omega/nu " << Omega << " , Xb " << Xb << " , W2 " << W2 << std::endl;
 	//std::cout << "clashit Information q-vector: Magitude(q) " << Q << " , ThetaQ " << ThetaQ << " ,PhiQ " << PhiQ << std::endl;
