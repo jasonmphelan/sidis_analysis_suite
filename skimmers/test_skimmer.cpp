@@ -29,19 +29,16 @@
 //#include "e_pid.h"
 #include "HipoChain.h"
 #include "constants.h"
+#include "reader.h"
 
 using namespace clas12;
 using namespace constants;
-
-void getRunFiles(TString path, TString runList, clas12root::HipoChain &files, int runType, int nFiles, int beamType);
 
 int GetBeamHelicity( event_ptr p_event, int runnum, int fdebug );
 
 int GetLeadingElectron(std::vector<region_part_ptr> rp, int Ne);
 
 int GetLeadingElectron(std::vector<int>electrons, int Ne, clas12reader * c12);
-
-void setDataPaths( int runType, double eBeam, TString &dataPath, string &runList );
 
 int FindMatch(TLorentzVector p, mcpar_ptr mcparts, std::vector<int> part_list, int PID);
 
@@ -55,16 +52,16 @@ int main( int argc, char** argv){
 
 	if( argc < 7 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [# of Files] [Debug mode (0, 1)] [Beam energy]\n";
-		cerr << "	[Run Type] [Inclusive (0, 1)] [Output File Name]\n";
+		cerr << "./code [# of Files] [Beam energy]\n";
+		cerr << "	[Run Type] [Single File?] [Inclusive (0, 1)] [Output File Name (no extension)]\n";
 		return -1;
 	}
 	
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
-        int fdebug = atoi(argv[2]);
-       	double Ebeam = atof(argv[3]); // [GeV]
-	int RunType = atoi(argv[4]);
+       	double Ebeam = atof(argv[2]); // [GeV]
+	int RunType = atoi(argv[3]);
 	int inclusive =atoi( argv[5]);
+	int singleFile =atoi( argv[4]);
 	TString outFileName = argv[6]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
 
 	
@@ -74,30 +71,27 @@ int main( int argc, char** argv){
 		Ebeam = 10.2;
 	}
     	
+	if( singleFile != 0 && singleFile != 1 ){
+		cout<<"Invalid entry for number of output files : "<<singleFile<<std::endl;
+		cout<<"Outputting single file\n";
+	}
+
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
 	anal.setAnalyzerLevel(0);
 	anal.loadCutValues(-1, Ebeam);
-
 	
-	// Set input file list    
-	// Only seems to work with hipo chain method...
-
-	TString DataPath;
-	string runList;
+	reader runReader;
+	runReader.setNumFiles( nFiles);
+	runReader.setRunType( RunType );
+	runReader.setEnergy( Ebeam );
+	
 	clas12root::HipoChain files;
-
-
-	setDataPaths( RunType, Ebeam, DataPath, runList );	
-	getRunFiles( DataPath, runList, files, RunType, nFiles, (int)( ( Ebeam - 10.2 )/0.2 ) );
+       	runReader.readRunFiles(files);
 
 	cout<<"Set output files"<<endl;
-	// Set Output file and tree
-	TFile * outputFile = new TFile(outFileName, "RECREATE");
-	TTree * outTree = new TTree("ePi", "(e,e'pi) event  information");
-
-
+	
 	// Set output variables
 	int Ne,Npi, Npips, Npims, runnum, evnum;
 	double torus_setting;
@@ -110,23 +104,33 @@ int main( int argc, char** argv){
 	std::vector<pion> pi ;
 	
 	std::vector<region_part_ptr> electrons, pions, pipluses, piminuses; //For reading from hipo file... not outputted
-	
-	// Set output branches
-	cout<<"Declare trees"<<endl;
-	outTree->Branch("runnum", &runnum);
-	outTree->Branch("torus", &torusBending);
-	outTree->Branch("evnum", &evnum);
-	outTree->Branch("Ebeam", &Ebeam);
-	outTree->Branch("beam", &beam);
-	
-	outTree->Branch("Ne", &Ne);
-	outTree->Branch("e", &e);
-		
-	outTree->Branch("Npi", &Npi);
-	outTree->Branch("Npips", &Npips);
-	outTree->Branch("Npims", &Npims);
 
-	outTree->Branch("pi", &pi);
+	
+	// Set Output file and tree
+	TFile * outputFile;
+	TTree * outTree;
+	
+	if( singleFile == 1 ){
+		outputFile = new TFile(outFileName + ".root", "RECREATE");
+		outTree = new TTree("ePi", "(e,e'pi) event  information");
+
+		// Set output branches
+		cout<<"Declare trees"<<endl;
+		outTree->Branch("runnum", &runnum);
+		outTree->Branch("torus", &torusBending);
+		outTree->Branch("evnum", &evnum);
+		outTree->Branch("Ebeam", &Ebeam);
+		outTree->Branch("beam", &beam);
+		
+		outTree->Branch("Ne", &Ne);
+		outTree->Branch("e", &e);
+			
+		outTree->Branch("Npi", &Npi);
+		outTree->Branch("Npips", &Npips);
+		outTree->Branch("Npims", &Npims);
+
+		outTree->Branch("pi", &pi);
+	}
 	
 	double accCharge = 0;
 	int goodElectron = 0;
@@ -134,8 +138,7 @@ int main( int argc, char** argv){
 
 	////////////////////////////////////Begin file loop////////////////////////////////////////////////////
     	for(Int_t i=0;i< files.GetNFiles();i++){//files->GetEntries();i++){
-    	    	if (fdebug) std::cout << "reading file " << i+1 <<" of "<<files.GetNFiles()<<"\n ---------------------------------------------------"<< std::endl;
-	   	
+    	    	std::cout << "reading file " << i+1 <<" of "<<files.GetNFiles()<<"\n ---------------------------------------------------"<< std::endl;   	
 		//Only skim desired number of files
 		if(nFiles != 0 && i > nFiles){break;}	
 	
@@ -143,6 +146,35 @@ int main( int argc, char** argv){
 		//create the event reader
 		//clas12reader c12(files->At(i)->GetTitle(),{0});
 		clas12reader c12(files.GetFileName(i).Data());
+		//TFile * outputFile = new TFile(outFileName + Form("_%i.root", (int) runnum ), "RECREATE");
+		//TTree * outTree = new TTree("ePi", "(e,e'pi) event  information");
+	
+		cout<<"DECLARE OUTPUT FILE\n";	
+		if( singleFile == 0 ){
+			outputFile = new TFile(outFileName + Form("_%i.root", runReader.getRunNum(i) ), "RECREATE");
+			outTree = new TTree("ePi", "(e,e'pi) event  information");
+
+			// Set output branches
+			cout<<"Declare trees"<<endl;
+			outTree->Branch("runnum", &runnum);
+			outTree->Branch("torus", &torusBending);
+			outTree->Branch("evnum", &evnum);
+			outTree->Branch("Ebeam", &Ebeam);
+			outTree->Branch("beam", &beam);
+		
+			outTree->Branch("Ne", &Ne);
+			outTree->Branch("e", &e);
+		
+			outTree->Branch("Npi", &Npi);
+			outTree->Branch("Npips", &Npips);
+			outTree->Branch("Npims", &Npims);
+
+			outTree->Branch("pi", &pi);
+		}
+
+
+
+
 		auto mcparts = c12.mcparts();		
 
 		int NeventsTotal = c12.getReader().getEntries();       
@@ -156,8 +188,8 @@ int main( int argc, char** argv){
 			//if(event > 10000){break;}	
 			//Get run and event info	
 			
-			runnum = c12.runconfig()->getRun();
 			evnum  = c12.runconfig()->getEvent();
+			runnum = c12.runconfig()->getRun();
 			
 			///////////////////////////Initialize variables//////////////////////////////////////////////	
 			electrons.clear();
@@ -215,13 +247,25 @@ int main( int argc, char** argv){
 			outTree->Fill();
 			
 		}
-	
+		std::cout<<"Finished File!\n";
+   		if( singleFile == 0 ){
+			std::cout<<"Writing file!\n";
+			outputFile->cd();
+    			outTree->Write();
+			outputFile->Close();
+		}
 	}
-       
-   	outputFile->cd();
-    	outTree->Write();
-	outputFile->Close();
 
+	std::cout<< "Finished File loop! \n";
+	
+	if( singleFile == 1 ){
+		std::cout<<"Writing tree to file\n";
+   		outputFile->cd();
+    		outTree->Write();
+		outputFile->Close();
+	}
+	
+	std::cout<<"Done!\n";
 
 	auto finish = std::chrono::high_resolution_clock::now();
     	std::chrono::duration<double> elapsed = finish - start;
@@ -235,97 +279,6 @@ int main( int argc, char** argv){
 //...................... END OF MAIN.................................//
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
-
-void setDataPaths( int runType, double eBeam, TString &dataPath, string &runList ){
-
-	if(runType == 1){
-    		//dataPath = Form("/volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/%.1f/job_%i/output/%i-",eBeam, job, job);//reco_out/clasdis_rec_", eBeam);
-    		dataPath = "/volatile/clas12/osg/jphelan/job_";
-    		//dataPath = "/volatile/clas12/osg/jphelan/job_7393/output/7393-";//reco_out/clasdis_rec_", eBeam);
-    		//dataPath = Form("/volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/%.1f/reco_out/clasdis_rec_", eBeam);
-    		//dataPath = "/work/clas12/users/jphelan/SIDIS_at_BAND/generator/dst_";
-	}
-	
-	else if( runType == 2 ){
-    		//dataPath = Form("/volatile/clas12/users/jphelan/SIDIS/GEMC/claspyth/%.1f/proton/reco_out/claspyth_rec_", eBeam);
-    		dataPath = "/volatile/clas12/osg/jphelan/job_";
-    	}
-	
-	else if( runType == 3 ){
-		dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/reco_out/reco_rho_";
-    	}
-	
-
-	else{ //runType == 0 is data
-		TString path_temp;
-	
-		if(eBeam == 10.6){ 
-			runList = "/work/clas12/users/jphelan/SIDIS_at_BAND/macros/runlists/good_runs_10-6.txt";
-			path_temp = "spring2019/torus-1/pass2/v0/dst/train/sidisdvcs/sidisdvcs_";
-		}
-	
-		else if(eBeam == 10.4){ 
-			runList = "/work/clas12/users/jphelan/SIDIS_at_BAND/macros/runlists/good_runs_10-4.txt";
-			path_temp = "spring2020/torus-1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_";
-		}
-	
-		else{
-			runList = "/work/clas12/users/jphelan/SIDIS_at_BAND/macros/runlists/good_runs_10-2-final.txt";
-			path_temp = "spring2019/torus-1/pass2/v0/dst/train/sidisdvcs/sidisdvcs_";
-    		}
-    		
-		dataPath = "/cache/clas12/rg-b/production/recon/"+path_temp;	
-    	}
-}
-
-void getRunFiles(TString path, TString runList, clas12root::HipoChain &files, int runType, int nFiles, int beamType){
-	std::ifstream stream;
-	stream.open(runList);
-	string runNum;
-	TString inFile;
-	if(runType == 0){
-		int i = 0;
-		while(std::getline(stream, runNum)){
-			if(nFiles != 0 && i >= nFiles ) break;
-			TString run(runNum);
-			inFile = path + run+".hipo";
-			cout<<inFile<<std::endl;
-			files.Add(inFile.Data());		
-			i++;
-		}
-	}
-	else if (runType == 1){
-		for( int j = 0; j < nRuns[beamType]; j++ ){
-			for( int i = 0; i < 75000; i++){
-				if( nFiles != 0 && i >= nFiles ) break;
-				inFile = path + Form("%i/output/%i-%i.hipo", monteCarloRuns[beamType][j], monteCarloRuns[beamType][j], i+1);
-				if( gSystem->AccessPathName(inFile) ) continue;
-				files.Add(inFile.Data());
-			}
-		}
-	}
-	else {
-		for( int i = 0; i < 18; i++){
-			if( nFiles != 0 && i >= nFiles ) break;
-			inFile = path + Form("%i.hipo", i);
-			//if( gSystem->AccessPathName(inFile) ) continue;
-			files.Add(inFile.Data());
-		}
-	}
-
-	//else{
-	//	for( int i = 0; i < 1000; i++){
-	//		if( nFiles != 0 && i >= nFiles ) break;
-	//		inFile = path + Form("%i.hipo", i+1);
-	//		if( gSystem->AccessPathName(inFile) ) continue;
-	//		files.Add(inFile.Data());
-	//	}
-	//}
-}
-
-
-
-
 
 int GetBeamHelicity( event_ptr p_event, int runnum, int fdebug ){
 

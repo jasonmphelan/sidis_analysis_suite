@@ -73,6 +73,7 @@ namespace cutVals{
 
 	const double theta_bowl_width = 0.9*550.;
 
+	const int bins_p = 4;
 	const double p_bin_edges[5] = { 1.25, 2.00, 2.50, 3.5, 5.00};
 	
 }

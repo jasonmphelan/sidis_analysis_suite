@@ -48,7 +48,7 @@ public:
 	double	calcQStar ( TVector3 eP3, TVector3 piP3, double Ebeam );
 	void loadMatchingFunctions( TString fileName );
 	void loadMatchingFunctions();
-	int acceptance_match_3d_cont( double phi_part, double theta, double p, TF1 * fitFuncs[6][3], int chargeIdx);
+	int acceptance_match_3d_cont( double phi_part, double theta, double p, int chargeIdx);
 	int acceptance_match_3d( double phi_part, double theta, double p, int charge);
 	//double	fillDetectorHistograms();
 

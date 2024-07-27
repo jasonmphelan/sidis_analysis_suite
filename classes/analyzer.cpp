@@ -247,8 +247,8 @@ bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
 
 		double phi = pi.get3Momentum().Phi()*rad_to_deg;
 		//if( acceptance_match_3d( phi, theta, p, 0 ) && acceptance_match_3d( phi, theta, p, 1) ){
-		if( acceptance_match_3d_cont( phi, theta, p, match3d, 0 ) > -1
-			&& acceptance_match_3d_cont( phi, theta, p, match3d, 1 ) > -1   ){ return true; }
+		if( acceptance_match_3d_cont( phi, theta, p, 0 ) > -1
+			&& acceptance_match_3d_cont( phi, theta, p, 1 ) > -1   ){ return true; }
 		else{ return false; }
 	
 	}
@@ -288,7 +288,7 @@ int analyzer::acceptance_match_3d( double phi_part, double theta, double p, int 
 	}
 	return passCut;
 }
-int analyzer::acceptance_match_3d_cont( double phi_part, double theta, double p, TF1 * fitFuncs[6][3], int chargeIdx){
+int analyzer::acceptance_match_3d_cont( double phi_part, double theta, double p, int chargeIdx){
 	if( chargeIdx < 0 || chargeIdx > 1 ){
 		std::cout<<"Invalid Charge Index... returning -1\n";
 		return -1;
@@ -298,8 +298,8 @@ int analyzer::acceptance_match_3d_cont( double phi_part, double theta, double p,
 		double phi = phi_part;
 		if( sector ==3 && phi < 100. ){ phi += 360; }
 		//Get parameters from constants
-		double theta_0 = fitFuncs[sector][0]->Eval(p);//phi_theta_bowl_theta_min[sector - 1][this_bin_p][1];
-		double phi_0 = fitFuncs[sector][chargeIdx]->Eval(p);//phi_theta_bowl_phi0[sector-1][this_bin_p][charge];
+		double theta_0 = match3d[sector][0]->Eval(p);//phi_theta_bowl_theta_min[sector - 1][this_bin_p][1];
+		double phi_0 = match3d[sector][chargeIdx+1]->Eval(p);//phi_theta_bowl_phi0[sector-1][this_bin_p][charge];
 
 		//compute cut value
 		double theta_min = theta_0 + pow( (phi-phi_0), 2 )/( theta_bowl_width - pow( ( phi - phi_0 ), 2 ) );
