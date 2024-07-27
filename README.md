@@ -13,6 +13,5 @@ make
 ```
 
 TO DO:
-- Update paths to data directory in classes
-- Figure out cut value storage scheme (update Auxiliary class to make cleaner)
-- Reimpliment various analysis macros from old analysis
+- Update final skimmer to take multiple files via 'reader' class
+- Reimpliment various analysis/correction macros from old analysis
