@@ -24,7 +24,7 @@
 #include "electron.h"
 #include "pion.h"
 #include "analyzer.h"
-
+#include "reader.h"
 
 #ifdef __CINT__
 #pragma link C++ class std::vector<TVector3>+;
@@ -46,27 +46,36 @@ int main( int argc, char** argv){
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc <4 ){
+	if( argc < 6 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File] [Cut Level (0, 1)]\n";
+		cerr << "./code [Input Path] [Output File] [# of input files] [File Type] [Beam Energy]\n";
 		return -1;
 	}
-	cerr << "Files used: " << argv[1] << " " << argv[2] << "\nCut Level " << atoi(argv[3]) << "\n";
+	cerr << "Files used: " << argv[1] << " " << argv[2] << "\nnFiles " << atoi(argv[3]) << "\n";
 
 	TString in_name = argv[1];
        	TString out_name = argv[2];
-       	int cut_type = atoi(argv[3]);
+       	int nFiles = atoi(argv[3]);
+       	int runType = atoi(argv[4]);
+       	double EBeam = atof(argv[5]);
 
+	reader skimReader;
+	skimReader.setNumFiles( nFiles);
+	skimReader.setRunType( runType );
+	skimReader.setEnergy( EBeam );
 
-        TFile * file_rec = new TFile(in_name, "UPDATE");
+	TChain * chain = new TChain("ePi");
+	skimReader.getRunSkimsByName(chain, in_name);
+
+        //TFile * file_rec = new TFile(in_name, "UPDATE");
+	
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
 
 	//Load input tree
-        TTreeReader reader_rec("ePi", file_rec);
-
+        //TTreeReader reader_rec("ePi", file_rec);
+        TTreeReader reader_rec( chain );
 	TTreeReaderValue<electron> e(reader_rec, "e");
-
         TTreeReaderArray<pion> pi(reader_rec, "pi");
 
 	//Define good event list and additional variables for output branches

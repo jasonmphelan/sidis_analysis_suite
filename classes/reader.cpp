@@ -37,6 +37,16 @@ void reader::readRunFiles(clas12root::HipoChain &fileList){
 	getRunList();
 	getRunFiles(fileList);
 }
+
+void reader::readRunFilesAllE(clas12root::HipoChain &fileList){
+	setEnergy(10.2);
+	readRunFiles(fileList);
+	setEnergy(10.4);
+	readRunFiles(fileList);
+	setEnergy(10.6);
+	readRunFiles(fileList);
+
+}
 	
 
 void reader::setDataPaths(){
@@ -68,7 +78,6 @@ void reader::setDataPaths(){
 void reader::getRunList(){
 	if(EBeam == 10.6){ 
 		runList = (TString) RUN_PATH + "/runLists/good_runs_10-6.txt";
-		//runList = "/work/clas12/users/jphelan/SIDIS_at_BAND/macros/runlists/good_runs_10-2-final.txt";
 	}
 	
 	else if(EBeam == 10.4){ 
@@ -125,4 +134,61 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 
 
 	//return files;
+}
+
+
+void reader::getSkimsByName( TChain * chain, TString name ){
+
+	std::ifstream stream;
+	stream.open(runList);
+	string runNum;
+	TString inFile;
+	int beamType =	(int) ( (EBeam - 10.2)/.2 );
+	if(!stream ){ cout<<"fAILE TO open runlist\n";}
+	if(runType == 0){
+		int i = 0;
+		while(std::getline(stream, runNum)){
+			if(nFiles != 0 && i >= nFiles ) break;
+			TString run(runNum);
+			inFile = name + Form("_%i", atoi(run)) + ".root";
+			cout<<"Adding : "<<inFile<<endl;
+			if( gSystem->AccessPathName(inFile) ) continue;
+			chain->Add(inFile);		
+			i++;
+		}
+	}
+	else if (runType == 1){
+		for( int j = 0; j < nRuns[beamType]; j++ ){
+			for( int i = 0; i < 75000; i++){
+				if( nFiles != 0 && i >= nFiles ) break;
+				inFile = name + Form("_%i", i) + ".root";
+				if( gSystem->AccessPathName(inFile) ) continue;
+				chain->Add(inFile);
+			}
+		}
+	}
+	else{ cout<<"(Currently) invalid run type... no files added\n"; }
+//	else {
+//		for( int i = 0; i < 18; i++){
+//			if( nFiles != 0 && i >= nFiles ) break;
+//			inFile = dataPath + Form("%i.hipo", i);
+//			if( gSystem->AccessPathName(inFile) ) continue;
+//			files.Add(inFile.Data());
+//		}
+//	}
+
+
+	//return files;
+}
+void reader::getRunSkimsByName( TChain * chain, TString name ){
+	getRunList();
+	getSkimsByName( chain, name );
+}
+void reader::getRunSkimsAllEnergy( TChain * chain, TString name ){
+	setEnergy(10.2);
+	getRunSkimsByName(chain, name + Form("%i", 10.2) + "run_skim");
+	setEnergy(10.4);
+	getRunSkimsByName(chain, name+ Form("%i", 10.2) + "run_skim");
+	setEnergy(10.6);
+	getRunSkimsByName(chain, name+ Form("%i", 10.2) + "run_skim");
 }
