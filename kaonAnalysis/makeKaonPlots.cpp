@@ -26,7 +26,7 @@
 #include "constants.h"
 #include "cut_values.h"
 
-#define CORR_PATH _DATA
+#define HIST_PATH _HIST
 
 using std::cerr;
 using std::isfinite;
@@ -40,10 +40,10 @@ int main( int argc, char** argv){
 
 	if( argc <3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File]\n";
+		cerr << "./code [Input File] [Output File] [acc match type (optional)]\n";
 		return -1;
 	}
-	cerr << "Files used: " << argv[1] << " " << argv[2] <<"\n";
+	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
 	TString in_name = argv[1];
        	TString out_name = argv[2];
@@ -53,7 +53,7 @@ int main( int argc, char** argv){
 	//TString corrFileName = "corrections.root";
 	//if( argc > 4 ){ corrFileName = argv[4]; }
        
-       	TFile * outFile = new TFile(out_name, "RECREATE");
+       	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
 	
 	// Declare histograms
 
@@ -69,9 +69,9 @@ int main( int argc, char** argv){
 
 	for( int j = 0; j <= bins_Q2; j++ ){
 		for( int k = 0; k <= bins_xB; k++ ){
-			for( int l = 0; l <= bins_Z; k++ ){
+			for( int l = 0; l <= bins_Z; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
-					for( int m = 0; m <= 4; k++ ){//momentum bins
+					for( int m = 0; m <= bins_p; m++ ){//momentum bins
 						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 50, .95, 1);
 						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 50, .95, 1);
 					}
@@ -93,8 +93,8 @@ int main( int argc, char** argv){
 	TTreeReaderArray<pion> pi(reader, "pi");
 	
 	TTreeReaderArray<bool> isGoodPion_vec(reader, "isGoodPion");
-	TTreeReaderArray<bool> isGoodPion_3d_vec(reader, "isGoodPion_3d");
-        TTreeReaderArray<bool> isGoodPion_no_acc_vec(reader, "isGoodPion_no_acc");
+	//TTreeReaderArray<bool> isGoodPion_3d_vec(reader, "isGoodPion_3d");
+        //TTreeReaderArray<bool> isGoodPion_no_acc_vec(reader, "isGoodPion_no_acc");
 
 
 	int event_count = 0;
@@ -109,9 +109,9 @@ int main( int argc, char** argv){
 		int chargeIdx = 0;
 		
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
-			if(accMatchType < 2 && !isGoodPion_no_acc_vec[i]) {continue;}
+			//if(accMatchType < 2 && !isGoodPion_no_acc_vec[i]) {continue;}
 			if(accMatchType == 2 && !isGoodPion_vec[i]) {continue;}
-			if(accMatchType == 3 && !isGoodPion_3d_vec[i]) {continue;}
+			//if(accMatchType == 3 && !isGoodPion_3d_vec[i]) {continue;}
 			
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			//double M_x = M_x_vec[i]; 
@@ -153,10 +153,27 @@ int main( int argc, char** argv){
 			for( int l = 0; l <= bins_Z; k++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					hBeta_p[i][j][k][l]->Write();
+					if( j > 0 && k > 0 && l > 0 ){
+
+						hBeta_rich_p[i][j][k][l]->SetTitleSize(10);
+						hBeta_rich_p[i][j][k][l]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f" , 
+											2 + .5*(j-1), 2 + .5*j,
+										     	.1 + .05*(k-1), .1 + .05*k,
+											.3 + .05*(l - 1), .3 + .05*l));
+					}
 					hBeta_rich_p[i][j][k][l]->Write();
 					for( int m = 0; m <= 4; k++ ){//momentum bins
 						h_Beta[i][j][k][l][m]->Write();
 						h_Beta_rich[i][j][k][l][m]->Write();
+						if( j > 0 && k > 0 && l > 0 && m > 0){
+
+							h_Beta_rich[i][j][k][l][m]->SetTitleSize(10);
+							h_Beta_rich[i][j][k][l][m]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f & %.2f<p<%.2f" , 
+												2 + .5*(j-1), 2 + .5*j,
+											     	.1 + .05*(k-1), .1 + .05*k,
+												.3 + .05*(l - 1), .3 + .05*l,
+												p_bin_edges[m-1], p_bin_edges[m]));
+						}
 			
 					}
 				}
