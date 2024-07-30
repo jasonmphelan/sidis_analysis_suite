@@ -88,7 +88,7 @@ class electron{// : public TObject {
 		double	getW2		(void)		{return W2		;}
 		double	getY		(void)		{return y		;}
 
-
+	
 		// Drift Chamber
 		void setDC_chi2   	(double iDC_chi2   	)		{DC_chi2	= iDC_chi2	; return;}
 		void setDC_NDF		(int    iDC_NDF		)		{DC_NDF 	= iDC_NDF 	; return;}
@@ -121,7 +121,7 @@ class electron{// : public TObject {
 		double  getDC_x3        (void)          {return DC_x3           ;}
 		double  getDC_y3        (void)          {return DC_y3           ;}
 		double  getDC_z3        (void)          {return DC_z3           ;}
-	
+	/*
 		// Cherenkov banks
 		void setNphe		(double iNphe		)		{Nphe		= iNphe		; return;}
 		void setKov_x		(double iKov_x		)		{Kov_x		= iKov_x	; return;}
@@ -169,7 +169,7 @@ class electron{// : public TObject {
 		std::vector<double> getScint_x			(void)		{return Scint_x		;}
 		std::vector<double> getScint_y			(void)		{return Scint_y		;}
 		std::vector<double> getScint_z			(void)		{return Scint_z		;}
-
+	*/
 
 		//Rich
 		void setBeta_rich 	(double iBeta			)	{Beta_rich = iBeta		; return;}
@@ -235,7 +235,7 @@ class electron{// : public TObject {
 		double DC_x3            ;
 		double DC_y3            ;
 		double DC_z3            ;
-
+	/*
 		double Nphe		;
                 double Kov_x		;
                 double Kov_y		;
@@ -258,7 +258,7 @@ class electron{// : public TObject {
 		std::vector<double>	Scint_x		;
 		std::vector<double>	Scint_y		;
 		std::vector<double>	Scint_z		;
-
+	*/
 		bool	 Selection	;
 		double	Beta_rich	;
 };

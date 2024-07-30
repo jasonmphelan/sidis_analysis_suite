@@ -71,8 +71,8 @@ int main( int argc, char** argv){
 	TF1 *fitPip_k[bins_Q2][bins_xB][bins_Z][bins_p];
 	
 	double min[4] = { .995, .995, .995, .995 };
-	double max[4] = { 1.05, 1.05, 1.05,  1.05 };
-	double min_k[4] = { .98, .98, .98, .98 };
+	double max[4] = { 1.005, 1.005, 1.005,  1.005 };
+	double min_k[4] = { .985, .985, .985, .985 };
 
 	TH3F * kaonCorr_p[bins_p];
 	TH3F * kaonCorr_m[bins_p];
@@ -106,28 +106,50 @@ int main( int argc, char** argv){
 					fitPim[j][k][l][m] = new TF1(Form("f_pim_%i_%i_%i_%i", j, k, l, m), "gaus", min[m], max[m]);
 					fitPim[j][k][l][m]->SetParameters( hBeta[1][j+1][k+1][l+1][m+1]->GetMaximum(), hBeta[1][j+1][k+1][l+1][m+1]->GetMean(), hBeta[1][j+1][k+1][l+1][m+1]->GetRMS() ); 
 					hBeta[1][j+1][k+1][l+1][m+1]->Fit( Form("f_pim_%i_%i_%i_%i", j, k, l, m), "R" );
+					/*
 					//fit positive kaons
 
-					fitPip_k[j][k][l][m] = new TF1(Form("f_pip_k_%i_%i_%i_%i", j, k, l, m), "gaus", min_k[m], min[m]);
-					fitPip_k[j][k][l][m]->SetParameters( hBeta[0][j+1][k+1][l+1][m+1]->GetMaximum()/5., min[m]-min_k[m], hBeta[0][j+1][k+1][l+1][m+1]->GetRMS()/2. ); 
-					hBeta[0][j+1][k+1][l+1][m+1]->Fit( Form("f_pip_k_%i_%i_%i_%i", j, k, l, m),"R" );
-					
-					//fit positive kaons
+					double red_chi2 = 999;
+					double range_mod = 0;
+					double fit_mean = 999; 
+					int trial = 0;
+					while( (red_chi2 > 1 || fit_mean > .995)  ){
+						fitPip_k[j][k][l][m] = new TF1(Form("f_pip_k_%i_%i_%i_%i", j, k, l, m), "gaus", min_k[m] - range_mod, min[m] - range_mod);
+						fitPip_k[j][k][l][m]->SetParameters( hBeta[0][j+1][k+1][l+1][m+1]->GetMaximum()/5., (min[m]+min_k[m] - 2*range_mod)/(2.), hBeta[0][j+1][k+1][l+1][m+1]->GetRMS() ); 
+						hBeta[0][j+1][k+1][l+1][m+1]->Fit( Form("f_pip_k_%i_%i_%i_%i", j, k, l, m),"R" );
+						red_chi2 = fitPip_k[j][k][l][m]->GetChisquare()/(double) fitPip_k[j][k][l][m]->GetNDF();
+						range_mod += .0025;
+						fit_mean = fitPip_k[j][k][l][m]->GetParameter(1);
+						trial += 1;
 
-					fitPim_k[j][k][l][m] = new TF1(Form("f_pim_k_%i_%i_%i_%i", j, k, l, m), "gaus", min_k[m], min[m]);
-					fitPim_k[j][k][l][m]->SetParameters( hBeta[1][j+1][k+1][l+1][m+1]->GetMaximum()/5., min[m]-min_k[m], hBeta[1][j+1][k+1][l+1][m+1]->GetRMS()/2. ); 
-					hBeta[1][j+1][k+1][l+1][m+1]->Fit( Form("f_pim_k_%i_%i_%i_%i", j, k, l, m), "R" );
-					
-					//fitPip[j][k][l][m]->SetRange(.9, 1.1); 
-					//fitPim[j][k][l][m]->SetRange(.9, 1.1); 
-					//fitPip_k[j][k][l][m]->SetRange(.9, 1.1); 
-					//fitPim_k[j][k][l][m]->SetRange(.9, 1.1); 
+						if( trial == 20 ){break;}
+					}
+							
+
+
+					//fit positive kaons
+					red_chi2 = 999;
+					range_mod = 0;
+					trial = 0;
+					while( (red_chi2 > 1 || fit_mean > .995) ){
+
+						fitPim_k[j][k][l][m] = new TF1(Form("f_pim_k_%i_%i_%i_%i", j, k, l, m), "gaus", min_k[m] -range_mod, min[m] - range_mod);
+						fitPim_k[j][k][l][m]->SetParameters( hBeta[1][j+1][k+1][l+1][m+1]->GetMaximum()/5., (min[m]+min_k[m] - 2*range_mod)/2., hBeta[1][j+1][k+1][l+1][m+1]->GetRMS()/2. ); 
+						hBeta[1][j+1][k+1][l+1][m+1]->Fit( Form("f_pim_k_%i_%i_%i_%i", j, k, l, m), "R" );
+						red_chi2 = fitPim_k[j][k][l][m]->GetChisquare()/(double) fitPim_k[j][k][l][m]->GetNDF();
+						range_mod += .0025;
+						fit_mean = fitPim_k[j][k][l][m]->GetParameter(1);
+						trial += 1;
+						if( trial == 20 ){break;}
+					}
+					*/
 
 					double pip_num = fitPip[j][k][l][m]->Integral(.9, 1.1);
-					double pip_den = pip_num + fitPip_k[j][k][l][m]->Integral(.9, 1.1);
+					double pip_den = hBeta[0][j+1][k+1][l+1][m+1]->Integral()*hBeta[0][j+1][k+1][l+1][m+1]->GetBinWidth(1);//pip_num + fitPip_k[j][k][l][m]->Integral(.9, 1.1);
 					
 					double pim_num = fitPim[j][k][l][m]->Integral(.9, 1.1);
-					double pim_den = pim_num + fitPim_k[j][k][l][m]->Integral(.9, 1.1);
+					//double pim_den = pim_num + fitPim_k[j][k][l][m]->Integral(.9, 1.1);
+					double pim_den = hBeta[1][j+1][k+1][l+1][m+1]->Integral()*hBeta[1][j+1][k+1][l+1][m+1]->GetBinWidth(1);//pip_num + fitPip_k[j][k][l][m]->Integral(.9, 1.1);
 					
 					if(pip_num/pip_den > .5){
 						kaonCorr_p[m]->SetBinContent(k+1, j+1, l+1, pip_num/pip_den);
@@ -141,26 +163,9 @@ int main( int argc, char** argv){
 					else{
 						kaonCorr_m[m]->SetBinContent(k+1, j+1, l+1, -1);
 					}
-					/*
-					double pip_corr = (double) fitPip[j][k][l][m]->Integral(.9, 1.1) / ( hBeta[0][j+1][k+1][l+1][m+1]->GetBinWidth(1)*(double) (hBeta[0][j+1][k+1][l+1][m+1]->Integral() ) );
-					double pim_corr = (double) fitPim[j][k][l][m]->Integral(.9, 1.1) / ( hBeta[1][j+1][k+1][l+1][m+1]->GetBinWidth(1)*(double) (hBeta[1][j+1][k+1][l+1][m+1]->Integral() ) );
-					if(pip_corr > 1 || pim_corr > 1){
-						kaonCorr_p[m]->SetBinContent( k+1, j+1, l+1, 0); 
-
-					//fitPim[j][k][l][m]->Write();			
-						kaonCorr_m[m]->SetBinContent( k+1, j+1, l+1, -1);
-					}
-					else{
-						kaonCorr_p[m]->SetBinContent( k+1, j+1, l+1, pip_corr); 
-
-					//fitPim[j][k][l][m]->Write();			
-						kaonCorr_m[m]->SetBinContent( k+1, j+1, l+1, pim_corr);
-					}
-					*/		
 					
 					cout<<"Pip Value : "<<kaonCorr_p[m]->GetBinContent(k+1, j+1, l+1)<<std::endl;	
 					cout<<"Pim Value : "<<kaonCorr_m[m]->GetBinContent(k+1, j+1, l+1)<<std::endl;	
-					//hBeta[0][p]->SetMarkerStyle(kCircle);
 					hBeta[0][j+1][k+1][l+1][m+1]->Draw("");
 					fitPip[j][k][l][m]->Draw("SAME");	
 					fitPip_k[j][k][l][m]->Draw("SAME");	
@@ -168,7 +173,6 @@ int main( int argc, char** argv){
 					canvas.Clear();
 						
 						
-					//hBeta[1][p]->SetMarkerStyle(kCircle);
 					hBeta[1][j+1][k+1][l+1][m+1]->Draw("");
 					fitPim[j][k][l][m]->Draw("SAME");	
 					fitPim_k[j][k][l][m]->Draw("SAME");	
@@ -193,7 +197,3 @@ int main( int argc, char** argv){
 	outFile->Close();
 }
 
-
-double fitF( double *p, double *par){
-	return par[0] + par[1]*p[0] + par[2]*p[0] + par[3]*p[0];
-}

@@ -41,7 +41,7 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 7 ){
+	if( argc < 6 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [# of Files] [Beam energy]\n";
 		cerr << "	[Run Type] [Single File?] [Inclusive (0, 1)] [Output File Name (no extension)]\n";
@@ -50,7 +50,6 @@ int main( int argc, char** argv){
 	
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
        	double Ebeam = atof(argv[2]); // [GeV]
-	int RunType = atoi(argv[3]);
 	int inclusive =atoi( argv[5]);
 	int singleFile =atoi( argv[4]);
 	TString outFileName = argv[6]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
@@ -75,7 +74,7 @@ int main( int argc, char** argv){
 	
 	reader runReader;
 	runReader.setNumFiles( nFiles);
-	runReader.setRunType( RunType );
+	runReader.setRunType( 1 );
 	runReader.setEnergy( Ebeam );
 	
 	clas12root::HipoChain files;
@@ -89,14 +88,11 @@ int main( int argc, char** argv){
 	TLorentzVector beam( 0, 0, Ebeam, Ebeam );
 
 	// Electron Variables
-	electron e;
 	genElectron e_gen;
 
 	// Pion Variables
-	std::vector<pion> pi ;
 	std::vector<genPion> pi_gen ;
 	
-	std::vector<region_part_ptr> electrons, pions, pipluses, piminuses; //For reading from hipo file... not outputted
 	std::vector<int> electronsMC;
 	std::vector<std::vector<int>> pionsMC;
 	
@@ -117,17 +113,13 @@ int main( int argc, char** argv){
 		outTree->Branch("beam", &beam);
 		
 		outTree->Branch("Ne", &Ne);
-		outTree->Branch("e", &e);
 			
 		outTree->Branch("Npi", &Npi);
 		outTree->Branch("Npips", &Npips);
 		outTree->Branch("Npims", &Npims);
 
-		outTree->Branch("pi", &pi);
-		if( RunType == 1 ){
-			outTree->Branch("e_gen", &e_gen);
-			outTree->Branch("pi_gen", &pi_gen);
-		}
+		outTree->Branch("e_gen", &e_gen);
+		outTree->Branch("pi_gen", &pi_gen);
 	}
 	
 	double accCharge = 0;
@@ -155,17 +147,13 @@ int main( int argc, char** argv){
 			outTree->Branch("beam", &beam);
 		
 			outTree->Branch("Ne", &Ne);
-			outTree->Branch("e", &e);
 		
 			outTree->Branch("Npi", &Npi);
 			outTree->Branch("Npips", &Npips);
 			outTree->Branch("Npims", &Npims);
 
-			outTree->Branch("pi", &pi);
-			if( RunType == 1 ){
-				outTree->Branch("e_gen", &e_gen);
-				outTree->Branch("pi_gen", &pi_gen);
-			}
+			outTree->Branch("e_gen", &e_gen);
+			outTree->Branch("pi_gen", &pi_gen);
 		}
 
 		//create the event reader
@@ -186,17 +174,10 @@ int main( int argc, char** argv){
 			runnum = c12.runconfig()->getRun();
 			
 			///////////////////////////Initialize variables//////////////////////////////////////////////	
-			electrons.clear();
-			pions.clear();
-			pipluses.clear();
-			piminuses.clear();
-		
 			electronsMC.clear();
 			pionsMC[0].clear();
 			pionsMC[1].clear();
 			
-			e.Clear();
-			pi.clear();
 			e_gen.Clear();
 			pi_gen.clear();
 
@@ -205,10 +186,6 @@ int main( int argc, char** argv){
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
 			
 			// Get Particles By PID
-			electrons   = c12.getByID( 11   );
-			pipluses    = c12.getByID( 211  );
-			piminuses   = c12.getByID(-211  );
-			
 			pions = pipluses;
 			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );
 			

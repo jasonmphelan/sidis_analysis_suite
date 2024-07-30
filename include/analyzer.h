@@ -1,4 +1,3 @@
-// Erez O. C., Oct-6, 2021
 #ifndef __ANALYZER__
 #define __ANALYZER__
 
@@ -15,6 +14,7 @@
 #include "e_pid.h"
 #include "DCfid_SIDIS.h"
 #include "TH3F.h"
+#include "mcparticle.h"
 
 using namespace cutVals;
 using namespace constants;
@@ -37,9 +37,6 @@ public:
 	bool 	applyPionDetectorCuts( pion pi, electron e );
 
 	void	loadCutValues (int torusBending, double EBeam); //  -1 for In-bending, +1 for Out-bending
-	//void	loadAcceptanceMatching (int torusBending=1); //  -1 for In-bending, +1 for Out-bending
-	//void	loadCorrections (TFile corrFileName); //  -1 for In-bending, +1 for Out-bending
-	//void	getCorrections ( electron e, pion pi);
 	bool	applyAcceptanceMatching( pion pi, int dim );
 
 	void	printCutValues ();
@@ -50,7 +47,7 @@ public:
 	void loadMatchingFunctions();
 	int acceptance_match_3d_cont( double phi_part, double theta, double p, int chargeIdx);
 	int acceptance_match_3d( double phi_part, double theta, double p, int charge);
-	//double	fillDetectorHistograms();
+	int FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> part_list);
 
 private:
 	int	fdebug;

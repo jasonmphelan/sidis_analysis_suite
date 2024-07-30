@@ -53,6 +53,7 @@ void pion::Clear(){
 	DC_y3           = -999;
 	DC_z3           = -999;
 
+	/*
 	Nphe		= -999;
 	Kov_x		= -999;
 	Kov_y		= -999;
@@ -75,7 +76,7 @@ void pion::Clear(){
 	Scint_x		.clear();
 	Scint_y		.clear();
 	Scint_z		.clear();
-
+	*/
 	Selection = false;
 	//detectorSelection = false;
 	//kinematicSelection = false;
@@ -95,7 +96,7 @@ void pion::PrintDetectorInfo(){
 	std::cout << "clashit Information CALO: Etot " << Etot << " , Epcal " << Epcal << ", Eecin " << Eecin;
 	std::cout << ", Eecout " << Eecout << ", EoverP " << EoP << " , U(PCal) " << U << " , V(ECal) " << V << " , W(ECal) " << W << std::endl;
 	//std::cout << "clashit Information Vertex: Vtx " << Vtx << " , Vty " << Vty << ", Vtz " << Vtz;
-	std::cout << ", TimeScint(-starttime) " << TimeScint << " , Pathlength Scint " << PathScint << std::endl;
+	//std::cout << ", TimeScint(-starttime) " << TimeScint << " , Pathlength Scint " << PathScint << std::endl;
 	std::cout << "clashit Information DC: DC_chi2 " << DC_chi2 << " , DC_NDF " << DC_NDF << ", DC_sector " << DC_sector;
 	std::cout << ", DC_x1 " << DC_x1 << " , DC_y1 " << DC_y1 << " , DC_z1 " << DC_z1 << std::endl;
 	std::cout << "clashit Information DC: DC_x2 " << DC_x2 << " , DC_y2 " << DC_y2<< " , DC_z2 " << DC_z2;
