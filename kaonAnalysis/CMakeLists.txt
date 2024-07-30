@@ -4,3 +4,5 @@ include_directories(${CLAS12ROOT}/Clas12Banks ${CLAS12ROOT}/Clas12Root ${INCLUDE
 add_executable(makeKaonPlots makeKaonPlots.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp )
 target_link_libraries(makeKaonPlots ${ROOT_LIBRARIES} clashit_tree) 
 
+add_executable(calcKaonCorr calcKaonCuts.cpp  )
+target_link_libraries(calcKaonCorr ${ROOT_LIBRARIES} ) 
