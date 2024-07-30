@@ -40,7 +40,7 @@ int main( int argc, char** argv){
 
 	if( argc <3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File] [acc match type (optional)]\n";
+		cerr << "./code [Input File] [Output File (no extension)] [acc match type (optional)]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
@@ -53,7 +53,7 @@ int main( int argc, char** argv){
 	//TString corrFileName = "corrections.root";
 	//if( argc > 4 ){ corrFileName = argv[4]; }
        
-       	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
+       	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
 	
 	// Declare histograms
 
@@ -72,8 +72,8 @@ int main( int argc, char** argv){
 			for( int l = 0; l <= bins_Z; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					for( int m = 0; m <= bins_p; m++ ){//momentum bins
-						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 50, .95, 1);
-						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 50, .95, 1);
+						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 75, .975, 1.05);
+						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 75, .97, 1.01);
 					}
 					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 100, .95 ,1 );
 					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 100, .95 ,1 );
@@ -100,8 +100,7 @@ int main( int argc, char** argv){
 	int event_count = 0;
 	while (reader.Next()) {
                 if(event_count%100000 == 0){cout<<"Events Analyzed: "<<event_count<<std::endl;}
-                event_count++;
-
+	       	event_count++;
                 double Q2 = e->getQ2();
                 double xB = e->getXb();
 
@@ -148,31 +147,42 @@ int main( int argc, char** argv){
 
 	outFile->cd();
 	
+	cout<<"BEGIN WRITING HISTOGRAMS\n";
+
+	TCanvas canvas("canvas");
+	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
+	canvas.Clear();
+
 	for( int j = 0; j <= bins_Q2; j++ ){
 		for( int k = 0; k <= bins_xB; k++ ){
-			for( int l = 0; l <= bins_Z; k++ ){
+			for( int l = 0; l <= bins_Z; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					hBeta_p[i][j][k][l]->Write();
-					if( j > 0 && k > 0 && l > 0 ){
+					if( j > 0 && k > 0 && l > 0 && hBeta_rich_p[i][j][k][l]->Integral() != 0){
 
 						hBeta_rich_p[i][j][k][l]->SetTitleSize(10);
 						hBeta_rich_p[i][j][k][l]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f" , 
 											2 + .5*(j-1), 2 + .5*j,
 										     	.1 + .05*(k-1), .1 + .05*k,
 											.3 + .05*(l - 1), .3 + .05*l));
+						hBeta_rich_p[i][j][k][l]->Write();
+						//hBeta_rich_p[i][j][k][l]->Draw();
+						//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");
+						//canvas.Clear();
 					}
-					hBeta_rich_p[i][j][k][l]->Write();
-					for( int m = 0; m <= 4; k++ ){//momentum bins
-						h_Beta[i][j][k][l][m]->Write();
-						h_Beta_rich[i][j][k][l][m]->Write();
-						if( j > 0 && k > 0 && l > 0 && m > 0){
+					for( int m = 0; m <= 4; m++ ){//momentum bins
+						if( j > 0 && k > 0 && l > 0 && m > 0 && h_Beta_rich[i][j][k][l][m]->Integral()!= 0){
 
 							h_Beta_rich[i][j][k][l][m]->SetTitleSize(10);
-							h_Beta_rich[i][j][k][l][m]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f & %.2f<p<%.2f" , 
-												2 + .5*(j-1), 2 + .5*j,
-											     	.1 + .05*(k-1), .1 + .05*k,
-												.3 + .05*(l - 1), .3 + .05*l,
+							h_Beta_rich[i][j][k][l][m]->SetTitle( Form( "%i<Q^{2}<%i & %.2f<x_{B}<%.2f & %.2f<Z<%.2f & %.2f<p<%.2f" , 
+												2 + 2*(j-1), 2 + 2*j,
+											     	.1 + .1*(k-1), .1 + .1*k,
+												.3 + .1*(l - 1), .3 + .1*l,
 												p_bin_edges[m-1], p_bin_edges[m]));
+						h_Beta_rich[i][j][k][l][m]->Write();
+						h_Beta_rich[i][j][k][l][m]->Draw();
+						canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");
+						canvas.Clear();
 						}
 			
 					}
@@ -181,5 +191,7 @@ int main( int argc, char** argv){
 		}
 	
 	}
+	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf]");
+	cout<<"FINISHED WRITING\n";
 	outFile->Close();
 }
