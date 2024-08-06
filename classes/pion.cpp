@@ -214,6 +214,8 @@ void pion::setDetectorInformation(clas12::region_part_ptr rp){
 	setBeta(rp->par()->getBeta());
 
 	
+	if( isMC ){return;}
+
 	// RICH info
 	auto RICH_info = rp->rich();
 	double temp_rich_angle = RICH_info->getBest_ch();

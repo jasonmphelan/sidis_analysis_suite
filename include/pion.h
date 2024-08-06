@@ -184,6 +184,8 @@ class pion{// : public TObject {
 		void setKinematicInformation( TLorentzVector q, TLorentzVector pe, clas12::region_part_ptr rp);
 		void setPion( TLorentzVector q, TLorentzVector pe, clas12::region_part_ptr rp );
 
+		void setMCPion( bool i ){ isMC = i; }
+
 		//ClassDef(clashit,7);
 
 	private:
@@ -260,6 +262,7 @@ class pion{// : public TObject {
 	*/
 		bool	 Selection	;
 		double	Beta_rich	;
+		bool isMC = false;
 };
 
 

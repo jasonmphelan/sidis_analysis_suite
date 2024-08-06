@@ -179,9 +179,6 @@ int main( int argc, char** argv){
            		if( RunType > 0 && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
            		if( RunType == 0 && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			event++;
-			//if(event > 10000){break;}	
-			//Get run and event info	
-			
 			evnum  = c12.runconfig()->getEvent();
 			runnum = c12.runconfig()->getRun();
 			
@@ -192,8 +189,7 @@ int main( int argc, char** argv){
 			piminuses.clear();
 		
 			electronsMC.clear();
-			pionsMC[0].clear();
-			pionsMC[1].clear();
+			pionsMC.clear();
 			
 			e.Clear();
 			pi.clear();
@@ -211,13 +207,15 @@ int main( int argc, char** argv){
 			
 			pions = pipluses;
 			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );
-			
+
 			Ne      = electrons.size();
 			Npi 	= pions.size();
 			
 			if(RunType == 1){	
 				int nMcPart = c12.mcevent()->getNpart();	
 				int mcId;
+				std::vector<int> pipsMC;
+				std::vector<int> pimsMC;
 				for ( int i = 0; i<nMcPart; i++ ){
 					mcId = c12.mcparts()->getPid(i);
 					switch (mcId){
@@ -225,25 +223,25 @@ int main( int argc, char** argv){
 							electronsMC.push_back(i);
 							break;
 						case 211:
-							pionsMC[0].push_back(i);
+							pipsMC.push_back(i);
 							break;
 						case -211:
-							pionsMC[1].push_back(i);
+							pimsMC.push_back(i);
 							break;
 					}
 				}
+				pionsMC.push_back(pipsMC);
+				pionsMC.push_back(pimsMC);
 			}
 			
 			if( Ne < 1 ){ continue; } //Keep only events with one electron...
 			if( Npi == 0 && inclusive != 1 ){ continue; }	
 		
-			
 			//////////////electron analysis////////////////////
 			//Find good electrons
 			int e_idx = GetLeadingElectron(electrons, Ne);	
 			e.setElectron( Ebeam, electrons[e_idx]);
 			if( !anal.applyElectronDetectorCuts( e )){continue;}
-		
 			if( RunType == 1 ){
 				int e_match = anal.FindMatch(e.get3Momentum(), mcparts, electronsMC );
 				mcparts->setEntry(e_match);
@@ -259,10 +257,10 @@ int main( int argc, char** argv){
 			for(int i = 0; i < Npi; i++){
 				if( inclusive == 1 ){ continue; }
 				pi_dummy.Clear();
-			
+				pi_dummy.setMCPion( (bool)RunType );
 				pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
 				if( !anal.applyPionDetectorCuts( pi_dummy, e ) ) {continue;}
-				
+			
 				//Do MC Matching if skimming monte carlo
 				if( RunType == 1 ){
 					int chargeIdx = (int) (pi_dummy.getCharge() < 0);

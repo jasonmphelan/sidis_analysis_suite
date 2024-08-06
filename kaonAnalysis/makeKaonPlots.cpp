@@ -40,7 +40,8 @@ int main( int argc, char** argv){
 
 	if( argc <3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File (no extension)] [acc match type (optional)]\n";
+		cerr << "./code [Input File] [Output File (no extension)]\n";
+		cerr << "[Sector cut (optional, 0 if all)] [Theta Cut (optional)]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
@@ -48,11 +49,11 @@ int main( int argc, char** argv){
 	TString in_name = argv[1];
        	TString out_name = argv[2];
 
-	int accMatchType = 2;
-	if( argc > 3 ){ accMatchType = atoi(argv[3]); }
-	//TString corrFileName = "corrections.root";
-	//if( argc > 4 ){ corrFileName = argv[4]; }
-       
+	int sector_cut = 0;
+	if( argc > 3 ){  sector_cut = atoi(argv[3]); }
+       	double max_theta_cut = 999;
+	if( argc > 4 ){ max_theta_cut = atoi(argv[4]); }
+
        	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
 	
 	// Declare histograms
@@ -72,8 +73,8 @@ int main( int argc, char** argv){
 			for( int l = 0; l <= bins_Z; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					for( int m = 0; m <= bins_p; m++ ){//momentum bins
-						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 75, .975, 1.05);
-						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 75, .97, 1.01);
+						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 100, .97, 1.01);
+						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 100, .97, 1.01);
 					}
 					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 100, .95 ,1 );
 					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 100, .95 ,1 );
@@ -109,12 +110,12 @@ int main( int argc, char** argv){
 		
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			//if(accMatchType < 2 && !isGoodPion_no_acc_vec[i]) {continue;}
-			if(accMatchType == 2 && !isGoodPion_vec[i]) {continue;}
+			if( !isGoodPion_vec[i]) {continue;}
 			//if(accMatchType == 3 && !isGoodPion_3d_vec[i]) {continue;}
-			
+			if(pi[i].getBeta_rich() < .0001){continue;}
+			if( sector_cut != 0 && pi[i].getDC_sector() != sector_cut ){ continue; }
+			if( pi[i].getDC_sector() > max_theta_cut ){ continue; }
 			chargeIdx = (int)(pi[i].getCharge() < 1);
-			//double M_x = M_x_vec[i]; 
-			//double pT_pi = pi_q_vec[i].Vect().Pt();
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta();
 			double Z = pi[i].getZ();
@@ -125,7 +126,7 @@ int main( int argc, char** argv){
 			int this_bin_p = -1;
 
 			for( int j= 0; j < bins_p; j++ ){
-				if( p_pi > p_bin_edges[j] && p_pi > p_bin_edges[j+1] ){
+				if( p_pi > p_bin_edges[j] && p_pi < p_bin_edges[j+1] ){
 					this_bin_p = j+1;
 				}
 			}
@@ -166,7 +167,7 @@ int main( int argc, char** argv){
 										     	.1 + .05*(k-1), .1 + .05*k,
 											.3 + .05*(l - 1), .3 + .05*l));
 						hBeta_rich_p[i][j][k][l]->Write();
-						//hBeta_rich_p[i][j][k][l]->Draw();
+						hBeta_rich_p[i][j][k][l]->Draw();
 						//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");
 						//canvas.Clear();
 					}
@@ -174,13 +175,16 @@ int main( int argc, char** argv){
 						if( j > 0 && k > 0 && l > 0 && m > 0 && h_Beta_rich[i][j][k][l][m]->Integral()!= 0){
 
 							h_Beta_rich[i][j][k][l][m]->SetTitleSize(10);
-							h_Beta_rich[i][j][k][l][m]->SetTitle( Form( "%i<Q^{2}<%i & %.2f<x_{B}<%.2f & %.2f<Z<%.2f & %.2f<p<%.2f" , 
-												2 + 2*(j-1), 2 + 2*j,
-											     	.1 + .1*(k-1), .1 + .1*k,
-												.3 + .1*(l - 1), .3 + .1*l,
+							h_Beta_rich[i][j][k][l][m]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f & %.2f<p<%.2f" , 
+												2 + .5*(j-1), 2 + .5*j,
+											     	.1 + .05*(k-1), .1 + .05*k,
+												.3 + .05*(l - 1), .3 + .05*l,
 												p_bin_edges[m-1], p_bin_edges[m]));
 						h_Beta_rich[i][j][k][l][m]->Write();
 						h_Beta_rich[i][j][k][l][m]->Draw();
+						h_Beta[i][j][k][l][m]->SetLineColor(kRed);
+					//	h_Beta[i][j][k][l][m]->Scale( (double)h_Beta_rich[i][j][k][l][m]->Integral()/(double)h_Beta[i][j][k][l][m]->Integral());
+						h_Beta[i][j][k][l][m]->Draw("same");
 						canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");
 						canvas.Clear();
 						}

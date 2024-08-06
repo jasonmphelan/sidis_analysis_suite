@@ -5,15 +5,15 @@ namespace cutVals{
 
 	const double Z_min = 0.3;
 	const double Z_max = 1.0;
-	const int bins_Z = 7;
+	const int bins_Z = 14;
 
 	const double Q2_min = 2.0;
 	const double Q2_max = 8.0;
-	const int bins_Q2 = 6;
+	const int bins_Q2 = 12;
 
 	const double xB_min = .1;
 	const double xB_max = .6;
-	const int bins_xB = 5;
+	const int bins_xB = 10;
 
 	
 	const double e_PCAL_W_min=15.0;
@@ -74,7 +74,8 @@ namespace cutVals{
 	const double theta_bowl_width = 0.9*550.;
 
 	const int bins_p = 4;
-	const double p_bin_edges[5] = { 1.25, 2.00, 2.50, 3.5, 5.00};
+	const double p_bin_edges[5] = { 1.25, 2.25, 2.50, 3.5, 5.00};
+	const double p_bin_edges_3d[5] = { 1.25, 2.00, 2.50, 3.5, 5.00};
 	
 }
 
