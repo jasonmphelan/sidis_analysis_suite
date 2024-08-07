@@ -80,8 +80,8 @@ int main( int argc, char** argv){
 	TH3F * kaonCorr_full[bins_p];
 
 	for( int i = 0; i < bins_p; i++ ){
-		kaonCorr_p[i] = new TH3F( Form("hKaonCorrP_%i", i), "hKaonCorrP", bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
-		kaonCorr_m[i] = new TH3F( Form("hKaonCorrM_%i", i), "hKaonCorrM", bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
+		kaonCorr_p[i] = new TH3F( Form("hKaonCorrP_%i", i),Form("hKaonCorrP_%i", i), bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
+		kaonCorr_m[i] = new TH3F( Form("hKaonCorrM_%i", i),Form("hKaonCorrM_%i", i) , bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
 		kaonCorr_full[i] = new TH3F( Form("hKaonCorr_%i", i), "hKaonCorr", bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
 	}
 

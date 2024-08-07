@@ -45,7 +45,9 @@ int main( int argc, char** argv){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [Input File] [Output File]\n";
 		cerr << "[Acceptance Matching Type (2,3 etc)] \n";
+		cerr << "[Acc/Bin Correction?]\n";
 		cerr << "[Acc/Bin Correction File]\n";
+		cerr << "[Kaon Correction?]\n";
 		cerr << "[Kaon Correction File]\n";
 		return -1;
 	}
@@ -54,38 +56,58 @@ int main( int argc, char** argv){
 	TString in_name = argv[1];
        	TString out_name = argv[2];
 	int matchType = atoi(argv[3]);
-	TString corrFileName = argv[4];
-	TString kaonFileName = argv[5];
+	int applyCorr = atoi(argv[4]);
+	int applyKaon;
+	TString corrFileName;
+	TString kaonFileName;
+	if(applyCorr == 1){
+		corrFileName = argv[5];
+		applyKaon = atoi( argv[6] );
+	}
+	else{ applyKaon = atoi( argv[5] ); }
+	if(applyKaon == 1 && applyCorr == 1){
+		kaonFileName = argv[7];
+	}
+	else if( applyKaon == 1 && applyCorr == 0 ){
+		kaonFileName = argv[6];
+	}
 
-       	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
+       	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
 
 	//TFile * outFile = new TFile( outName, "RECREATE");
 	TFile * inFile = new TFile( in_name );
-	TFile * weightFile = new TFile( "../corrections/corrections/" + corrFileName );	
+	TFile * weightFile;
+	TFile * kaonFile;
 
-	TH3F * accWeight_pip = (TH3F *)weightFile->Get("hAccCorrectionP");
-	TH3F * accWeight_pim = (TH3F *)weightFile->Get("hAccCorrectionM");
-	TH3F * binWeight_pip = (TH3F *)weightFile->Get("hBinMigrationP");
-	TH3F * binWeight_pim = (TH3F *)weightFile->Get("hBinMigrationM");
+	TH3F * accWeight[2];
+	TH3F * binWeight[2];
+	TH3F * kaonWeight[2][bins_p];
 
-	TFile * kaonFile = new TFile((TString) CORR_PATH + "/correctionFiles/corrections_kaons.root"+kaonFileName);
-	TH3F * kaonWeight_pip[bins_p];
-	TH3F * kaonWeight_pim[bins_p];
+	if( applyCorr == 1 ){
+		weightFile = new TFile( (TString) CORR_PATH + "/correctionFiles/" + corrFileName );	
+		accWeight[0] = (TH3F *)weightFile->Get("hAccCorrectionP");
+		accWeight[1] = (TH3F *)weightFile->Get("hAccCorrectionM");
+		binWeight[0] = (TH3F *)weightFile->Get("hBinMigrationP");
+		binWeight[1] = (TH3F *)weightFile->Get("hBinMigrationM");
+	}
 
-	for(int i = 0; i < bins_p; i++){
-		kaonWeight_pip[i] = (TH3F *)weightFile->Get(Form( "hKaonCorrectionsP_%i", i ));
-		kaonWeight_pim[i] = (TH3F *)weightFile->Get(Form( "hKaonCorrectionsM_%i", i ));
+	if( applyKaon == 1 ){
+		kaonFile = new TFile((TString) CORR_PATH + "/correctionFiles/"+kaonFileName);
+		for(int i = 0; i < bins_p; i++){
+			kaonWeight[0][i] = (TH3F *)kaonFile->Get(Form( "hKaonCorrP_%i", i ));
+			kaonWeight[1][i] = (TH3F *)kaonFile->Get(Form( "hKaonCorrM_%i", i ));
+		}
 	}
 
 	TH1F * hZ[bins_Q2+1][bins_xB+1][2];
 
 	TString charge_str[2] = {"", "Pim"};
 
-	for( int i = 0; i <= bins_Q2; i++ ){
-		for( int j = 0; j <= bins_xB; j++ ){
+	for( int i = 0; i < bins_Q2; i++ ){
+		for( int j = 0; j < bins_xB; j++ ){
 			for( int k = 0; k < 2; k++ ){
 		
-				hZ[i][j][k] = new TH1F("hRatio" + charge_str[k] + Form("_%i_%i",  i, j) ,"hRatio_" + charge_str[k] + Form("_%i_%i",  i, j) , bins_Z, .3, 1);
+				hZ[i][j][k] = new TH1F("hRatio" + charge_str[k] + Form("_%i_%i",  i+1, j+1) ,"hRatio_" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , bins_Z, .3, 1);
 						
 			}
 		}
@@ -111,31 +133,22 @@ int main( int argc, char** argv){
 			cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
 		}
 
-
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			int chargeIdx = (int)( pi[i].getCharge() < 1 );
 			double p_pi = pi[i].get3Momentum().Mag();
-			int this_bin_Q2 = (int)( ( (e->getQ2() - Q2_min)/(Q2_max-Q2_min) )*bins_Q2) + 1;
-			int this_bin_xB = (int)( ( (e->getXb() - xB_min)/(xB_max-xB_min) )*bins_xB) + 1;
-			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*bins_Z) + 1;
+			int this_bin_Q2 = (int)( ( (e->getQ2() - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
+			int this_bin_xB = (int)( ( (e->getXb() - xB_min)/(xB_max-xB_min) )*bins_xB);
+			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*bins_Z);
 			int this_bin_p = -1;
 
 			for( int j= 0; j < bins_p; j++ ){
 				if( p_pi > p_bin_edges[j] && p_pi < p_bin_edges[j+1] ){
-					this_bin_p = j+1;
+					this_bin_p = j;
 				}
 			}
 			
-			if( this_bin_p < 1 ){ continue; } //just in case
+			if( this_bin_p < 0 ){ continue; } //just in case
 
-			double acc_weight = 1.;
-			double bin_weight = 1.;
-			double kaon_weight = 1.;
-			
-			double acc_err = 0.;
-			double bin_err = 0.;
-			double kaon_err = 0.;
-			
 			bool matching = true;
 
 			if( matchType == 2 ){ matching = !isGoodPion[i]; }
@@ -144,10 +157,9 @@ int main( int argc, char** argv){
 
 			if( matching ){ continue; }
 
-			hZ[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( pi[i].getZ() );
+			//hZ[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( pi[i].getZ() );
 			events_in_bin[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]++;
 			
-			//hZ[0][0][chargeIdx]->Fill(Z, acc_weight*bin_weight);
 
 		}
 	}
@@ -163,150 +175,86 @@ int main( int argc, char** argv){
 		helper_1->SetBinError(i, 0.);
 		helper_2->SetBinError(i, 0.);
 	}
-
 	for( int i = 1; i <= bins_Q2; i++ ){
 		for( int j = 1; j <= bins_xB; j++ ){
 			
-			hZ[i][j][0]->Sumw2();
-			hZ[i][j][1]->Sumw2();
+			cout<<"------------------------------------------------\n";
+			cout<<"Q2 Bin : "<<i<<std::endl;
+			cout<<"xB Bin : "<<j<<std::endl;
+			cout<<"------------------------------------------------\n\n";
+			for( int k = 1; k <= bins_Z; k++ ){
+				for( int charge = 0; charge <= 1; charge++ ){
+					double n_pi_corr = 0;
+					double pi_err = 0;
+					double acc_weight = 1;
+					double bin_weight = 1;
+					double acc_err = 0;
+					double bin_err = 0;
+				
+					if( applyCorr == 1 ){
+						acc_weight = (double) accWeight[charge]->GetBinContent( j, i, k );
+						bin_weight = (double) binWeight[charge]->GetBinContent( j, i, k );
+						bin_err = (double) binWeight[charge]->GetBinError( j, i, k );
+						acc_err = (double) accWeight[charge]->GetBinError( j, i, k );
+						
+						if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
+						if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
+					}
 
-				for( int k = 1; k <= bins_Z; k++ ){
-					double n_pip_corr = 0;
-					double pip_err = 0;
-					double acc_weight_pip = (double) accWeight_pip->GetBinContent( j, i, k );
-					double bin_weight_pip = (double) binWeight_pip->GetBinContent( j, i, k );
-					double kaon_weight_pip;
-
-					double acc_err_pip = (double) accWeight_pip->GetBinError( j, i, k );
-					double bin_err_pip = (double) binWeight_pip->GetBinError( j, i, k );
-					double kaon_err_pip;
+					double kaon_weight = 1;
+					double kaon_err = 0;
 				
 					double err_term_1 = 0;
 					double err_term_2 = 0;
 					double err_term_3 = 0;
 
 					for( int p = 0; p < bins_p; p++ ){
-						kaon_weight_pip = (double) kaonWeight_pip[p]->GetBinContent(i, j, k);
-						kaon_err_pip = (double) kaonWeight_pip[p]->GetBinError(i, j, k);
-					
-						if( kaon_weight_pip == 0 ){
-							kaon_weight_pip = 1;
-							kaon_err_pip = 0;
+						if( applyKaon == 1 ){
+							kaon_weight = (double) kaonWeight[charge][p]->GetBinContent(j, i, k);
+							kaon_err = (double) kaonWeight[charge][p]->GetBinError(j, i, k);
 						}
 
-						err_term_1 += kaon_weight_pip*events_in_bin[0][i][j][k][p];
-						err_term_2 += pow( kaon_err_pip*events_in_bin[0][i][j][k][p], 2);
-					     	err_term_3 += pow( kaon_weight_pip*sqrt(events_in_bin[0][i][j][k][p]), 2);	
-					}
-
-					n_pip_corr = acc_weight_pip*bin_weight_pip*err_term_1;
-					pip_err = sqrt( pow( acc_weight_pip*bin_err_pip*err_term_1, 2) 
-							+ pow(bin_weight_pip*acc_err_pip*err_term_1, 2)
-							+ pow(bin_weight_pip*acc_weight_pip, 2)*err_term_2
-							+ pow(bin_weight_pip*acc_weight_pip, 2)*err_term_3 );
-					
-					double n_pim_corr = 0;
-					double pim_err = 0;
-					double acc_weight_pim = (double) accWeight_pim->GetBinContent( j, i, k );
-					double bin_weight_pim = (double) binWeight_pim->GetBinContent( j, i, k );
-					double kaon_weight_pim;
-
-					double acc_err_pim = (double) accWeight_pim->GetBinError( j, i, k );
-					double bin_err_pim = (double) binWeight_pim->GetBinError( j, i, k );
-					double kaon_err_pim;
-				
-					err_term_1 = 0;
-					err_term_2 = 0;
-					err_term_3 = 0;
-
-					for( int p = 0; p < bins_p; p++ ){
-						kaon_weight_pim = (double) kaonWeight_pim[p]->GetBinContent(i, j, k);
-						kaon_err_pim = (double) kaonWeight_pim[p]->GetBinError(i, j, k);
-					
-						if( kaon_weight_pim == 0 ){
-							kaon_weight_pim = 1;
-							kaon_err_pim = 0;
+						if( kaon_weight == 0 ){
+							kaon_weight = 1;
+							kaon_err = 0;
 						}
 
-						err_term_1 += kaon_weight_pim*events_in_bin[1][i][j][k][p];
-						err_term_2 += pow( kaon_err_pim*events_in_bin[1][i][j][k][p], 2);
-					     	err_term_3 += pow( kaon_weight_pim*sqrt(events_in_bin[1][i][j][k][p]), 2);	
+						err_term_1 += kaon_weight*events_in_bin[charge][i-1][j-1][k-1][p];
+						err_term_2 += pow( kaon_err*events_in_bin[charge][i-1][j-1][k-1][p], 2);
+						err_term_3 += pow( kaon_weight*sqrt(events_in_bin[charge][i-1][j-1][k-1][p]), 2);	
 					}
 
-					n_pim_corr = acc_weight_pim*bin_weight_pim*err_term_1;
-					pim_err = sqrt( pow( acc_weight_pim*bin_err_pim*err_term_1, 2) 
-							+ pow(bin_weight_pim*acc_err_pim*err_term_1, 2)
-							+ pow(bin_weight_pim*acc_weight_pim, 2)*err_term_2
-							+ pow(bin_weight_pim*acc_weight_pim, 2)*err_term_3 );
+					n_pi_corr = acc_weight*bin_weight*err_term_1;
+					pi_err = sqrt( pow( acc_weight*bin_err*err_term_1, 2) 
+							+ pow(bin_weight*acc_err*err_term_1, 2)
+							+ pow(bin_weight*acc_weight, 2)*err_term_2
+							+ pow(bin_weight*acc_weight, 2)*err_term_3 );
+
+					hZ[i-1][j-1][charge]->SetBinContent(k, n_pi_corr);
+					hZ[i-1][j-1][charge]->SetBinError(k, pi_err);
 							
 
-
-					/*
-					double n_pip = hZ[i][j][0]->GetBinContent( k );
-					double n_pim = hZ[i][j][1]->GetBinContent( k );
-
-						
-					double n_pip_err = sqrt(n_pip);			
-					double n_pim_err = sqrt(n_pim);			
-
-					double acc_weight_pip = (double) accWeight_pip->GetBinContent( j, i, k );
-					double bin_weight_pip = (double) binWeight_pip->GetBinContent( j, i, k );
-
-					
-					double acc_err_pip = (double) accWeight_pip->GetBinError( j, i, k );
-					double bin_err_pip = (double) binWeight_pip->GetBinError( j, i, k );
-					
-					double acc_weight_pim = (double) accWeight_pim->GetBinContent( j, i, k );
-					double acc_err_pim = (double) accWeight_pim->GetBinError( j, i, k );
-
-					double bin_err_pim = (double) binWeight_pim->GetBinError( j, i, k );
-					double bin_weight_pim = (double) binWeight_pim->GetBinContent( j, i, k );
-
-					
-					if( !isfinite(acc_weight_pip) || acc_err_pip/acc_weight_pip > .2){acc_weight_pip =0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
-					if( !isfinite(bin_weight_pip) || bin_err_pip/bin_weight_pip > .2){bin_weight_pip= 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
-					
-					if( !isfinite(acc_weight_pim) || acc_err_pim/acc_weight_pim > .2){acc_weight_pim =0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
-					if( !isfinite(bin_weight_pim) || bin_err_pim/bin_weight_pim > .2){bin_weight_pim= 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
-				
-					double n_pip_corr = n_pip*acc_weight_pip*bin_weight_pip;
-					double pip_err = n_pip_corr*sqrt( pow( 1./sqrt(n_pip) , 2 ) + pow( acc_err_pip/acc_weight_pip, 2 ) + pow(bin_err_pip/bin_weight_pip, 2 ) );	
-		
-					double n_pim_corr = n_pim*acc_weight_pim*bin_weight_pim;
-					double pim_err = n_pim_corr*sqrt( pow( 1./sqrt(n_pim) , 2 ) + pow( acc_err_pim/acc_weight_pim, 2 ) + pow(bin_err_pim/bin_weight_pim, 2 ) );	
-					*/
-					
-					hZ[i][j][0]->SetBinContent(k, n_pip_corr);
-					hZ[i][j][1]->SetBinContent(k, n_pim_corr);
-					
-					hZ[i][j][0]->SetBinError(k, pip_err);
-					hZ[i][j][1]->SetBinError(k, pim_err);
-				
-						
-
 				}
+			
+			}
 
+			hZ[i-1][j-1][0]->Divide(hZ[i-1][j-1][1]);
 
-			hZ[i][j][0]->Divide(hZ[i][j][1]);
-
-			TH1F * helper_3 = (TH1F *)hZ[i][j][0]->Clone();
-			hZ[i][j][0]->Scale(-1.);
-			hZ[i][j][0]->Add(helper_2);
+			TH1F * helper_3 = (TH1F *)hZ[i-1][j-1][0]->Clone();
+			hZ[i-1][j-1][0]->Scale(-1.);
+			hZ[i-1][j-1][0]->Add(helper_2);
 
 			helper_3->Scale(4.);
 			helper_3->Add( helper_1 );
 
-			hZ[i][j][0]->Divide(helper_3);
-			
-			//for( int k = 1; k <= bins_Z; k++ ){
-
-			//	if( isnan(hZ[i][j][0]->GetBinContent(k))
-
-			hZ[i][j][0]->Write();
-			hZ[i][j][1]->Write();
+			hZ[i-1][j-1][0]->Divide(helper_3);
+		
+			hZ[i-1][j-1][0]->Print("ALL");
+			hZ[i-1][j-1][0]->Write();
+			hZ[i-1][j-1][1]->Write();
 		}
 	}		
-	
+
 	outFile->Close();
-	
+
 }
