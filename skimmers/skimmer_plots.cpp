@@ -99,30 +99,17 @@ int main( int argc, char** argv){
 	TTree * outTree;
 	
 	outputFile = new TFile(outFileName + ".root", "RECREATE");
-	outTree = new TTree("ePi", "(e,e'pi) event  information");
-
-	//Declare skimmer hists
-	//TH2F ** hSF_no_cuts = new TH2F*[6];
-	//TH2F ** hSF = new TH2F*[6];
-
-	//for( int i = 0; i < 6; i++ ){
-	//	hSF_no_cuts[i] = new TH2F(Form("hSF_no_cuts_%i", i), "hSF_no_cuts", 160, 0, 8, 75, .1, .35);
-	//	hSF[i] = new TH2F(Form("hSF_%i", i), "hSF", 160, 0, 8, 75, .1, .35);
-	//}
-
-	//TH1F * hPositives = new TH1F("hPos", "hPos", 500, 0.75, 1.01);
-	//TH1F * hNegatives = new TH1F("hMin", "hMin", 500, 0.75, 1.01);
 	
-	TH2F * hPositives = new TH2F("hPositives", ";p;#beta", 500, 0, 5, 500, 0.75, 1.01);
-	TH2F * hNegatives = new TH2F("hNegativs", ";p;#beta", 500, 0, 5, 500, 0.75, 1.01);
+	TH2F * hPositives = new TH2F("hPositives", ";p;#beta", 500, 0, 5, 500, 0.9, 1.01);
+	TH2F * hNegatives = new TH2F("hNegativs", ";p;#beta", 500, 0, 5, 500, 0.9, 1.01);
 
 
-	TH2F * hElectronFid = new TH2F( "hElectron_FID", ";p_{e};#beta", 500, 0, 5, 250, 0.75, 1.01 );
-	TH2F * hElectronWV = new TH2F( "hElectron_WV", ";p_{e};#beta", 500, 0, 5, 250, 0.75, 1.01 );
-	TH2F * hElectronMinE = new TH2F( "hElectron_MinE", ";p_{e};#beta", 500, 0, 5, 250, 0.75, 1.01 );
-	TH2F * hElectronSF = new TH2F( "hElectron_SF", ";p_{e};#beta", 500, 0, 5, 250, 0.75, 1.01 );
-	TH2F * hElectronSF_Corr = new TH2F( "hElectron_SF_Corr", ";p_{e};#beta", 500, 0, 5, 250, 0.75, 1.01 );
-	TH2F * hElectronVt = new TH2F( "hElectron_Vt", ";p_{e};#beta", 500, 0, 5, 250, 0.75, 1.01 );
+	TH2F * hElectronFid = new TH2F( "hElectron_FID", ";p_{e};#beta", 500, 0, 5, 250, 0.9, 1.01 );
+	TH2F * hElectronWV = new TH2F( "hElectron_WV", ";p_{e};#beta", 500, 0, 5, 250, 0.9, 1.01 );
+	TH2F * hElectronMinE = new TH2F( "hElectron_MinE", ";p_{e};#beta", 500, 0, 5, 250, 0.9, 1.01 );
+	TH2F * hElectronSF = new TH2F( "hElectron_SF", ";p_{e};#beta", 500, 0, 5, 250, 0.9, 1.01 );
+	TH2F * hElectronSF_Corr = new TH2F( "hElectron_SF_Corr", ";p_{e};#beta", 500, 0, 5, 250, 0.9, 1.01 );
+	TH2F * hElectronVt = new TH2F( "hElectron_Vt", ";p_{e};#beta", 500, 0, 5, 250, 0.9, 1.01 );
 
 	TH2F * hPionFID[2];
 	TH2F * hPionChi2[2];
@@ -130,9 +117,9 @@ int main( int argc, char** argv){
 	TString chargeType[2] = {"Pip", "Pim"};	
 
 	for( int i = 0; i < 2; i++ ){
-		hPionFID[i] = new TH2F( Form("h%i_FID", chargeType[i]), ";p_{#pi};#beta", 500, 0, 5, 250, 0.75, 1.01 );
-		hPionChi2[i] = new TH2F( Form("h%i_Chi2", chargeType[i]), ";p_{#pi};#beta", 500, 0, 5, 250, 0.75, 1.01 );
-		hPionVt[i] = new TH2F( Form("h%i_Vt", chargeType[i]), ";p_{#pi};#beta", 500, 0, 5, 250, 0.75, 1.01 );
+		hPionFID[i] = new TH2F( Form("h%s_FID", chargeType[i]), ";p_{#pi};#beta", 500, 0, 5, 250, 0.9, 1.01 );
+		hPionChi2[i] = new TH2F( Form("h%s_Chi2", chargeType[i]), ";p_{#pi};#beta", 500, 0, 5, 250, 0.9, 1.01 );
+		hPionVt[i] = new TH2F( Form("h%s_Vt", chargeType[i]), ";p_{#pi};#beta", 500, 0, 5, 250, 0.9, 1.01 );
 	}
 
 
@@ -262,6 +249,22 @@ int main( int argc, char** argv){
 	
 	std::cout<<"Writing tree to file\n";
    	outputFile->cd();
+	hPositives->Write();
+	hNegatives->Write();
+
+	hElectronFid->Write(); 
+	hElectronWV->Write();  
+	hElectronMinE->Write();  
+	hElectronSF->Write();  
+	hElectronSF_Corr ->Write(); 
+	hElectronVt->Write();  
+
+
+	for( int i = 0; i < 2; i++ ){
+		hPionFID[i]->Write(); 
+		hPionChi2[i]->Write(); 
+		hPionVt[i]->Write(); 
+	}
 	outputFile->Close();
 	
 	
