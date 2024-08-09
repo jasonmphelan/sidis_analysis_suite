@@ -125,7 +125,6 @@ int main( int argc, char** argv){
 						fitPip[j][k][l][m]->SetParameters( hBeta[0][j+1][k+1][l+1][m+1]->GetMaximum(), hBeta[0][j+1][k+1][l+1][m+1]->GetMean(), hBeta[0][j+1][k+1][l+1][m+1]->GetRMS() ); 
 						hBeta[0][j+1][k+1][l+1][m+1]->Fit( Form("f_pip_%i_%i_%i_%i", j, k, l, m), "R" );
 					}
-					cout<<"FIT PROBABILITY : "<<fitPip[j][k][l][m]->GetProb()<<"\n";	
 					
 						
 					//fit negative pions	
@@ -162,8 +161,6 @@ int main( int argc, char** argv){
 					int pip_bin_min = hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->FindBin( pip_fit_mean - 2*pip_fit_std );
 					//int pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->GetBin( pip_fit_mean + 2*pip_fit_std );
 					int pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->GetNbinsX( );
-					cout<<"MIN : "<<pip_bin_min<<std::endl;
-					cout<<"MAX : "<<pip_bin_max<<std::endl;
 					
 					for( int bin = pip_bin_min; bin <= pip_bin_max; bin++ ){
 						pip_num+=hBeta[0][j+1][k+1][l+1][m+1]->GetBinContent(bin);
@@ -174,7 +171,7 @@ int main( int argc, char** argv){
 					
 					double pim_num = 0;
 					double pim_fit_mean = fitPim[j][k][l][m]->GetParameter(1);
-					double pim_fit_std = fitPim[j][k][l][m]->GetParameter(1);
+					double pim_fit_std = fitPim[j][k][l][m]->GetParameter(2);
 					int pim_bin_min = hBeta[1][j+1][k+1][l+1][m+1]->GetXaxis()->FindBin( pim_fit_mean - 2*pim_fit_std );
 					int pim_bin_max = hBeta[1][j+1][k+1][l+1][m+1]->GetNbinsX( );
 					
@@ -184,7 +181,11 @@ int main( int argc, char** argv){
 
 					double km_num = hBeta[1][j+1][k+1][l+1][m+1]->Integral() - pim_num;
 					double pim_err = (1./pow( km_num+pim_num, 2))*sqrt( pim_num*km_num*(pim_num+km_num ) );
-
+					
+					cout<<"MIN BIN : "<<pim_bin_min<<std::endl;
+					cout<<"KAONS : "<<km_num<<std::endl;
+					cout<<"FIT PROBABILITY : "<<fitPim[j][k][l][m]->GetProb()<<"\n";	
+					cout<<"PIM CORRECTION : "<<pim_num/(pim_num+km_num)<<std::endl;
 
 
 					if(pip_num/(pip_num+kp_num) > .5 && pip_num/(pip_num+kp_num) < 1. ){
@@ -204,18 +205,30 @@ int main( int argc, char** argv){
 						kaonCorr_m[m]->SetBinError(k+1, j+1, l+1, 0);
 					}
 					
-					canvasP.cd();
-					hBeta[0][j+1][k+1][l+1][m+1]->Draw("");
-					fitPip[j][k][l][m]->Draw("SAME");	
-					canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf");
-					canvasP.Clear();
+					if( j == 0 && k == 1 && l == 4 && m == 2 ){
+						canvasP.cd();
+						hBeta[0][j+1][k+1][l+1][m+1]->SetStats(0);;
+						hBeta[0][j+1][k+1][l+1][m+1]->SetTitle("");
+						hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetTitle("#beta");
+						hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetTitleFont(43);
+        					hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetTitleSize(20);
+        					hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetRangeUser(.985, 1.005);
+        					hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetTitleOffset(0.9);
+						hBeta[0][j+1][k+1][l+1][m+1]->GetYaxis()->SetTitleFont(43);
+        					hBeta[0][j+1][k+1][l+1][m+1]->GetYaxis()->SetTitleSize(20);
+        					hBeta[0][j+1][k+1][l+1][m+1]->GetYaxis()->SetTitleOffset(1.25);
+						hBeta[0][j+1][k+1][l+1][m+1]->Draw("");
+
+						fitPip[j][k][l][m]->Draw("SAME");	
+						canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf");
+						canvasP.Clear();
+					}
 						
-						
-					hBeta[1][j+1][k+1][l+1][m+1]->Draw("");
-					canvasM.cd();
-					fitPim[j][k][l][m]->Draw("SAME");	
-					canvasM.Print((TString) HIST_PATH + "/" + out_name + ".pdf_m");
-					canvasM.Clear();
+					//hBeta[1][j+1][k+1][l+1][m+1]->Draw("");
+					//canvasM.cd();
+					//fitPim[j][k][l][m]->Draw("SAME");	
+					//canvasM.Print((TString) HIST_PATH + "/" + out_name + ".pdf_m");
+					//canvasM.Clear();
 			
 				}
 			}

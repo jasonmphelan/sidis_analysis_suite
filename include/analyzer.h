@@ -48,6 +48,16 @@ public:
 	int acceptance_match_3d_cont( double phi_part, double theta, double p, int chargeIdx);
 	int acceptance_match_3d( double phi_part, double theta, double p, int charge);
 	int FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> part_list);
+	//these are used in plotting program
+	bool applyElectronFiducials( electron e );
+	bool applyElectronPCAL( electron e );
+	bool applyElectronEDep( electron e );
+	bool applyElectronSF( electron e );
+	bool applyElectronCorrelation( electron e );
+	bool applyElectronVertex( electron e );
+	bool applyPionDetectorFiducials( pion pi );
+	bool applyPionDetectorChi2( pion pi );
+	bool applyPionDetectorVertex( pion pi, electron e );
 
 private:
 	int	fdebug;

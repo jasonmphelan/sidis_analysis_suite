@@ -104,6 +104,62 @@ bool analyzer::applyElectronDetectorCuts( electron e ){
 	
 	return true;
 }
+bool analyzer::applyElectronFiducials( electron e ){
+	if (e.getDC_sector() == 0) return false;
+
+
+	double e_DC_x[3] = {e.getDC_x1(), e.getDC_x2(), e.getDC_x3()};
+	double e_DC_y[3] = {e.getDC_y1(), e.getDC_y2(), e.getDC_y3()};
+	double e_DC_z[3] = {e.getDC_z1(), e.getDC_z2(), e.getDC_z3()};
+
+	for (int regionIdx=0; regionIdx<3; regionIdx++) {
+		// DC_e_fid:
+		// sector:  1-6
+		// layer:   1-3
+		// bending: 0(out)/1(in)
+
+		int bending  = 1 ? (torusBending==-1) : 0;
+		bool DC_fid  = dcfid.DC_fid_xy_sidis( 11,                 // particle PID,
+						e_DC_x[regionIdx],  // x
+						e_DC_y[regionIdx],  // y
+						e.getDC_sector(),        // sector
+						regionIdx+1,        // layer
+						bending );           // torus bending
+		if (DC_fid == false) { return false; }
+	}	
+	return true;
+}
+
+bool analyzer::applyElectronPCAL( electron e ){
+	if( ! (	e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min)) return false;
+	return true;
+}
+
+bool analyzer::applyElectronEDep( electron e ){
+
+	//PCAL MIN EDEP CUT
+	if( ! ( e.getEpcal() > e_E_PCAL_min) ) return false;
+	return true;
+}
+bool analyzer::applyElectronSF( electron e ){
+	//Electron SF cut
+	if(  !(epid.isElectron(&e)) ) return false;
+	return true;
+}
+	//if( ! (( (e.getEpcal() + e.getEecin() + e.getEecout())/e.get3Momentum().Mag()) > SamplingFraction_min ) ) return false;
+	
+bool analyzer::applyElectronCorrelation( electron e ){
+	//SF CORRELATION CUT
+	if( !( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() )) return false;
+	return true;
+}
+
+
+bool analyzer::applyElectronVertex( electron e ){
+	//ELECTRON VERTEX CUT
+	if( ! ((e.getVt().Z() > -5) && (e.getVt().Z() < -1))) return false;
+	return true;
+}
 
 bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
 	// decide if pion (pi+ or pi-) passed event selection cuts
@@ -158,6 +214,65 @@ bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
 	
 	return true;
 }
+
+bool analyzer::applyPionDetectorFiducials( pion pi ){
+	// decide if pion (pi+ or pi-) passed event selection cuts
+	//
+	// input:
+	// --------
+	// DC_x, DC_y   pi drift-chamber coordinates
+	// chi2PID      pi chi2PID     (pips_chi2PID)
+	// p            pi momentum    (pi.P())
+	//
+
+
+	double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
+	double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
+	double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
+
+	for (int regionIdx=0; regionIdx<3; regionIdx++) {
+		// DC_e_fid:
+		// sector:  1-6
+		// layer:   1-3
+		// bending: 0(out)/1(in)
+		
+		int bending  = 1 ? (torusBending==-1) : 0;
+		bool DC_fid  = dcfid.DC_fid_th_ph_sidis(pi.getPID(),            // particle PID
+							DC_x[regionIdx],    // x
+							DC_y[regionIdx],    // y
+							DC_z[regionIdx],    // z
+							pi.getDC_sector(),          // sector
+							regionIdx+1,        // layer
+							bending);           // torus bending
+		
+		if (DC_fid == false) { return false; }
+	}
+	return true;
+}
+bool analyzer::applyPionDetectorChi2( pion pi ){
+	double    C;
+	
+	if (pi.getCharge() > 0){ C = 0.88;} 
+	else if (pi.getCharge() < 0) {C = 0.93; } 
+	else {
+		std::cout << "π charge ill-defined, returning false" << std::endl;
+		return false;
+	}
+	//PION CHI2 vs P CUT
+	if(! (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
+         	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) ))) 
+		{return false; }
+	return true;
+}
+
+bool analyzer::applyPionDetectorVertex( pion pi, electron e ){
+       
+	//DELTA VERTEX CUT
+	if( !( (pi.getVt() - e.getVt()).Z() > -7 && (pi.getVt() - e.getVt()).Z() < 5 ) ) { return false; }
+	
+	return true;
+}
+
 
 
 bool analyzer::applyElectronKinematicCuts( electron e ){

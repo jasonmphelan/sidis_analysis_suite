@@ -15,6 +15,7 @@
 #include "TH2.h"
 #include "TH3.h"
 #include "TCanvas.h"
+#include "TChain.h"
 #include "TLine.h"
 #include "TLegend.h"
 #include "TTreeReader.h"
@@ -86,8 +87,13 @@ int main( int argc, char** argv){
 
 	cout<<"Beginning Event Loop\n";
 
-	TFile * file = new TFile(in_name);
-	TTreeReader reader("ePi", file);
+	//TFile * file = new TFile(in_name);
+	TChain * file = new TChain("ePi");
+	file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
+	file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
+	file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
+	//TTreeReader reader("ePi", file);
+	TTreeReader reader( file);
 
 	TTreeReaderValue<electron> e(reader, "e");
 
@@ -144,7 +150,7 @@ int main( int argc, char** argv){
 		}
 	}
 	
-	file->Close();
+	//file->Close();
 
 	outFile->cd();
 	

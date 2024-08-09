@@ -234,3 +234,18 @@ void pion::setPion( TLorentzVector q, TLorentzVector pe,  clas12::region_part_pt
 	return;
 }
 
+double pion::getVariableByName(TString name){
+	double var = 0;
+	if( name == "z"){ return getZ(); }
+	if( name == "Z"){ return getZ(); }
+	if( name =="pT"){ return getPi_q().Pt(); }
+	if( name =="pt"){ return getPi_q().Pt(); }
+	if( name =="Pt"){ return getPi_q().Pt(); }
+	if( name =="phi_q"){ return getPi_q().Phi(); }
+
+	return 0;
+
+}
+
+
+

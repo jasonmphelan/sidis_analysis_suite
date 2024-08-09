@@ -6,6 +6,7 @@
 #include "TLorentzVector.h"
 #include "region_particle.h"
 #include "rich.h"
+#include "TString.h"
 #include <vector>
 
 class pion{// : public TObject {
@@ -186,6 +187,7 @@ class pion{// : public TObject {
 
 		void setMCPion( bool i ){ isMC = i; }
 
+		double getVariableByName(TString name);
 		//ClassDef(clashit,7);
 
 	private:
