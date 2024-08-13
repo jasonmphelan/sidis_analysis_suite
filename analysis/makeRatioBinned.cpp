@@ -184,7 +184,10 @@ int main( int argc, char** argv){
 			}
 
 			//If negative pion, check if good pip bin
-			if( pi[i].getCharge() == 1 && (double) kaonWeight[0][this_bin_p]->GetBinContent(this_bin_xB, this_bin_Q2, this_bin_Z) == 0 ){
+			if( pi[i].getCharge() == 1 && (double) kaonWeight[1][this_bin_p]->GetBinContent(this_bin_xB, this_bin_Q2, this_bin_Z) == 0 ){
+				kaon_weight = 1;
+			}
+			if( pi[i].getCharge() == -1 && (double) kaonWeight[0][this_bin_p]->GetBinContent(this_bin_xB, this_bin_Q2, this_bin_Z) == 0 ){
 				kaon_weight = 1;
 			}
 

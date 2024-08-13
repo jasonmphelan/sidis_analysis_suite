@@ -94,7 +94,7 @@ int main( int argc, char** argv){
 	std::vector<genPion> pi_gen ;
 	
 	std::vector<int> electronsMC;
-	std::vector<std::vector<int>> pionsMC;
+	std::vector<std::vector<int>> pionsMC, pipsMC, pimsMC;
 	
 	// Set Output file and tree
 	TFile * outputFile;
@@ -175,8 +175,9 @@ int main( int argc, char** argv){
 			
 			///////////////////////////Initialize variables//////////////////////////////////////////////	
 			electronsMC.clear();
-			pionsMC[0].clear();
-			pionsMC[1].clear();
+			pionsMC.clear();
+			pipsMC.clear();
+			pimsMC.clear();
 			
 			e_gen.Clear();
 			pi_gen.clear();
@@ -186,30 +187,28 @@ int main( int argc, char** argv){
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
 			
 			// Get Particles By PID
-			pions = pipluses;
-			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );
 			
-			Ne      = electrons.size();
-			Npi 	= pions.size();
 			
-			if(RunType == 1){	
-				int nMcPart = c12.mcevent()->getNpart();	
-				int mcId;
-				for ( int i = 0; i<nMcPart; i++ ){
-					mcId = c12.mcparts()->getPid(i);
-					switch (mcId){
-						case 11:
-							electronsMC.push_back(i);
-							break;
-						case 211:
-							pionsMC[0].push_back(i);
-							break;
-						case -211:
-							pionsMC[1].push_back(i);
-							break;
-					}
+			int nMcPart = c12.mcevent()->getNpart();	
+			int mcId;
+			for ( int i = 1; i<nMcPart; i++ ){
+				mcId = c12.mcparts()->getPid(i);
+				switch (mcId){
+					case 11:
+						electronsMC.push_back(i);
+						break;
+					case 211:
+						pipsMC[0].push_back(i);
+						break;
+					case -211:
+						pimsMC[1].push_back(i);
+						break;
 				}
 			}
+			pionsMC = pipsMC;
+			pionsMC.insert( pionsMC.end(), pimsMC.begin(), pimsMC.end() );
+			Npi 	= pionsMC.size();
+			Ne      = electronsMC.size();
 			
 			if( Ne < 1 ){ continue; } //Keep only events with one electron...
 			if( Npi == 0 && inclusive != 1 ){ continue; }	
@@ -217,47 +216,28 @@ int main( int argc, char** argv){
 			
 			//////////////electron analysis////////////////////
 			//Find good electrons
-			int e_idx = GetLeadingElectron(electrons, Ne);	
-			e.setElectron( Ebeam, electrons[e_idx]);
-			if( !anal.applyElectronDetectorCuts( e )){continue;}
+			int e_idx = electronsMC[0];//no ambiguity with MC electron
+			mvcparts->setEntry(e_idx);
+			e_gen.setElectron( mcparts);
+			if( !anal.applyElectronDetectorCuts( e_gen )){continue;}
 		
-			if( RunType == 1 ){
-				int e_match = anal.FindMatch(e.get3Momentum(), mcparts, electronsMC );
-				mcparts->setEntry(e_match);
-				if( e_match > -1 ){ e_gen.setKinematicInformation(Ebeam, mcparts); }
-				else{ continue; }
-			}
-
 			////////////////Pion analysis/////////////////
 			
-			pion pi_dummy;
 			genPion genPi_dummy;
 			//Find good pions			
 			for(int i = 0; i < Npi; i++){
 				if( inclusive == 1 ){ continue; }
-				pi_dummy.Clear();
-			
-				pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
-				if( !anal.applyPionDetectorCuts( pi_dummy, e ) ) {continue;}
+				genPi_dummy.Clear();
+				mcparts->setEntry( pionsMC[i] );
+				genPi_dummy.setPion( e.getQ(),e.get4Momentum(), mcparts );
+				if( !anal.applyPionDetectorCuts( genPi_dummy, e ) ) {continue;}
 				
-				//Do MC Matching if skimming monte carlo
-				if( RunType == 1 ){
-					int chargeIdx = (int) (pi_dummy.getCharge() < 0);
-					int pi_match = anal.FindMatch(pi_dummy.get3Momentum(), mcparts, pionsMC[chargeIdx] );
-					mcparts->setEntry(pi_match);
-					if( pi_match > -1 ){ 
-						genPi_dummy.Clear();
-						genPi_dummy.setKinematicInformation(e_gen.get4Momentum(), e_gen.getQ(), mcparts);
-						pi_gen.push_back(genPi_dummy); 
-					}
-					else { continue; }
-				}
-				pi.push_back(pi_dummy);
+				piMC.push_back(genPi_dummy);
 					
 			}
 
 			//goodElectron++;
-			if(pi.size() == 0 && inclusive == 0){continue;}	
+			if(piMC.size() == 0 && inclusive == 0){continue;}	
 			outTree->Fill();
 			
 		}

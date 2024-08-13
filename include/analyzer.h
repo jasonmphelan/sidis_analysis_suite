@@ -10,7 +10,9 @@
 #include "cut_values.h"
 #include "constants.h"
 #include "electron.h"
+#include "genElectron.h"
 #include "pion.h"
+#include "genPion.h"
 #include "e_pid.h"
 #include "DCfid_SIDIS.h"
 #include "TH3F.h"
@@ -32,8 +34,10 @@ public:
 
 	bool 	applyElectronDetectorCuts( electron e );
 	bool 	applyElectronKinematicCuts( electron e );
+	bool 	applyElectronKinematicCuts( genElectron e );
 
 	bool 	applyPionKinematicCuts( pion pi );
+	bool 	applyPionKinematicCuts( genPion pi );
 	bool 	applyPionDetectorCuts( pion pi, electron e );
 
 	void	loadCutValues (int torusBending, double EBeam); //  -1 for In-bending, +1 for Out-bending
@@ -48,6 +52,9 @@ public:
 	int acceptance_match_3d_cont( double phi_part, double theta, double p, int chargeIdx);
 	int acceptance_match_3d( double phi_part, double theta, double p, int charge);
 	int FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> part_list);
+	
+	
+	
 	//these are used in plotting program
 	bool applyElectronFiducials( electron e );
 	bool applyElectronPCAL( electron e );

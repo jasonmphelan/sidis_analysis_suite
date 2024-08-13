@@ -289,9 +289,34 @@ bool analyzer::applyElectronKinematicCuts( electron e ){
 		
 		return true;
 }
+bool analyzer::applyElectronKinematicCuts( genElectron e ){
+		if( sqrt(e.getW2()) < W_min ) { return false; }
+		if( e.getQ2() < Q2_min || e.getQ2() > Q2_max ) { return false; }
+                if( e.getXb() < xB_min || e.getXb() > xB_max ) { return false; }
+                if( e.getY() > y_max ) { return false; }
+                
+		double p = e.get3Momentum().Mag();
+		if( p < P_e_min || p > P_e_max ) { return false; }
+                
+		double theta = e.get3Momentum().Theta()*rad_to_deg;
+		if( theta < theta_min || theta > theta_max ){ return false; }
+		
+		return true;
+}
 
 
 bool analyzer::applyPionKinematicCuts( pion pi ){
+
+
+	if ( ( pi.getMx() < Mx_min || pi.getMx() > Mx_max) ) { return false; }
+	double p = pi.get3Momentum().Mag();
+	if ( p < P_pi_min || p > P_pi_max ) { return false; }
+	if ( pi.getZ() < Z_min  ||  pi.getZ() > Z_max ) { return false; }
+	double theta = pi.get3Momentum().Theta()*rad_to_deg;
+	if ( theta < theta_min || theta > theta_max ){ return false; }
+	return true;
+}
+bool analyzer::applyPionKinematicCuts( genPion pi ){
 
 
 	if ( ( pi.getMx() < Mx_min || pi.getMx() > Mx_max) ) { return false; }

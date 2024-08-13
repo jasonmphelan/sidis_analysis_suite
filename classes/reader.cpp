@@ -161,7 +161,7 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 		for( int j = 0; j < nRuns[beamType]; j++ ){
 			for( int i = 0; i < 75000; i++){
 				if( nFiles != 0 && i >= nFiles ) break;
-				inFile = name + Form("_%i", i) + ".root";
+				inFile = name + ".root";
 				if( gSystem->AccessPathName(inFile) ) continue;
 				chain->Add(inFile);
 			}
