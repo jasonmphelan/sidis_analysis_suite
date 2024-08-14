@@ -92,6 +92,7 @@ int main( int argc, char** argv){
 		}
 
 		if( (int)( pi.end() - pi.begin() ) != 2 ){continue;}
+		if( pi[0].getCharge() == pi[1].getCharge() ){ continue; }
 
 		double lead_Z_temp = -1;
 		double lead_Z_no_acc_temp = -1;               
