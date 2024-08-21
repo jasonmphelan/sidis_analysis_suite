@@ -7,6 +7,7 @@ module switch clas12root/1.8.4 clas12root/dev
 To compile:
 
 Set environment variables SIDIS_DATA_PATH and SIDIS_HIST_PATH (used as output directory) and run
+(will update)
 
 ```
 mkdir build
