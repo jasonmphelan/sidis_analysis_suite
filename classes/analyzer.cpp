@@ -430,7 +430,7 @@ void analyzer::loadMatchingFunctions( TString fileName ){
 }
 
 void analyzer::loadMatchingFunctions(){
-	loadMatchingFunctions("matchCut3d.root");
+	loadMatchingFunctions("matchCut3D.root");
 }
 
 

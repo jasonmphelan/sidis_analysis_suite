@@ -36,15 +36,16 @@ TVector3 rotate_to_beam_frame( TLorentzVector q, TLorentzVector p_e, TLorentzVec
 
 int main( int argc, char** argv){
 
-	if( argc <3 ){
+	if( argc <4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File]\n";
+		cerr << "./code [Input File] [Output File] [Rel Uncertainty Level] \n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2] <<"\n";
 
 	TString in_name = argv[1];
        	TString out_name = argv[2];
+	double err_level = atof( argv[3] );
 
         TFile * file_rec = new TFile(in_name);
 	TRandom3 gen;
@@ -56,40 +57,79 @@ int main( int argc, char** argv){
         TTreeReader reader_rec("ePi", file_rec);
 
 	TTreeReaderValue<electron> e(reader_rec, "e");
+	TTreeReaderValue<double> Mx_2pi(reader_rec, "Mx_2pi");
+	TTreeReaderValue<double> M_rho(reader_rec, "M_rho");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
+	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion_no_acc");
+
+	double onePiEvents = 0;
+	double twoPiEvents = 0;
+	double corr_err = 999;
+	bool detectedPion[2] = {true, true};
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
+		int trials = 0;
 
 		if(event_count%1000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<std::endl;
 		}
-		
-		double deltaPhi_lab = 2*TMath::Pi()*(gen.Rndm());
-		double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm()); 
-		
-		TVector3 e_mom = e->get3Momentum();
-		TVector3 pi_mom[2];
-		
-		e_mom.RotateZ(deltaPhi_lab);
+		if( *Mx_2pi > 1.2 || *Mx_2pi < .75 ){continue;}
+		if( *M_rho > 1 || *M_rho < .45 ){continue;}
+		while( corr_err > err_level ){
+			trials++;
+			detectedPion[0] = true;
+		       	detectedPion[1] = true;
 
-		int e_acc = acceptanceMap.GetElectronAcceptance( e_mom.Theta(), e_mom.Phi(), e_mom.Mag() ) ;
-		cout<<"Electron : "<<e_acc<<endl;
-		
 
-		for( int i = 0; i < 2; i++ ){	
-			//rotate pion
-			TVector3 pi_q_mom = pi[i].getPi_q().Vect();
-			pi_q_mom.RotateZ( deltaPhi_q );
+			double deltaPhi_lab = 2*TMath::Pi()*(gen.Rndm());
+			double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm()); 
 			
-			pi_mom[i] = rotate_to_beam_frame( e->getQ(), e->get4Momentum(), pi[i].getPi_q() );
-			pi_mom[i].RotateZ( deltaPhi_lab );
-			int pi_acc = anal.acceptance_match_3d_cont( pi_mom[i].Phi()* rad_to_deg, pi_mom[i].Theta()*rad_to_deg , pi_mom[i].Mag(), (int) ( pi[i].getCharge() < 0 ));
-			cout<<"Pion #"<<i+1<<" : "<<pi_acc<<endl;
+			TVector3 e_mom = e->get3Momentum();
+			TVector3 pi_mom[2];
+		
+			e_mom.RotateZ(deltaPhi_lab);
+	
 
+			int e_acc = acceptanceMap.GetElectronAcceptance( e_mom.Theta(), e_mom.Phi(), e_mom.Mag() ) ;
+			if( e_acc == -1 ){continue;}
+
+
+			for( int i = 0; i < 2; i++ ){	
+				//rotate pion
+				TVector3 pi_q_mom = pi[i].getPi_q().Vect();
+				pi_q_mom.RotateZ( deltaPhi_q );
+			
+				pi_mom[i] = rotate_to_beam_frame( e->getQ(), e->get4Momentum(), pi[i].getPi_q() );
+				pi_mom[i].RotateZ( deltaPhi_lab );
+				int pi_acc = -1;
+				if( pi_mom[i].Mag() > 1.25 ){
+			       		pi_acc =  anal.acceptance_match_3d_cont( pi_mom[i].Phi()* rad_to_deg, pi_mom[i].Theta()*rad_to_deg , pi_mom[i].Mag(), (int) ( pi[i].getCharge() < 0 ));
+				}
+				else{ pi_acc = acceptanceMap.GetElectronAcceptance( pi_mom[i].Theta(), pi_mom[i].Phi(), pi_mom[i].Mag() ); }
+				
+				if( pi_acc < 0){ detectedPion[i] = false; }
+			}
+
+			if( ( detectedPion[0] == true && isGoodPion[0] == true && detectedPion[1] == false ) ||
+				( detectedPion[1] == true && isGoodPion[1] == true && detectedPion[0] == false ) ){
+					onePiEvents++;
+			}
+			else if( ( detectedPion[0] == true && detectedPion[1] == true ) &&
+				( isGoodPion[0] == true || isGoodPion[1] == true  ) ){
+					twoPiEvents++;
+					cout<<"FOUND 2 PI EVENT! \n";
+			}
+
+			//check uncertainty
+			if( onePiEvents != 0 && twoPiEvents != 0 ){
+				corr_err =  sqrt( 1/onePiEvents + 1/twoPiEvents );
+			}
+			cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;	
 		}	
+		cout<<"TRIALS FOR EVENT "<<event_count<<" : "<<trials<<endl;
+ 		cout<<"RHO EVENT WEIGHT :"<<1+ onePiEvents/twoPiEvents<<endl;
 
-		cout<<"-------------------------------------------------------------------------\n";
 	}
 	
 }
