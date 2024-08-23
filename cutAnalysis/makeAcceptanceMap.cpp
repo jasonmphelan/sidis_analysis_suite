@@ -67,7 +67,8 @@ int main( int argc, char** argv){
 	TGraph * gThetaPhi[3][6][10];
 	TF1 * fThetaPhi[3][6][10][2];
 
-	TString momentum_functions[2] = {"[0] + exp([1]*x+[2])", "[0] + exp(-1*[1]*x-[2])"};
+	//TString momentum_functions[2] = {"[0] + exp([1]*x+[2])", "[0] + exp(-1*[1]*x-[2])"};
+	TString momentum_functions[2] = {"[0]*(x - [1])*( x-[1] ) + [2]", "[0]+(x - [1])*(x-[1])+[2]"};
 	TString boundary[2] = {"upper","lower"};
 	TString particle[3] = {"e","pip", "pim"};
 	
@@ -80,14 +81,18 @@ int main( int argc, char** argv){
 				double histStd = hThetaPhi[p][sec][bin]->GetRMS(1);
 				double histMeanY = hThetaPhi[p][sec][bin]->GetMean(2);
 				double histStdY = hThetaPhi[p][sec][bin]->GetRMS(2);
-				double histMin = histMeanY - 2*histStdY;
+				double histMin = histMeanY - 3*histStdY;
 				
+				//double a = histMin - histMean*histMean*histStd;
+				//double b = -10./histMean;
+				//double c = log(2*histMean*histMean*histStd);
+
 				cout<<"Min : "<<histMin<<" Width : "<<histStd<< " Mean : "<<histMean<<std::endl;
 
 				for( int fun = 0; fun < 2; fun++ ){
 					fThetaPhi[p][sec][bin][fun] = new TF1(Form("fThetaPhi_sec_%i_bin_%i_%s_%s", sec, bin, particle[p].Data(), boundary[fun].Data()), 
-								momentum_functions[fun], histMean - (fun) * 2.5*histStd, histMean - (fun - 1)*(2.5*histStd));
-					fThetaPhi[p][sec][bin][fun]->SetParameters( .1*histMin, .1*histStd, -.1*histMean );
+								momentum_functions[fun], histMean - 3*histStd, histMean + (3*histStd));
+					fThetaPhi[p][sec][bin][fun]->SetParameters( 1./histStd, histMean, histMin );
 			
 				}
 			}
@@ -133,11 +138,14 @@ int main( int argc, char** argv){
 				}
 				TCanvas c(Form("hThetaPhi_sec_%i_bin_%i_part_%i", sec, bin, i));
 				gThetaPhi[i][sec][bin]->Draw();
+				gThetaPhi[i][sec][bin]->SetName(Form( "fThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[i].Data()) );
+				gThetaPhi[i][sec][bin]->Write();
 				fThetaPhi[i][sec][bin][0]->SetLineColor(kRed);
+				fThetaPhi[i][sec][bin][0]->Write();
 				//fThetaPhi[i][sec][bin][1]->SetLineColor(kRed);
 				fThetaPhi[i][sec][bin][0]->Draw("SAME");
 				//fThetaPhi[i][sec][bin][1]->Draw("SAME");
-				c.Write();	
+				//c.Write();	
 			}
 		}
 	}	
