@@ -69,7 +69,7 @@ int main( int argc, char** argv){
 
 	//TString momentum_functions[2] = {"[0] + exp([1]*x+[2])", "[0] + exp(-1*[1]*x-[2])"};
 	TString momentum_functions[2] = {"[0]*(x - [1])*( x-[1] ) + [2]", "[0]+(x - [1])*(x-[1])+[2]"};
-	TString boundary[2] = {"upper","lower"};
+	TString boundary[2] = {"fit","lower"};
 	TString particle[3] = {"e","pip", "pim"};
 	
 	for( int sec = 0; sec < 6; sec++ ){
@@ -118,25 +118,24 @@ int main( int argc, char** argv){
 				double binVal[1000];
 				int nPoints = 0;
 
-				for( int phiBin = 0; phiBin < nPhiBins/4 - 1; phiBin++ ){
+				for( int phiBin = 0; phiBin < nPhiBins; phiBin++ ){
 					TH1D * temp = new TH1D( "temp", "", hThetaPhi[i][sec][bin]->GetYaxis()->GetNbins(), 0, 40 );
-					temp = (TH1D *)hThetaPhi[i][sec][bin]->ProjectionY( "temp", 4*phiBin + 1,  4*(1+phiBin) + 1  );
-					if( temp->Integral() < 10 ){
+					temp = (TH1D *)hThetaPhi[i][sec][bin]->ProjectionY( "temp", phiBin ,  phiBin   );
+					if( temp->Integral() < 500 ){
 						delete temp;
 						continue;
 					}
-					binCenter[nPoints] =  hThetaPhi[i][sec][bin]->GetXaxis()->GetBinCenter( (4*phiBin + 1 +  4*(1+phiBin))/2 ) + hThetaPhi[i][sec][bin]->GetXaxis()->GetBinWidth(1) ; 
-					binVal[nPoints] = getThetaPct( .01, temp ) ;
+					binCenter[nPoints] =  hThetaPhi[i][sec][bin]->GetXaxis()->GetBinCenter( phiBin )  ; 
+					binVal[nPoints] = getThetaPct( .05, temp ) ;
 					nPoints++;
 					delete temp;
 
 				}
-				if(i != 0 ){continue;}
 				gThetaPhi[i][sec][bin] = new TGraph( nPoints, binCenter, binVal );
 				for( int fun = 0; fun < 1; fun++ ){
 					gThetaPhi[i][sec][bin]->Fit( Form( "fThetaPhi_sec_%i_bin_%i_%s_%s", sec, bin, particle[i].Data(), boundary[fun].Data() ));
 				}
-				TCanvas c(Form("hThetaPhi_sec_%i_bin_%i_part_%i", sec, bin, i));
+				TCanvas c(Form("hThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[i].Data()));
 				gThetaPhi[i][sec][bin]->Draw();
 				gThetaPhi[i][sec][bin]->SetName(Form( "fThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[i].Data()) );
 				gThetaPhi[i][sec][bin]->Write();

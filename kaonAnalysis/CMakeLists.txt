@@ -6,3 +6,9 @@ target_link_libraries(makeKaonPlots ${ROOT_LIBRARIES} clashit_tree)
 
 add_executable(calcKaonCorr calcKaonCuts.cpp  )
 target_link_libraries(calcKaonCorr ${ROOT_LIBRARIES} ) 
+
+add_executable(fitKaonCorr fitKaonCorrection.cpp  )
+target_link_libraries(fitKaonCorr ${ROOT_LIBRARIES} ) 
+
+add_executable(makeDataRatios calcDataRatio.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp )
+target_link_libraries(makeDataRatios ${ROOT_LIBRARIES} clashit_tree) 

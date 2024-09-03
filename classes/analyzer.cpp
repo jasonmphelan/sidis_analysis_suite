@@ -1,5 +1,6 @@
 #include "analyzer.h"
 #include "TFile.h"
+#include "TF1.h"
 #define CUT_PATH _DATA
 
 
@@ -468,3 +469,54 @@ int analyzer::FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> 
 	return p_idx;
 }
 
+
+void analyzer::loadAcceptanceMap(TString fileName){
+	TFile f(fileName);
+
+	TString parType[3] = {"e", "pip", "pim"};
+	int nPbins[3] = {10, 5, 5};
+	for( int par = 0; par < 3; par++ ){
+		for( int p = 0; p < nPbins[par]; p++ ){
+			for( int sec = 0; sec < 6; sec++ ){
+				TF1 * f1 = (TF1 *) f.Get(Form("fThetaPhi_sec_%i_bin_%i_%s_fit", sec, p, parType[par].Data() ) );
+
+				acceptanceMap[sec][p][par][0] = f1->GetParameter(0);
+				acceptanceMap[sec][p][par][1] = f1->GetParameter(1);
+				acceptanceMap[sec][p][par][2] = f1->GetParameter(2);
+			}
+		}
+	}
+}
+
+bool analyzer::checkAcceptance( double p, double phi, double theta, int particle ){
+	double par_0 = -999;
+	double par_1 = -999;
+	double par_2 = -999;
+
+	acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
+	double p_max = 5 + 5*( (int) (particle < 1) );
+	int p_bin = (int)( ( (p)/(p_max) )*p_max);
+
+	double cutMin = 40;
+	for( int sec = 0; sec < 6; sec++ ){
+		par_0 = acceptanceMap[sec][p_bin][particle][0];
+		par_1 = acceptanceMap[sec][p_bin][particle][1];
+		par_2 = acceptanceMap[sec][p_bin][particle][2];
+		
+		cutMin = par_0*(phi - par_1)*(phi - par_1) + par_2;
+
+		if( theta > cutMin && theta < 40){ return true; }
+	}
+
+	return false;
+}
+
+bool analyzer::checkElAcceptance( double p, double phi, double theta ){
+	return checkAcceptance( p, phi, theta, 0 );
+}
+bool analyzer::checkPipAcceptance( double p, double phi, double theta ){
+	return checkAcceptance( p, phi, theta, 1 );
+}
+bool analyzer::checkPimAcceptance( double p, double phi, double theta ){
+	return checkAcceptance( p, phi, theta, 2 );
+}

@@ -25,6 +25,11 @@
 #include "electron.h"
 #include "pion.h"
 #include "analyzer.h"
+#include "constants.h"
+
+using namespace constants;
+
+#define CORR_PATH _DATA
 
 using std::cerr;
 using std::isfinite;
@@ -52,7 +57,8 @@ int main( int argc, char** argv){
 
 	CLAS acceptanceMap;
 	analyzer anal(0, -1);
-	anal.loadMatchingFunctions();
+	anal.loadAcceptanceMap( (TString)_DATA + "acceptanceMap.root");
+
 	//Load input tree
         TTreeReader reader_rec("ePi", file_rec);
 
@@ -91,8 +97,8 @@ int main( int argc, char** argv){
 			e_mom.RotateZ(deltaPhi_lab);
 	
 
-			int e_acc = acceptanceMap.GetElectronAcceptance( e_mom.Theta(), e_mom.Phi(), e_mom.Mag() ) ;
-			if( e_acc == -1 ){continue;}
+			bool e_acc = anal.checkElAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Theta(), rad_to_deg*e_mom.Phi() ) ;
+			if( !e_acc ){continue;}
 
 
 			for( int i = 0; i < 2; i++ ){	
@@ -102,13 +108,7 @@ int main( int argc, char** argv){
 			
 				pi_mom[i] = rotate_to_beam_frame( e->getQ(), e->get4Momentum(), pi[i].getPi_q() );
 				pi_mom[i].RotateZ( deltaPhi_lab );
-				int pi_acc = -1;
-				if( pi_mom[i].Mag() > 1.25 ){
-			       		pi_acc =  anal.acceptance_match_3d_cont( pi_mom[i].Phi()* rad_to_deg, pi_mom[i].Theta()*rad_to_deg , pi_mom[i].Mag(), (int) ( pi[i].getCharge() < 0 ));
-				}
-				else{ pi_acc = acceptanceMap.GetElectronAcceptance( pi_mom[i].Theta(), pi_mom[i].Phi(), pi_mom[i].Mag() ); }
-				
-				if( pi_acc < 0){ detectedPion[i] = false; }
+				//detectedPion[i] = anal.checkPiAcceptance( 	
 			}
 
 			if( ( detectedPion[0] == true && isGoodPion[0] == true && detectedPion[1] == false ) ||

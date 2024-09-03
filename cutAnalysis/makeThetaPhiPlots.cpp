@@ -96,25 +96,26 @@ int main( int argc, char** argv){
 		double p_e = e->get3Momentum().Mag();
 		double theta_e = e->get3Momentum().Theta()*rad_to_deg;
 		double phi_e = e->get3Momentum().Phi()*rad_to_deg;
+		if( e->getSector() == 4 && phi_e < 100. ){ phi_e += 360; }
 		//if( phi_e < 0 ){ phi_e += 360.; }
 
 		int this_bin_e = (int)( ( (p_e -0.)/(10. - 0.) )*10.);
-		if( p_e > 10 ){continue;}
+		if( p_e > 10 || e->getSector() == 0){continue;}
 
 
 		hThetaPhi[0][e->getSector()-1][this_bin_e]->Fill(phi_e, theta_e);
-
+		
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta()*rad_to_deg;
 			double phi_pi = pi[i].get3Momentum().Phi()*rad_to_deg;
-			//if( phi_pi < 0 ){ phi_pi += 360.; }
+			if( pi[i].getSector() == 4 && phi_pi < 100. ){ phi_pi += 360; }
 			
 			int chargeIdx = (int)( pi[i].getCharge() < 0 ) + 1;
 
 			
 			int this_bin_pi = (int)( ( (p_pi - 0.)/(5.- 0.) )*5.);
-			if( p_pi > 5 ){continue;}
+			if( p_pi > 5 || pi[i].getSector() == 0 ){continue;}
 			hThetaPhi[chargeIdx][pi[i].getSector()-1][this_bin_pi]->Fill(phi_pi, theta_pi);
 			
 		}

@@ -188,7 +188,7 @@ int main( int argc, char** argv){
 					cout<<"PIM CORRECTION : "<<pim_num/(pim_num+km_num)<<std::endl;
 
 
-					if(pip_num/(pip_num+kp_num) > .5 && pip_num/(pip_num+kp_num) < 1. ){
+					if(pip_num/(pip_num+kp_num) > .25 && pip_num/(pip_num+kp_num) < 1. ){
 						kaonCorr_p[m]->SetBinContent(k+1, j+1, l+1, pip_num/(pip_num+kp_num));
 						kaonCorr_p[m]->SetBinError(k+1, j+1, l+1, pip_err);
 					}
@@ -196,7 +196,7 @@ int main( int argc, char** argv){
 						kaonCorr_p[m]->SetBinContent(k+1, j+1, l+1, 0);
 						kaonCorr_p[m]->SetBinError(k+1, j+1, l+1, 0);
 					}
-					if(pim_num/(pim_num+km_num) > .5  && pim_num/(pim_num+km_num) < 1 ){
+					if(pim_num/(pim_num+km_num) > .25  && pim_num/(pim_num+km_num) < 1 ){
 						kaonCorr_m[m]->SetBinContent(k+1, j+1, l+1, pim_num/(pim_num+km_num));
 						kaonCorr_m[m]->SetBinError(k+1, j+1, l+1, pim_err);
 					}

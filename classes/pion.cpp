@@ -131,6 +131,7 @@ void pion::setMomentum ( clas12::region_part_ptr rp){
 			rp->par()->getPy(),
 			rp->par()->getPz(),
 			Mpi);
+			//rp->getPdgMass());
 	pi3 = pi4.Vect();
 	return;
 	
@@ -145,7 +146,7 @@ void pion::setPi_q ( TLorentzVector q, TLorentzVector pe ){
     	pi3_temp.RotateY( -q.Theta() );
     	pi3_temp.RotateZ( -pe.Phi() );
 	
-	pi_q.SetVectM( pi3_temp, Mpi ); 
+	pi_q.SetVectM( pi3_temp, pi4.M() ); 
 }
 
 void pion::setKinematicInformation(TLorentzVector q, TLorentzVector pe, clas12::region_part_ptr rp){
@@ -170,7 +171,7 @@ void pion::setKinematicInformation(TLorentzVector q, TLorentzVector pe, clas12::
 
 void pion::setDetectorInformation(clas12::region_part_ptr rp){
 	setCharge( rp->par()->getCharge() );
-	setPID ( (int) (211*Charge) );
+	setPID ( (int) rp->par()->getPid() );
 
 	//check if momentum set:
 	if( pi4.P() == 0 ){ setMomentum(rp); }
