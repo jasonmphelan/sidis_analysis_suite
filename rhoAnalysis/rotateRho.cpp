@@ -55,9 +55,8 @@ int main( int argc, char** argv){
         TFile * file_rec = new TFile(in_name);
 	TRandom3 gen;
 
-	CLAS acceptanceMap;
 	analyzer anal(0, -1);
-	anal.loadAcceptanceMap( (TString)_DATA + "acceptanceMap.root");
+	anal.loadAcceptanceMap( (TString)_DATA + "/acceptanceMap.root");
 
 	//Load input tree
         TTreeReader reader_rec("ePi", file_rec);
@@ -84,8 +83,8 @@ int main( int argc, char** argv){
 		if( *M_rho > 1 || *M_rho < .45 ){continue;}
 		while( corr_err > err_level ){
 			trials++;
-			detectedPion[0] = true;
-		       	detectedPion[1] = true;
+			detectedPion[0] = false;
+		       	detectedPion[1] = false;
 
 
 			double deltaPhi_lab = 2*TMath::Pi()*(gen.Rndm());
@@ -97,10 +96,9 @@ int main( int argc, char** argv){
 			e_mom.RotateZ(deltaPhi_lab);
 	
 
-			bool e_acc = anal.checkElAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Theta(), rad_to_deg*e_mom.Phi() ) ;
+			bool e_acc = anal.checkAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) ;
+			
 			if( !e_acc ){continue;}
-
-
 			for( int i = 0; i < 2; i++ ){	
 				//rotate pion
 				TVector3 pi_q_mom = pi[i].getPi_q().Vect();
@@ -109,16 +107,22 @@ int main( int argc, char** argv){
 				pi_mom[i] = rotate_to_beam_frame( e->getQ(), e->get4Momentum(), pi[i].getPi_q() );
 				pi_mom[i].RotateZ( deltaPhi_lab );
 				//detectedPion[i] = anal.checkPiAcceptance( 	
+				int piType;
+				if( pi[i].getCharge() > 0 ){ piType = 1; }
+				else{ piType = 2; }
+				detectedPion[i] = anal.checkAcceptance( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piType ) ;
 			}
 
 			if( ( detectedPion[0] == true && isGoodPion[0] == true && detectedPion[1] == false ) ||
 				( detectedPion[1] == true && isGoodPion[1] == true && detectedPion[0] == false ) ){
 					onePiEvents++;
+
+					//cout<<"FOUND 1 PI EVENT\n";
 			}
 			else if( ( detectedPion[0] == true && detectedPion[1] == true ) &&
 				( isGoodPion[0] == true || isGoodPion[1] == true  ) ){
 					twoPiEvents++;
-					cout<<"FOUND 2 PI EVENT! \n";
+					//cout<<"FOUND 2 PI EVENT! \n";
 			}
 
 			//check uncertainty

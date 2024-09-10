@@ -27,14 +27,7 @@
 #include "pion.h"
 #include "analyzer.h"
 #include "reader.h"
-#ifdef __CINT__
-#pragma link C++ class std::vector<TVector3>+;
-#pragma link C++ class vector<TVector3>+;
-#pragma link C++ class std::vector<TLorentzVector>+;
-#pragma link C++ class vector<TLorentzVector>+;
-#pragma link C++ class std::vector<clashit>+;
-#pragma link C++ class vector<clashit>+;
-#endif
+
 using std::cerr;
 using std::isfinite;
 using std::cout;
@@ -61,48 +54,43 @@ int main( int argc, char** argv){
 
 	TFile * outFile = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/data/acceptanceMap.root", "RECREATE");
 
-	//TF1 * hFit[3][5][6][2];	 //3 for particles, 5 for p bins, 6 sectors, 2 for max/min
+	TH2F * hThetaPhi[3][6][10]; //2D distribution
+	TGraph * gThetaPhi[3][6][10]; //Graph of 99percentile
+	TF1 * fThetaPhi[3][6][10]; //Fit functions
+	TVector3 * fitBounds[3][6][10];
 
-	TH2F * hThetaPhi[3][6][10];
-	TGraph * gThetaPhi[3][6][10];
-	TF1 * fThetaPhi[3][6][10][2];
-
-	//TString momentum_functions[2] = {"[0] + exp([1]*x+[2])", "[0] + exp(-1*[1]*x-[2])"};
-	TString momentum_functions[2] = {"[0]*(x - [1])*( x-[1] ) + [2]", "[0]+(x - [1])*(x-[1])+[2]"};
-	TString boundary[2] = {"fit","lower"};
+	TString momentum_functions = "[0]*(x - [1])*( x-[1] ) + [2]";
+	//TString momentum_functions = "[0]*( -(x - [1])*( x-[1] ) )/( (x - [1])*( x-[1] ) - 1. ) + [2]";
 	TString particle[3] = {"e","pip", "pim"};
-	
+
+	//loop through sectors, momentum, and particles	
 	for( int sec = 0; sec < 6; sec++ ){
 		for( int bin = 0; bin < 10; bin++ ){
 			for( int p = 0; p < 3; p++ ){
+				//using fewer bins for pions
 				if(p > 0 && bin >4){ continue; }
+
 				hThetaPhi[p][sec][bin] = (TH2F *)inFile->Get( Form("hThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[p].Data()));
+				//Set initial guesses
 				double histMean = hThetaPhi[p][sec][bin]->GetMean(1);
 				double histStd = hThetaPhi[p][sec][bin]->GetRMS(1);
 				double histMeanY = hThetaPhi[p][sec][bin]->GetMean(2);
 				double histStdY = hThetaPhi[p][sec][bin]->GetRMS(2);
 				double histMin = histMeanY - 3*histStdY;
 				
-				//double a = histMin - histMean*histMean*histStd;
-				//double b = -10./histMean;
-				//double c = log(2*histMean*histMean*histStd);
 
-				cout<<"Min : "<<histMin<<" Width : "<<histStd<< " Mean : "<<histMean<<std::endl;
-
-				for( int fun = 0; fun < 2; fun++ ){
-					fThetaPhi[p][sec][bin][fun] = new TF1(Form("fThetaPhi_sec_%i_bin_%i_%s_%s", sec, bin, particle[p].Data(), boundary[fun].Data()), 
-								momentum_functions[fun], histMean - 3*histStd, histMean + (3*histStd));
-					fThetaPhi[p][sec][bin][fun]->SetParameters( 1./histStd, histMean, histMin );
+				fThetaPhi[p][sec][bin] = new TF1(Form("fThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[p].Data() ), 
+								momentum_functions, histMean - 3*histStd, histMean + (3*histStd));
+				fThetaPhi[p][sec][bin]->SetParameters( 2*histStd, histMean, histMin );
+				fitBounds[p][sec][bin] = new TVector3( 0, 0, 0 );
 			
-				}
 			}
 
 		}
 			
 	}
-	cout<<"DECLARED RELEVANT OBJECTS\n";
 		
-	//Get Cut Value (cut out 10% percentile)
+	//Get Cut Value (cut out 1% percentile)
 		
 
 	outFile->cd();
@@ -118,33 +106,65 @@ int main( int argc, char** argv){
 				double binVal[1000];
 				int nPoints = 0;
 
+				bool firstGoodBin = false;
+				bool lastGoodBin = false;
+
 				for( int phiBin = 0; phiBin < nPhiBins; phiBin++ ){
 					TH1D * temp = new TH1D( "temp", "", hThetaPhi[i][sec][bin]->GetYaxis()->GetNbins(), 0, 40 );
 					temp = (TH1D *)hThetaPhi[i][sec][bin]->ProjectionY( "temp", phiBin ,  phiBin   );
 					if( temp->Integral() < 500 ){
+						//set upper edge
+						if( firstGoodBin && !lastGoodBin ){
+							fitBounds[i][sec][bin]->SetY( hThetaPhi[i][sec][bin]->GetXaxis()->GetBinUpEdge( phiBin ) );
+							lastGoodBin = true;
+						}
+
 						delete temp;
 						continue;
 					}
+					//set lower edge
+					if( !firstGoodBin ){
+						fitBounds[i][sec][bin]->SetX( hThetaPhi[i][sec][bin]->GetXaxis()->GetBinLowEdge( phiBin ) );
+						firstGoodBin = true;
+					}
+					
+					//get data point based on percentile
 					binCenter[nPoints] =  hThetaPhi[i][sec][bin]->GetXaxis()->GetBinCenter( phiBin )  ; 
-					binVal[nPoints] = getThetaPct( .05, temp ) ;
+					binVal[nPoints] = getThetaPct( .01, temp ) ;
 					nPoints++;
+			
+					//set maximum
+					double temp_max =  getThetaPct( 1, temp ) ;
+					if( temp_max >  fitBounds[i][sec][bin]->Z() ){
+						fitBounds[i][sec][bin]->SetZ( temp_max );
+					}
+
 					delete temp;
 
 				}
 				gThetaPhi[i][sec][bin] = new TGraph( nPoints, binCenter, binVal );
 				for( int fun = 0; fun < 1; fun++ ){
-					gThetaPhi[i][sec][bin]->Fit( Form( "fThetaPhi_sec_%i_bin_%i_%s_%s", sec, bin, particle[i].Data(), boundary[fun].Data() ));
+					gThetaPhi[i][sec][bin]->Fit( Form( "fThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[i].Data() ));
 				}
+				
+				//Draw fits
 				TCanvas c(Form("hThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[i].Data()));
-				gThetaPhi[i][sec][bin]->Draw();
+				hThetaPhi[i][sec][bin]->Draw("COLZ");
 				gThetaPhi[i][sec][bin]->SetName(Form( "fThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[i].Data()) );
-				gThetaPhi[i][sec][bin]->Write();
-				fThetaPhi[i][sec][bin][0]->SetLineColor(kRed);
-				fThetaPhi[i][sec][bin][0]->Write();
-				//fThetaPhi[i][sec][bin][1]->SetLineColor(kRed);
-				fThetaPhi[i][sec][bin][0]->Draw("SAME");
-				//fThetaPhi[i][sec][bin][1]->Draw("SAME");
-				//c.Write();	
+				fThetaPhi[i][sec][bin]->Write();
+				fThetaPhi[i][sec][bin]->SetLineColor(kRed);
+				fThetaPhi[i][sec][bin]->Draw("SAME");
+				TLine * upper = new TLine( fitBounds[i][sec][bin]->X(), 0, fitBounds[i][sec][bin]->X(), 40 );
+				TLine * lower = new TLine( fitBounds[i][sec][bin]->Y(), 0, fitBounds[i][sec][bin]->Y(), 40 );
+				TLine * maximum = new TLine( -360, fitBounds[i][sec][bin]->Z(), 360, fitBounds[i][sec][bin]->Z() );
+				upper->SetLineColor(kRed);
+				lower->SetLineColor(kRed);
+				maximum->SetLineColor(kRed);
+				upper->Draw("SAME");
+				lower->Draw("SAME");
+				maximum->Draw("SAME");
+				c.Write();	
+				fitBounds[i][sec][bin]->Write( Form("fitBounds_sec_%i_bin_%i_%s", sec, bin, particle[i].Data() ) );
 			}
 		}
 	}	
@@ -198,11 +218,13 @@ double getThetaPct( double pct, TH1D * h){
 	for ( int i = 1; i <= h->GetNbinsX(); i++ ){
 		cumCount += h->GetBinContent(i);
 		
-		if( cumCount > cutoff ){
+		if( cumCount >= cutoff ){
 			return h->GetBinCenter(i);
 		}
 	}
 
 	return h->GetBinCenter( h->GetNbinsX() );
 }
+
+
 

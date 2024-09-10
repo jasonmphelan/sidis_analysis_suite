@@ -478,11 +478,16 @@ void analyzer::loadAcceptanceMap(TString fileName){
 	for( int par = 0; par < 3; par++ ){
 		for( int p = 0; p < nPbins[par]; p++ ){
 			for( int sec = 0; sec < 6; sec++ ){
-				TF1 * f1 = (TF1 *) f.Get(Form("fThetaPhi_sec_%i_bin_%i_%s_fit", sec, p, parType[par].Data() ) );
-
+				TF1 * f1 = (TF1 *) f.Get(Form("fThetaPhi_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
+				TLorentzVector * fBounds = (TLorentzVector *) f.Get(Form("fitBounds_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
+				
 				acceptanceMap[sec][p][par][0] = f1->GetParameter(0);
 				acceptanceMap[sec][p][par][1] = f1->GetParameter(1);
 				acceptanceMap[sec][p][par][2] = f1->GetParameter(2);
+
+				fitBounds[sec][p][par][0] = fBounds->X();
+				fitBounds[sec][p][par][1] = fBounds->Y();
+				fitBounds[sec][p][par][2] = fBounds->Z();
 			}
 		}
 	}
@@ -493,19 +498,34 @@ bool analyzer::checkAcceptance( double p, double phi, double theta, int particle
 	double par_1 = -999;
 	double par_2 = -999;
 
-	acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
+	double max = -999;
+	double lower = 999;
+	double upper = -999;
+
+	//acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
 	double p_max = 5 + 5*( (int) (particle < 1) );
 	int p_bin = (int)( ( (p)/(p_max) )*p_max);
 
+
 	double cutMin = 40;
 	for( int sec = 0; sec < 6; sec++ ){
+		double phi_temp = phi;
 		par_0 = acceptanceMap[sec][p_bin][particle][0];
 		par_1 = acceptanceMap[sec][p_bin][particle][1];
 		par_2 = acceptanceMap[sec][p_bin][particle][2];
 		
-		cutMin = par_0*(phi - par_1)*(phi - par_1) + par_2;
+		max = fitBounds[sec][p_bin][particle][2];
+		lower = fitBounds[sec][p_bin][particle][0];
+		upper = fitBounds[sec][p_bin][particle][1];
+	
+		if( sec ==3 && phi_temp < 100. ){ phi_temp += 360; }
+		cutMin = par_0*(phi_temp - par_1)*(phi_temp - par_1) + par_2;
 
-		if( theta > cutMin && theta < 40){ return true; }
+		if( theta > cutMin && theta < 40
+			&& theta < max && phi_temp > lower && phi_temp < upper ){ 
+			
+			return true; 
+		}
 	}
 
 	return false;

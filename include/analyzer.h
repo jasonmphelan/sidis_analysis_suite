@@ -69,6 +69,8 @@ public:
 	bool applyPionDetectorFiducials( pion pi );
 	bool applyPionDetectorChi2( pion pi );
 	bool applyPionDetectorVertex( pion pi, electron e );
+	
+	bool checkAcceptance( double p, double phi, double theta, int particle );
 
 private:
 	int	fdebug;
@@ -81,7 +83,6 @@ private:
 	TH3F *	kaonCorrection;
 	TH3F *	rhoCorrection;
 
-
 	TF1 * match3d[6][3];
 
 	e_pid epid;
@@ -90,8 +91,7 @@ private:
 	pion * pi;
 
 	double acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
-	bool checkAcceptance( double p, double phi, double theta, int particle );
-	
+	double fitBounds[6][5][3][3];	
 
 };
 
