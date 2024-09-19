@@ -47,16 +47,20 @@ int main( int argc, char** argv){
 
        	TFile * outFile = new TFile((TString) CORR_PATH + "/correctionFiles/" + out_name + ".root", "RECREATE");
        	TFile * inFile = new TFile((TString) HIST_PATH + "/" + in_name + ".root");
+	
+	int nBinsQ2 = bins_Q2/2;
+	int nBinsXb = bins_xB/2;
+	int nBinsZ = 2*bins_Z;
 
 
 	
 	cout<<"GETTING HISTS\n";
 
-	TH1F * hBeta[2][bins_Q2+1][bins_xB+1][bins_Z+1][bins_p+1];
+	TH1F * hBeta[2][nBinsQ2+1][nBinsXb+1][nBinsZ+1][bins_p+1];
 
-	for( int j = 0; j <= bins_Q2; j++ ){
-		for( int k = 0; k <= bins_xB; k++ ){
-			for( int l = 0; l <= bins_Z; l++ ){
+	for( int j = 0; j <= nBinsQ2; j++ ){
+		for( int k = 0; k <= nBinsXb; k++ ){
+			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int m = 0; m <= bins_p; m++ ){//momentum bins
 					hBeta[0][j][k][l][m] = (TH1F*)inFile->Get((TString)"hBeta_rich_pip"+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m)); 
 					hBeta[1][j][k][l][m] = (TH1F*)inFile->Get((TString)"hBeta_rich_pim"+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m)); 
@@ -66,10 +70,10 @@ int main( int argc, char** argv){
 		}
 	}
 
-	TF1 *fitPim[bins_Q2][bins_xB][bins_Z][bins_p];
-	TF1 *fitPip[bins_Q2][bins_xB][bins_Z][bins_p];
-	TF1 *fitPim_k[bins_Q2][bins_xB][bins_Z][bins_p];
-	TF1 *fitPip_k[bins_Q2][bins_xB][bins_Z][bins_p];
+	TF1 *fitPim[nBinsQ2][nBinsXb][nBinsZ][bins_p];
+	TF1 *fitPip[nBinsQ2][nBinsXb][nBinsZ][bins_p];
+	TF1 *fitPim_k[nBinsQ2][nBinsXb][nBinsZ][bins_p];
+	TF1 *fitPip_k[nBinsQ2][nBinsXb][nBinsZ][bins_p];
 	
 	double min[4] = { .995, .995, .995, .995 };
 	double max[4] = { 1.005, 1.005, 1.005,  1.005 };
@@ -80,9 +84,9 @@ int main( int argc, char** argv){
 	TH3F * kaonCorr_full[bins_p];
 
 	for( int i = 0; i < bins_p; i++ ){
-		kaonCorr_p[i] = new TH3F( Form("hKaonCorrP_%i", i),Form("hKaonCorrP_%i", i), bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
-		kaonCorr_m[i] = new TH3F( Form("hKaonCorrM_%i", i),Form("hKaonCorrM_%i", i) , bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
-		kaonCorr_full[i] = new TH3F( Form("hKaonCorr_%i", i), "hKaonCorr", bins_xB, xB_min, xB_max, bins_Q2, Q2_min, Q2_max, bins_Z, Z_min, Z_max); 
+		kaonCorr_p[i] = new TH3F( Form("hKaonCorrP_%i", i),Form("hKaonCorrP_%i", i), nBinsXb, xB_min, xB_max, nBinsQ2, Q2_min, Q2_max, nBinsZ, Z_min, Z_max); 
+		kaonCorr_m[i] = new TH3F( Form("hKaonCorrM_%i", i),Form("hKaonCorrM_%i", i) , nBinsXb, xB_min, xB_max, nBinsQ2, Q2_min, Q2_max, nBinsZ, Z_min, Z_max); 
+		kaonCorr_full[i] = new TH3F( Form("hKaonCorr_%i", i), "hKaonCorr", nBinsXb, xB_min, xB_max, nBinsQ2, Q2_min, Q2_max, nBinsZ, Z_min, Z_max); 
 	}
 
 	cout<<"BEGIN FITTING\n";
@@ -92,9 +96,9 @@ int main( int argc, char** argv){
 	TCanvas canvasM("canvaMP");
 	canvasM.Print((TString) HIST_PATH + "/" + out_name + "_m.pdf[");
 	canvasM.Clear();
-	for( int j = 0; j < bins_Q2; j++ ){
-		for( int k = 0; k < bins_xB; k++ ){
-			for( int l = 0; l < bins_Z; l++ ){
+	for( int j = 0; j < nBinsQ2; j++ ){
+		for( int k = 0; k < nBinsXb; k++ ){
+			for( int l = 0; l < nBinsZ; l++ ){
 				for( int m = 0; m < bins_p; m++ ){//momentum bins
 
 					if(!hBeta[0][j+1][k+1][l+1][m+1]){continue;}

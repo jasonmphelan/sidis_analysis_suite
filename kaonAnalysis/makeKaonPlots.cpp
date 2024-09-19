@@ -47,6 +47,10 @@ int main( int argc, char** argv){
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
+	int nBinsQ2 = bins_Q2/2;
+	int nBinsXb = bins_xB/2;
+	int nBinsZ = 2*bins_Z;
+
 	TString in_name = argv[1];
        	TString out_name = argv[2];
 
@@ -62,16 +66,16 @@ int main( int argc, char** argv){
 	cout<<"Creating Histograms\n";
 
 
-	TH1F * h_Beta[2][bins_Q2+1][bins_xB+1][bins_Z+1][bins_p+1];
-	TH1F * h_Beta_rich[2][bins_Q2+1][bins_xB+1][bins_Z+1][bins_p+1];
-	TH2F * hBeta_p[2][bins_Q2+1][bins_xB+1][bins_Z+1];
-	TH2F * hBeta_rich_p[2][bins_Q2+1][bins_xB+1][bins_Z+1];
+	TH1F * h_Beta[2][nBinsQ2+1][nBinsXb+1][nBinsZ+1][bins_p+1];
+	TH1F * h_Beta_rich[2][nBinsQ2+1][nBinsXb+1][nBinsZ+1][bins_p+1];
+	TH2F * hBeta_p[2][nBinsQ2+1][nBinsXb+1][nBinsZ+1];
+	TH2F * hBeta_rich_p[2][nBinsQ2+1][nBinsXb+1][nBinsZ+1];
 	
 	TString data_type[2] = {"pip", "pim"};
 
-	for( int j = 0; j <= bins_Q2; j++ ){
-		for( int k = 0; k <= bins_xB; k++ ){
-			for( int l = 0; l <= bins_Z; l++ ){
+	for( int j = 0; j <= nBinsQ2; j++ ){
+		for( int k = 0; k <= nBinsXb; k++ ){
+			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					for( int m = 0; m <= bins_p; m++ ){//momentum bins
 						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 100, .97, 1.01);
@@ -126,9 +130,9 @@ int main( int argc, char** argv){
 			double theta_pi = pi[i].get3Momentum().Theta();
 			double Z = pi[i].getZ();
 
-			int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*bins_Q2) + 1;
-			int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*bins_xB) + 1;
-			int this_bin_Z = (int)( ( (Z - Z_min)/(Z_max - Z_min) )*bins_Z) + 1;
+			int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nBinsQ2) + 1;
+			int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nBinsXb) + 1;
+			int this_bin_Z = (int)( ( (Z - Z_min)/(Z_max - Z_min) )*nBinsZ) + 1;
 			int this_bin_p = -1;
 
 			for( int j= 0; j < bins_p; j++ ){
@@ -160,9 +164,9 @@ int main( int argc, char** argv){
 	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
 	canvas.Clear();
 
-	for( int j = 0; j <= bins_Q2; j++ ){
-		for( int k = 0; k <= bins_xB; k++ ){
-			for( int l = 0; l <= bins_Z; l++ ){
+	for( int j = 0; j <= nBinsQ2; j++ ){
+		for( int k = 0; k <= nBinsXb; k++ ){
+			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					hBeta_p[i][j][k][l]->Write();
 					if( j > 0 && k > 0 && l > 0 && hBeta_rich_p[i][j][k][l]->Integral() != 0){
