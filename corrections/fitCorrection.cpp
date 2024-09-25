@@ -72,27 +72,29 @@ int main( int argc, char** argv){
 	TF1 *fitPip[bins_Q2][bins_xB];
 
 
-	TH1F * fitPipX[bins_Q2][4];
-	TH1F * fitPimX[bins_Q2][4];
-	TF1 *fitPimX_f[bins_Q2][4];
-	TF1 *fitPipX_f[bins_Q2][4];
+	TH1F * fitPipX[bins_xB][4];
+	TH1F * fitPimX[bins_xB][4];
+	TF1 *fitPimX_f[bins_xB][4];
+	TF1 *fitPipX_f[bins_xB][4];
 
 	TH1F * fitPipQ[4][3];
 	TH1F * fitPimQ[4][3];
 
 	TString co_names[4] = {"a", "b", "c", "d"};
 
-	for( int q = 0; q < bins_Q2; q++ ){
+	//Hists for params(q) fit
+	for( int q = 0; q < bins_xB; q++ ){
 		for( int c = 0; c < 4; c++ ){
-			fitPipX[q][c] = new TH1F(Form("fitPipX_%i_%i", q, c ), "", bins_xB, xB_min, xB_max);
-			fitPimX[q][c] = new TH1F(Form("fitPimX_%i_%i", q, c ), "", bins_xB, xB_min, xB_max);
+			fitPipX[q][c] = new TH1F(Form("fitPipX_%i_%i", q, c ), "", bins_Q2, Q2_min, Q2_max);
+			fitPimX[q][c] = new TH1F(Form("fitPimX_%i_%i", q, c ), "", bins_Q2, Q2_min, Q2_max);
 
 		}
 	}
+	//Hists for params(x) fit
 	for( int c = 0; c < 4; c++ ){
 		for( int k = 0; k < 3; k++ ){
-			fitPipQ[c][k] = new TH1F( Form("fitPipQ_%i_%i", c, k), "", bins_Q2, Q2_min, Q2_max );
-			fitPimQ[c][k] = new TH1F( Form("fitPimQ_%i_%i", c, k), "", bins_Q2, Q2_min, Q2_max );
+			fitPipQ[c][k] = new TH1F( Form("fitPipQ_%i_%i", c, k), "", bins_xB, xB_min, xB_max );
+			fitPimQ[c][k] = new TH1F( Form("fitPimQ_%i_%i", c, k), "", bins_xB, xB_min, xB_max );
 		}
 	}
 
@@ -102,8 +104,8 @@ int main( int argc, char** argv){
 	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
 	canvas.Clear();
 
-	for( int q = 0; q <  bins_Q2; q++ ){
-		for( int x = 0; x < bins_xB; x++ ){
+	for( int x = 0; x < bins_xB; x++ ){
+		for( int q = 0; q <  bins_Q2; q++ ){
 			kaonCorr_p_1d[q][x] = new TH1F( histName + Form("_p_1d_%i_%i", q, x), ";z;w+", bins_Z, Z_min, Z_max );
 			kaonCorr_m_1d[q][x] = new TH1F( histName + Form("_m_1d_%i_%i", q, x), ";z;w-", bins_Z, Z_min, Z_max );
 			
@@ -160,84 +162,79 @@ int main( int argc, char** argv){
 			
 			kaonCorr_p_1d[q][x]->Fit( Form("fitPip_%i_%i", q, x) );
 			kaonCorr_m_1d[q][x]->Fit( Form("fitPim_%i_%i", q, x) );
-			kaonCorr_p_1d[q][x]->Draw();
+			//kaonCorr_p_1d[q][x]->Draw();
 			//fitPip[q][x]->Draw("SAME");
 			//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 			//canvas.Clear();
 			
-			kaonCorr_p_1d[q][x]->Write();
-			kaonCorr_m_1d[q][x]->Write();
-		
-		
-
 			for( int c = 0; c < 4; c++ ){
 				if( fitPip[q][x]->GetParError(c) != 0 ){
-					fitPipX[q][c]->SetBinContent( x+1, fitPip[q][x]->GetParameter(c));
-					fitPipX[q][c]->SetBinContent( x+1, fitPip[q][x]->GetParError(c));
+					fitPipX[x][c]->SetBinContent( q+1, fitPip[q][x]->GetParameter(c));
+					fitPipX[x][c]->SetBinError( q+1, fitPip[q][x]->GetParError(c));
 				}
 				if( fitPim[q][x]->GetParError(c) != 0 ){
-					fitPimX[q][c]->SetBinContent( x+1, fitPim[q][x]->GetParameter(c));
-					fitPimX[q][c]->SetBinContent( x+1, fitPim[q][x]->GetParError(c));
+					fitPimX[x][c]->SetBinContent( q+1, fitPim[q][x]->GetParameter(c));
+					fitPimX[x][c]->SetBinError( q+1, fitPim[q][x]->GetParError(c));
 				}
 			}
 		}
-		fitPipX_f[q][0] = new TF1( Form("fitPipX_f_%i_%i", q, 0), "[0]*([1] - x)*([1] - x) + [2]");
-		fitPipX_f[q][0]->SetParameters(1, 1, 1);
-		fitPipX[q][0]->SetLineColor(kRed);
-		//fitPipX[q][0]->Fit("chebyshev2");
-		fitPipX[q][0]->Fit(Form("fitPipX_f_%i_%i", q, 0));
-		//fitPipX[q][0]->Draw("E1");
-		//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-		//canvas.Clear();
+		canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
+		canvas.Clear();
+		cout<<"FINISHED FITS\n";
 		
-		fitPipX_f[q][1] = new TF1( Form("fitPipX_f_%i_%i", q, 1), "[0]*([1] - x)*([1] - x) + [2]");
-		fitPipX_f[q][1]->SetParameters(1, 1, 1);
-		fitPipX[q][1]->SetLineColor(kAzure);
-		//fitPipX[q][1]->Fit("chebyshev2");
-		fitPipX[q][1]->Fit(Form("fitPipX_f_%i_%i", q, 1));
-		//fitPipX[q][1]->Draw("E1");
-		//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-		//canvas.Clear();
-		
-		fitPipX_f[q][2] = new TF1( Form("fitPipX_f_%i_%i", q, 2), "[0]*([1] - x)*([1] - x) + [2]");
-		fitPipX_f[q][2]->SetParameters(1, 1, 1);
-		fitPipX[q][2]->SetLineColor(kGreen);
-		//fitPipX[q][2]->Fit("chebyshev2");
-		fitPipX[q][2]->Fit(Form("fitPipX_f_%i_%i", q, 2));
-		//fitPipX[q][2]->Draw("E1");
-		//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-		//canvas.Clear();
-		
-		fitPipX_f[q][3] = new TF1( Form("fitPipX_f_%i_%i", q, 3), "[0]*([1] - x)*([1] - x) + [2]");
-		fitPipX_f[q][3]->SetParameters(1, 1, 1);
-		//fitPipX[q][3]->Fit("chebyshev2");
-		//fitPipX[q][3]->SetLineColor(kBlack);
-		fitPipX[q][3]->Fit(Form("fitPipX_f_%i_%i", q, 3));
-		//fitPipX[q][3]->Draw("E1");
-		//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-		//canvas.Clear();
-
 		for( int i = 0; i < 4; i++ ){
-			for( int j = 0; j < 3; j++ ){
-				cout<<" BIN VAL : "<<fitPipX_f[q][i]->GetParameter(j)<<std::endl;
-				if( fitPipX_f[q][i]->GetNDF() != 0){
-					fitPipQ[i][j]->SetBinContent( q + 1, fitPipX_f[q][i]->GetParameter(j) );	
+			//fitPipX_f[x][0] = new TF1( Form("fitPipX_f_%i_%i", x, 0), "[0]*([1] - x)*([1] - x) + [2]");
+			fitPipX_f[x][i] = new TF1( Form("fitPipX_f_%i_%i", x, i), "[0] + [1]*x + [2]*x*x + [3]*x*x*x");
+			fitPipX_f[x][i]->SetParameters(10, 4, 1, 1);
+			fitPipX[x][i]->SetLineColor(kRed);
+			//fitPipX[q][i]->Fit("chebyshev2");
+			fitPipX[x][i]->Fit(Form("fitPipX_f_%i_%i", x, i));
+			//fitPipX[x][i]->Draw("E1");
+			//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
+			//canvas.Clear();
+			
+			fitPimX_f[x][i] = new TF1( Form("fitPimX_f_%i_%i", x, i), "[0] + [1]*x + [2]*x*x + [3]*x*x*x");
+			fitPimX_f[x][i]->SetParameters(10, 4, 1, 1);
+			fitPimX[x][i]->SetLineColor(kRed);
+			//fitPipX[q][i]->Fit("chebyshev2");
+			fitPimX[x][i]->Fit(Form("fitPimX_f_%i_%i", x, i));
+			//fitPipX[x][i]->Draw("E1");
+			//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
+			//canvas.Clear();
+		}
+		///*
+		for( int i = 0; i < 4; i++ ){// # of parameters in fit to z
+			for( int j = 0; j < 3; j++ ){// # of parameters in fit to Q2
+				cout<<" BIN VAL : "<<fitPipX_f[x][i]->GetParameter(j)<<std::endl;
+				if( fitPipX_f[x][i]->GetNDF() != 0){
+					fitPipQ[i][j]->SetBinContent( x + 1, fitPipX_f[x][i]->GetParameter(j) );	
+					fitPipQ[i][j]->SetBinError( x + 1, fitPipX_f[x][i]->GetParError(j) );	
 				}
-				//fitPimQ[i][j]->SetBinContent( q + 1, fitPimX_f[q][i]->GetParameter(j) );	
+				
+				if( fitPimX_f[x][i]->GetNDF() != 0){
+					fitPimQ[i][j]->SetBinContent( x + 1, fitPimX_f[x][i]->GetParameter(j) );	
+					fitPimQ[i][j]->SetBinError( x + 1, fitPimX_f[x][i]->GetParError(j) );	
+				}
+				//fitPimQ[i][j]->SetBinContent( x + 1, fitPimX_f[x][i]->GetParameter(j) );	
 			}
 		}
+		
 
 	}
+	cout<<"Finished Fits\n";
+	
 	for( int i = 0; i < 4; i++ ){
 		for( int j = 0; j < 3; j++ ){
+			
 			fitPipQ[i][j]->SetLineColor(kRed);
-			fitPipQ[i][j]->Draw();
+			fitPipQ[i][j]->Draw("E1");
 			//fitPimQ[i][j]->SetLineColor(kBlue);
 			//fitPimQ[i][j]->Draw();
 			canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 			canvas.Clear();
 		}
 	}
+	
 	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf]");
 
 	outFile->Close();

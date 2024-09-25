@@ -43,7 +43,7 @@ int main( int argc, char** argv){
 
 	if( argc <4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File] [Rel Uncertainty Level] \n";
+		cerr << "./code [Input File] [Output File] [Rel Uncertainty Level (%)] \n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2] <<"\n";
@@ -53,6 +53,7 @@ int main( int argc, char** argv){
 	double err_level = atof( argv[3] );
 
         TFile * file_rec = new TFile(in_name);
+	TFile * outFile = new TFile(out_name, "RECREATE");
 	TRandom3 gen;
 
 	analyzer anal(0, -1);
@@ -66,26 +67,74 @@ int main( int argc, char** argv){
 	TTreeReaderValue<double> M_rho(reader_rec, "M_rho");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion_no_acc");
+	TTreeReaderArray<bool> isGoodPion_acc(reader_rec, "isGoodPion");
+	TTreeReaderValue<TLorentzVector> beam(reader_rec, "beam");
 
-	double onePiEvents = 0;
-	double twoPiEvents = 0;
-	double corr_err = 999;
-	bool detectedPion[2] = {true, true};
+	//Set output tree
+	TTree * outTree = new TTree("ePi", "(e,e'pi) event  information");
+	TLorentzVector beam_out;	
+	electron e_out;
+	std::vector<pion> pi_out;
+	std::vector<bool> goodPiOut;
+	
+	double Mx_2pi_out;
+	double M_rho_out;
+	double rhoWeight;
+	double corr_err;
+
+	outTree->Branch("beam", &beam_out);
+	outTree->Branch("e", &e_out);
+	outTree->Branch("pi", &pi_out);
+	outTree->Branch("isGoodPion", &goodPiOut);
+	outTree->Branch("Mx_2pi", &Mx_2pi_out);
+	outTree->Branch("M_rho", &M_rho_out);
+
+	outTree->Branch("rhoWeight", &rhoWeight);
+	outTree->Branch("rhoErr", &corr_err);
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
-		int trials = 0;
-
-		if(event_count%1000 == 0){
+		if(event_count%10000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<std::endl;
 		}
+	
+		//initialize event variables
+		bool detectedPion[2] = {true, true};
+		bool goodPion[2] = {true, true};
+		double onePiEvents = 0;
+		double twoPiEvents = 0;
+		int trials = 0;
+
+		pi_out.clear();
+		goodPiOut.clear();
+		e_out.Clear();
+
+		beam_out = (TLorentzVector) (*beam);
+		e_out = (electron)(*e);
+		pi_out.push_back((pion)pi[0]);
+		pi_out.push_back((pion)pi[1]);
+		
+		goodPiOut.push_back((bool)isGoodPion[0]);
+		goodPiOut.push_back((bool)isGoodPion[1]);
+		
+		Mx_2pi_out = (double)(*Mx_2pi);
+		M_rho_out = (double)(*M_rho);
+		rhoWeight = 0;
+		corr_err = 999;
+
+
+		//Restrict ROI
+		if( !isGoodPion_acc[0] && !isGoodPion_acc[1] ){continue;} //If event wouldn't be in our final sample, continue 
 		if( *Mx_2pi > 1.2 || *Mx_2pi < .75 ){continue;}
 		if( *M_rho > 1 || *M_rho < .45 ){continue;}
-		while( corr_err > err_level ){
+
+		while( corr_err > err_level/100. || trials < 500){
 			trials++;
+			if( trials > 10000 && corr_err > 900 ){ break; }
 			detectedPion[0] = false;
 		       	detectedPion[1] = false;
-
+			goodPion[0] = false;
+			goodPion[1] = false;
 
 			double deltaPhi_lab = 2*TMath::Pi()*(gen.Rndm());
 			double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm()); 
@@ -97,44 +146,70 @@ int main( int argc, char** argv){
 	
 
 			bool e_acc = anal.checkAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) ;
-			
 			if( !e_acc ){continue;}
-			for( int i = 0; i < 2; i++ ){	
+			for( int i = 0; i < 2; i++ ){
 				//rotate pion
 				TVector3 pi_q_mom = pi[i].getPi_q().Vect();
 				pi_q_mom.RotateZ( deltaPhi_q );
 			
 				pi_mom[i] = rotate_to_beam_frame( e->getQ(), e->get4Momentum(), pi[i].getPi_q() );
 				pi_mom[i].RotateZ( deltaPhi_lab );
-				//detectedPion[i] = anal.checkPiAcceptance( 	
+				
+
+				//Check Pion acceptance
 				int piType;
 				if( pi[i].getCharge() > 0 ){ piType = 1; }
 				else{ piType = 2; }
-				detectedPion[i] = anal.checkAcceptance( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piType ) ;
+			
+				int new_sec = anal.checkAcceptance( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piType ) ;
+				if( new_sec > -1 ) detectedPion[i] = true;
+
+				if( new_sec > -1 &&  isGoodPion[i] ){ 
+					goodPion[i] =  anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec + 1);
+				}
+					
 			}
 
-			if( ( detectedPion[0] == true && isGoodPion[0] == true && detectedPion[1] == false ) ||
-				( detectedPion[1] == true && isGoodPion[1] == true && detectedPion[0] == false ) ){
+			if( ( detectedPion[0] == true && goodPion[0] == true && detectedPion[1] == false ) ||
+				( detectedPion[1] == true && goodPion[1] == true && detectedPion[0] == false ) ){
 					onePiEvents++;
 
-					//cout<<"FOUND 1 PI EVENT\n";
 			}
 			else if( ( detectedPion[0] == true && detectedPion[1] == true ) &&
-				( isGoodPion[0] == true || isGoodPion[1] == true  ) ){
+				( goodPion[0] == true || goodPion[1] == true  ) ){
 					twoPiEvents++;
-					//cout<<"FOUND 2 PI EVENT! \n";
 			}
 
 			//check uncertainty
 			if( onePiEvents != 0 && twoPiEvents != 0 ){
-				corr_err =  sqrt( 1/onePiEvents + 1/twoPiEvents );
+				corr_err =  sqrt( 1./onePiEvents + 1./twoPiEvents );
 			}
-			cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;	
+			//cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;	
+	
 		}	
-		cout<<"TRIALS FOR EVENT "<<event_count<<" : "<<trials<<endl;
- 		cout<<"RHO EVENT WEIGHT :"<<1+ onePiEvents/twoPiEvents<<endl;
+		
+		rhoWeight =  1. + onePiEvents/twoPiEvents ;
 
+		outTree->Fill();
+
+		/*
+		cout<<"TRIALS FOR EVENT "<<event_count<<" : "<<trials<<endl;
+ 		cout<<"WEIGHT UNCERTAINTY : "<<corr_err<<endl;
+		cout<<"RHO EVENT WEIGHT :"<<1+ onePiEvents/twoPiEvents<<endl;
+		cout<<"\nElectron : ";
+		e->get3Momentum().Print();
+		cout<<"\nPi 1 : ";
+		pi[0].get3Momentum().Print();
+		cout<<"\nPi 2 : ";
+		pi[1].get3Momentum().Print();
+		cout<<"*************************************************************"<<endl;
+		*/
 	}
+	
+        cout<<"Writing to file\n";
+        outFile->cd();
+        outTree->Write();
+        outFile->Close();
 	
 }
 

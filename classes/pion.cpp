@@ -137,6 +137,18 @@ void pion::setMomentum ( clas12::region_part_ptr rp){
 	
 }
 
+void pion::setMomentum ( TVector3 p){
+
+	pi4.SetXYZM(p.X(),
+			p.Y(),
+			p.Z(),
+			Mpi);
+			//rp->getPdgMass());
+	pi3 = pi4.Vect();
+	return;
+	
+}
+
 void pion::setPi_q ( TLorentzVector q, TLorentzVector pe ){
     	// move to q-Pe system: q is the z axis, Pe is in x-z plane: Pe=(Pe[x],0,Pe[q])
 

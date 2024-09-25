@@ -132,34 +132,28 @@ bool analyzer::applyElectronFiducials( electron e ){
 }
 
 bool analyzer::applyElectronPCAL( electron e ){
-	if( ! (	e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min)) return false;
-	return true;
+	return (! (	e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min));
 }
 
 bool analyzer::applyElectronEDep( electron e ){
 
 	//PCAL MIN EDEP CUT
-	if( ! ( e.getEpcal() > e_E_PCAL_min) ) return false;
-	return true;
+	return (! ( e.getEpcal() > e_E_PCAL_min) );
 }
 bool analyzer::applyElectronSF( electron e ){
 	//Electron SF cut
-	if(  !(epid.isElectron(&e)) ) return false;
-	return true;
+	return (  !(epid.isElectron(&e)) );
 }
-	//if( ! (( (e.getEpcal() + e.getEecin() + e.getEecout())/e.get3Momentum().Mag()) > SamplingFraction_min ) ) return false;
 	
 bool analyzer::applyElectronCorrelation( electron e ){
 	//SF CORRELATION CUT
-	if( !( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() )) return false;
-	return true;
+	return( !( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() ));
 }
 
 
 bool analyzer::applyElectronVertex( electron e ){
 	//ELECTRON VERTEX CUT
-	if( ! ((e.getVt().Z() > -5) && (e.getVt().Z() < -1))) return false;
-	return true;
+	return (! ((e.getVt().Z() > -5) && (e.getVt().Z() < -1)));
 }
 
 bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
@@ -260,10 +254,8 @@ bool analyzer::applyPionDetectorChi2( pion pi ){
 		return false;
 	}
 	//PION CHI2 vs P CUT
-	if(! (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
-         	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) ))) 
-		{return false; }
-	return true;
+	return(! (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
+         	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) ))); 
 }
 
 bool analyzer::applyPionDetectorVertex( pion pi, electron e ){
@@ -329,19 +321,14 @@ bool analyzer::applyPionKinematicCuts( genPion pi ){
 	return true;
 }
 
-
+//Function to do all acceptance matching
 bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
 	double theta = pi.get3Momentum().Theta()*rad_to_deg;
 	double p = pi.get3Momentum().Mag();
 	int sector_i = pi.getDC_sector();
 	
 	if( dim == 2 ){
-		
-		double acc_map_pip_min = pips_parameters[sector_i-1][0] + pips_parameters[sector_i-1][1]/p;                      
-                double acc_map_pim_min = pims_parameters[sector_i-1][0] + pims_parameters[sector_i-1][1]/p;
-
-		if ( theta > acc_map_pip_min && theta > acc_map_pim_min ){return true;}
-		else { return false; }
+		return acceptance_match_2d( theta, p, sector_i );	
 	}
 	else if( dim == 3 ){
 
@@ -356,6 +343,14 @@ bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
 		std::cout<<"Bad argument for dimensionality of acceptance matching... returning false\n";
 		return false;
 	}
+}
+
+//2d acceptance matching cut
+bool analyzer::acceptance_match_2d( double theta, double p, int sector_i){
+		double acc_map_pip_min = pips_parameters[sector_i-1][0] + pips_parameters[sector_i-1][1]/p;                      
+                double acc_map_pim_min = pims_parameters[sector_i-1][0] + pims_parameters[sector_i-1][1]/p;
+
+		return (theta > acc_map_pip_min && theta > acc_map_pim_min );
 }
 
 //Discrete 3d accepance matching cut
@@ -479,12 +474,12 @@ void analyzer::loadAcceptanceMap(TString fileName){
 		for( int p = 0; p < nPbins[par]; p++ ){
 			for( int sec = 0; sec < 6; sec++ ){
 				TF1 * f1 = (TF1 *) f.Get(Form("fThetaPhi_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
-				TLorentzVector * fBounds = (TLorentzVector *) f.Get(Form("fitBounds_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
+				TVector3 * fBounds = (TVector3 *) f.Get(Form("fitBounds_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
 				
 				acceptanceMap[sec][p][par][0] = f1->GetParameter(0);
 				acceptanceMap[sec][p][par][1] = f1->GetParameter(1);
 				acceptanceMap[sec][p][par][2] = f1->GetParameter(2);
-
+				
 				fitBounds[sec][p][par][0] = fBounds->X();
 				fitBounds[sec][p][par][1] = fBounds->Y();
 				fitBounds[sec][p][par][2] = fBounds->Z();
@@ -493,7 +488,7 @@ void analyzer::loadAcceptanceMap(TString fileName){
 	}
 }
 
-bool analyzer::checkAcceptance( double p, double phi, double theta, int particle ){
+int analyzer::checkAcceptance( double p, double phi, double theta, int particle ){
 	double par_0 = -999;
 	double par_1 = -999;
 	double par_2 = -999;
@@ -520,23 +515,14 @@ bool analyzer::checkAcceptance( double p, double phi, double theta, int particle
 	
 		if( sec ==3 && phi_temp < 100. ){ phi_temp += 360; }
 		cutMin = par_0*(phi_temp - par_1)*(phi_temp - par_1) + par_2;
-
+		
 		if( theta > cutMin && theta < 40
 			&& theta < max && phi_temp > lower && phi_temp < upper ){ 
 			
-			return true; 
+			return sec; 
 		}
 	}
 
-	return false;
+	return -1;
 }
 
-bool analyzer::checkElAcceptance( double p, double phi, double theta ){
-	return checkAcceptance( p, phi, theta, 0 );
-}
-bool analyzer::checkPipAcceptance( double p, double phi, double theta ){
-	return checkAcceptance( p, phi, theta, 1 );
-}
-bool analyzer::checkPimAcceptance( double p, double phi, double theta ){
-	return checkAcceptance( p, phi, theta, 2 );
-}

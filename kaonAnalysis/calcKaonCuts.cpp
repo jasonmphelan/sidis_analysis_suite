@@ -48,8 +48,8 @@ int main( int argc, char** argv){
        	TFile * outFile = new TFile((TString) CORR_PATH + "/correctionFiles/" + out_name + ".root", "RECREATE");
        	TFile * inFile = new TFile((TString) HIST_PATH + "/" + in_name + ".root");
 	
-	int nBinsQ2 = bins_Q2/2;
-	int nBinsXb = bins_xB/2;
+	int nBinsQ2 = bins_Q2;
+	int nBinsXb = bins_xB;
 	int nBinsZ = 2*bins_Z;
 
 

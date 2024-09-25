@@ -213,7 +213,6 @@ int main( int argc, char** argv){
 
         cout<<"Writing to file\n";
         outFile->cd();
-	//accCharge->Write("accCharge");
         outTree->Write();
         outFile->Close();
 	auto finish = std::chrono::high_resolution_clock::now();

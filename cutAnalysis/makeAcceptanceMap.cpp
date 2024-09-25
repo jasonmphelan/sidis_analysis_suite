@@ -135,7 +135,7 @@ int main( int argc, char** argv){
 			
 					//set maximum
 					double temp_max =  getThetaPct( 1, temp ) ;
-					if( temp_max >  fitBounds[i][sec][bin]->Z() ){
+					if( temp_max > fitBounds[i][sec][bin]->Z() ){
 						fitBounds[i][sec][bin]->SetZ( temp_max );
 					}
 

@@ -70,6 +70,7 @@ class pion{// : public TObject {
 		
 		//Kinematics
 		void setMomentum	(clas12::region_part_ptr rp);	
+		void setMomentum 	(TVector3 p);
 		void setVt		(clas12::region_part_ptr rp);
 		void setPi_q ( TLorentzVector q, TLorentzVector e4 );
 		

@@ -52,12 +52,9 @@ public:
 	void loadAcceptanceMap( TString fileName );
 	int acceptance_match_3d_cont( double phi_part, double theta, double p, int chargeIdx);
 	int acceptance_match_3d( double phi_part, double theta, double p, int charge);
+	bool acceptance_match_2d( double theta, double p, int sector_i);
 	int FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> part_list);
 	
-	
-	bool checkElAcceptance( double p, double phi, double theta );
-	bool checkPipAcceptance( double p, double phi, double theta );
-	bool checkPimAcceptance( double p, double phi, double theta );
 	
 	//these are used in plotting program
 	bool applyElectronFiducials( electron e );
@@ -70,7 +67,7 @@ public:
 	bool applyPionDetectorChi2( pion pi );
 	bool applyPionDetectorVertex( pion pi, electron e );
 	
-	bool checkAcceptance( double p, double phi, double theta, int particle );
+	int checkAcceptance( double p, double phi, double theta, int particle );
 
 private:
 	int	fdebug;
@@ -91,7 +88,7 @@ private:
 	pion * pi;
 
 	double acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
-	double fitBounds[6][5][3][3];	
+	double fitBounds[6][10][3][3];	
 
 };
 

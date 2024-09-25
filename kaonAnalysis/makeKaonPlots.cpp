@@ -47,8 +47,8 @@ int main( int argc, char** argv){
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
-	int nBinsQ2 = bins_Q2/2;
-	int nBinsXb = bins_xB/2;
+	int nBinsQ2 = bins_Q2;
+	int nBinsXb = bins_xB;
 	int nBinsZ = 2*bins_Z;
 
 	TString in_name = argv[1];
@@ -124,7 +124,7 @@ int main( int argc, char** argv){
 			//if(accMatchType == 3 && !isGoodPion_3d_vec[i]) {continue;}
 			if(pi[i].getBeta_rich() < .0001){continue;}
 			if( sector_cut != 0 && pi[i].getDC_sector() != sector_cut ){ continue; }
-			if( pi[i].getDC_sector() > max_theta_cut ){ continue; }
+			if( pi[i].get3Momentum().Theta()*rad_to_deg > max_theta_cut ){ continue; }
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta();
