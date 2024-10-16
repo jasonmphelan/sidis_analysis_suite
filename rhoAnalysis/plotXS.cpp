@@ -56,8 +56,8 @@ int main( int argc, char** argv){
 	hXb[0] = new TH1F("hXb_all", ";x_{B};", 50, xB_min, xB_max);
 	hXb[1] = new TH1F("hXb_sideband", ";x_{B};", 50, xB_min, xB_max);
 
-	hZ[0] = new TH1F("hZ_all", ";z;", 50, Z_min, Z_max);
-	hZ[1] = new TH1F("hZ_sideband", ";z;", 50, Z_min, Z_max);
+	hZ[0] = new TH1F("hZ", ";z;", 50, Z_min, Z_max);
+	hZ[1] = new TH1F("hZ_Corrected", ";z;", 50, Z_min, Z_max);
 	
 	hPt[0] = new TH1F("hPt_all", ";p_{T};", 50, 0, 2);
 	hPt[1] = new TH1F("hPt_sideband", ";p_{T};", 50, 0, 2);
@@ -72,6 +72,7 @@ int main( int argc, char** argv){
 	TTreeReaderValue<double> M_rho(reader_rec, "M_rho");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
+	TTreeReaderValue<double> rhoWeight(reader_rec, "rhoWeight");
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
@@ -82,25 +83,25 @@ int main( int argc, char** argv){
 	
 		for( int i = 0; i < (int)(pi.end() - pi.begin());i++ ){
 			if( !isGoodPion[i] ){continue;}
-			if( *Mx_2pi < 1.3 && *M_rho > .4 &&  *M_rho < 1){
-				double z = (.77*.77 + (pi[0].get3Momentum() + pi[1].get3Momentum()).Mag2())/e->getOmega();			
-
-				hQ2[0]->Fill( e->getQ2() );
-				hXb[0]->Fill( e->getXb() );
-				hZ[0]->Fill( z );
-				hPt[0]->Fill( pi[i].getPi_q().Pt() );
+		
+			if( e->getQ2()>3 && e->getQ2() <3.5 && e->getXb() > .3 && e->getXb() < .35 &&pi[i].getCharge()<0 && TMath::Finite(*rhoWeight) ){	
+				//hQ2[0]->Fill( e->getQ2() );
+				//hXb[0]->Fill( e->getXb() );
+				hZ[0]->Fill( pi[i].getZ() );
+				hZ[1]->Fill( pi[i].getZ(), *rhoWeight );
+				//hPt[0]->Fill( pi[i].getPi_q().Pt() );
 			}
-
+			/*
 			if((*Mx_2pi > 1.1 && *Mx_2pi < 1.3) &&
 			((*M_rho > .4 && *M_rho < .6)||
 			(*M_rho > .85 && *M_rho < 1)) ){
-				double z = (.77*.77 + (pi[0].get3Momentum() + pi[1].get3Momentum()).Mag2())/e->getOmega();			
 			
 				hQ2[1]->Fill( e->getQ2() );
 				hXb[1]->Fill( e->getXb() );
-				hZ[1]->Fill( z );
+				hZ[1]->Fill( pi[i].getZ() );
 				hPt[1]->Fill( pi[i].getPi_q().Pt() );
-			}
+			*/
+			//}
 		}
 	}
 

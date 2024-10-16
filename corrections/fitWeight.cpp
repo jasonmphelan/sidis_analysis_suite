@@ -18,6 +18,7 @@
 #include "TLegend.h"
 #include "constants.h"
 #include "cut_values.h"
+#include "correctionTools.h"
 
 #define HIST_PATH _HIST
 #define CORR_PATH _DATA
@@ -201,7 +202,8 @@ int main( int argc, char** argv){
 		canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 		canvas.Clear();
 		cout<<"FINISHED FITS\n";
-		fitPipX_f[x][0] = new TF1( Form("fitPipX_f_%i_%i", x, 0), "[0]*([1] - x)*([1] - x) + [2]");
+		fitPipX_f[x][0] = new TF1( Form("fitPipX_f_%i_%i", x, 0), "[0] + [1]*x + [2]*x*x");
+		//fitPipX_f[x][0] = new TF1( Form("fitPipX_f_%i_%i", x, 0), "[0]*([1] - x)*([1] - x) + [2]");
 		//fitPipX_f[x][0] = new TF1( Form("fitPipX_f_%i_%i", x, 0), "[0]*exp([3]*x)*([1] - x)*([1] - x) + [2]");
 		fitPipX_f[x][0]->SetParameters(10, 4, 1);
 		fitPipX[x][0]->SetLineColor(kRed);
@@ -211,7 +213,7 @@ int main( int argc, char** argv){
 		canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 		canvas.Clear();
 		
-		fitPipX_f[x][1] = new TF1( Form("fitPipX_f_%i_%i", x, 1), "[0]*([1] - x)*([1] - x) + [2]");
+		fitPipX_f[x][1] = new TF1( Form("fitPipX_f_%i_%i", x, 1), "[0] + [1]*x + [2]*x*x");
 		//fitPipX_f[x][1] = new TF1( Form("fitPipX_f_%i_%i", x, 1), "[0]*exp([3]*x)*([1] - x)*([1] - x) + [2]");
 		fitPipX_f[x][1]->SetParameters(10, 4, 1);
 		fitPipX[x][1]->SetLineColor(kAzure);
@@ -221,7 +223,7 @@ int main( int argc, char** argv){
 		canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 		canvas.Clear();
 		
-		fitPipX_f[x][2] = new TF1( Form("fitPipX_f_%i_%i", x, 2), "[0]*([1] - x)*([1] - x) + [2]");
+		fitPipX_f[x][2] = new TF1( Form("fitPipX_f_%i_%i", x, 2), "[0] + [1]*x + [2]*x*x");
 		//fitPipX_f[x][2] = new TF1( Form("fitPipX_f_%i_%i", x, 2), "[0]*exp([3]*x)*([1] - x)*([1] - x) + [2]");
 		fitPipX_f[x][2]->SetParameters(10, 4, 1);
 		fitPipX[x][2]->SetLineColor(kGreen);
@@ -231,7 +233,7 @@ int main( int argc, char** argv){
 		canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 		canvas.Clear();
 		
-		fitPipX_f[x][3] = new TF1( Form("fitPipX_f_%i_%i", x, 3), "[0]*([1] - x)*([1] - x) + [2]");
+		fitPipX_f[x][3] = new TF1( Form("fitPipX_f_%i_%i", x, 3), "[0] + [1]*x + [2]*x*x");
 		//fitPipX_f[x][3] = new TF1( Form("fitPipX_f_%i_%i", x, 3), "[0]*exp([3]*x)*([1] - x)*([1] - x) + [2]");
 		fitPipX_f[x][3]->SetParameters(10, 4, 1);
 		//fitPipX[q][3]->Fit("chebyshev2");
@@ -249,10 +251,10 @@ int main( int argc, char** argv){
 					fitPipQ[i][j]->SetBinContent( x + 1, fitPipX_f[x][i]->GetParameter(j) );	
 					fitPipQ[i][j]->SetBinError( x + 1, fitPipX_f[x][i]->GetParError(j) );	
 				}
-				//if( fitPipX_f[x][i]->GetParError(j) == 0 && fitPipX_f[x][i]->GetParameter(j) != 0){
-				//	fitPipQ[i][j]->SetBinContent( x + 1, fitPipX_f[x][i]->GetParameter(j) );	
-				//	fitPipQ[i][j]->SetBinError( x + 1, fitPipX_f[x][i]->GetParameter(j)*.1 );	
-				//}
+				if( fitPipX_f[x][i]->GetParError(j) == 0 && fitPipX_f[x][i]->GetParameter(j) != 0){
+					fitPipQ[i][j]->SetBinContent( x + 1, fitPipX_f[x][i]->GetParameter(j) );	
+					fitPipQ[i][j]->SetBinError( x + 1, fitPipX_f[x][i]->GetParameter(j)*.1 );	
+				}
 				//fitPimQ[i][j]->SetBinContent( x + 1, fitPimX_f[x][i]->GetParameter(j) );	
 			}
 		}

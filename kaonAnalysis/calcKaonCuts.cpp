@@ -49,7 +49,7 @@ int main( int argc, char** argv){
        	TFile * inFile = new TFile((TString) HIST_PATH + "/" + in_name + ".root");
 	
 	int nBinsQ2 = bins_Q2;
-	int nBinsXb = bins_xB;
+	int nBinsXb = (int) (10*bins_xB/25.);
 	int nBinsZ = 2*bins_Z;
 
 

@@ -49,7 +49,7 @@ int main( int argc, char** argv){
 	
 	int nBinsQ2 = bins_Q2;
 	int nBinsXb = bins_xB;
-	int nBinsZ = bins_Z*2;
+	int nBinsZ = 2*bins_Z;
 
 	
 	cout<<"GETTING HISTS\n";
@@ -69,30 +69,30 @@ int main( int argc, char** argv){
 	TF1 *fitPip[nBinsQ2][nBinsXb][bins_p];
 
 	//Fit parameters as a function of Q2 for fixed x
-	TH1F * hFitPipQ[bins_p][nBinsXb][4];
+	TH1F * hFitPipQ[bins_p][nBinsXb][4];//number of fit-to-z params
 	TH1F * hFitPimQ[bins_p][nBinsXb][4];
 	TF1 * fitPipQ[bins_p][nBinsXb][4];
 	TF1 * fitPimQ[bins_p][nBinsXb][4];
 
 	//Fit parameters as a function of x
-	TH1F * hFitPipX[bins_p][4][4];
+	TH1F * hFitPipX[bins_p][4][4]; //fit-to-z params, then fit-to-Q params
 	TH1F * hFitPimX[bins_p][4][4];
 	
 	TF1 * fitPipX[bins_p][4][4];
 	TF1 * fitPimX[bins_p][4][4];
 
 	for( int p = 0; p < bins_p; p++ ){
-		for( int q = 0; q < bins_xB; q++ ){
+		for( int q = 0; q < nBinsXb; q++ ){
 			for( int c = 0; c < 4; c++ ){
-				hFitPipQ[p][q][c] = new TH1F(Form("hFitPipQ_%i_%i_%i", p, q, c ), "", bins_Q2, Q2_min, Q2_max);
-				hFitPimQ[p][q][c] = new TH1F(Form("hFitPimQ_%i_%i_%i", p, q, c ), "", bins_Q2, Q2_min, Q2_max);
+				hFitPipQ[p][q][c] = new TH1F(Form("hFitPipQ_%i_%i_%i", p, q, c ), "", nBinsQ2, Q2_min, Q2_max);
+				hFitPimQ[p][q][c] = new TH1F(Form("hFitPimQ_%i_%i_%i", p, q, c ), "", nBinsQ2, Q2_min, Q2_max);
 
 			}
 		}
 		for( int c = 0; c < 4; c++ ){
 			for( int k = 0; k < 4; k++ ){
-				hFitPipX[p][c][k] = new TH1F(Form("hFitPipX_%i_%i_%i", p, c, k ), "", bins_xB, xB_min, xB_max);
-				hFitPimX[p][c][k] = new TH1F(Form("hFitPimX_%i_%i_%i", p, c, k ), "", bins_xB, xB_min, xB_max);
+				hFitPipX[p][c][k] = new TH1F(Form("hFitPipX_%i_%i_%i", p, c, k ), "", nBinsXb, xB_min, xB_max);
+				hFitPimX[p][c][k] = new TH1F(Form("hFitPimX_%i_%i_%i", p, c, k ), "", nBinsXb, xB_min, xB_max);
 			}
 		}
 	}
@@ -113,9 +113,11 @@ int main( int argc, char** argv){
 				double m_fit_max = 1;
 
 				for( int z = 0; z < nBinsZ; z++ ){
-					kaonCorr_p_1d[p][q][x]->SetBinContent( z+1, kaonCorr_p[p]->GetBinContent( x+1, q+1, z+1 ));
-					kaonCorr_p_1d[p][q][x]->SetBinError( z+1, kaonCorr_p[p]->GetBinError( x+1, q+1, z+1 ));
-					
+					if( kaonCorr_p[p]->GetBinContent( x+1, q+1, z+1 ) > 0 ){	
+						kaonCorr_p_1d[p][q][x]->SetBinContent( z+1, kaonCorr_p[p]->GetBinContent( x+1, q+1, z+1 ));
+						kaonCorr_p_1d[p][q][x]->SetBinError( z+1, kaonCorr_p[p]->GetBinError( x+1, q+1, z+1 ));
+					}
+
 					if( p_fit_min == 0 &&  kaonCorr_p[p]->GetBinContent( x+1, q+1, z+1 ) > 0 ){
 						p_fit_min = kaonCorr_p_1d[p][q][x]->GetBinCenter(z+1) - .025;
 					}
@@ -136,7 +138,7 @@ int main( int argc, char** argv){
 
 				fitPip[p][q][x] = new TF1( Form("fitPip_%i_%i_%i", p, q, x), "[0]+ [1]*x + [2]*x*x + [3]*x*x*x", p_fit_min, p_fit_max );
 				//fitPip[p][q][x] = new TF1( Form("fitPip_%i_%i_%i", p, q, x), "[0]+ [1]*pow((1. - x), [2])", Z_min, Z_max );
-				fitPip[p][q][x]->SetParameters( 1, 1, 1, 1 );
+				fitPip[p][q][x]->SetParameters( 1, 1, 1, 1);
 				
 				fitPim[p][q][x] = new TF1( Form("fitPim_%i_%i_%i", p, q, x), "[0]+ [1]*x + [2]*x*x + [3]*x*x*x", m_fit_min, m_fit_max );
 				//fitPim[p][q][x] = new TF1( Form("fitPim_%i_%i_%i", p, q, x), "[0]+ [1]*pow((1. - x), [2])", Z_min, Z_max );
@@ -144,12 +146,61 @@ int main( int argc, char** argv){
 
 				kaonCorr_p_1d[p][q][x]->Fit( Form("fitPip_%i_%i_%i", p, q, x) );
 				kaonCorr_m_1d[p][q][x]->Fit( Form("fitPim_%i_%i_%i", p, q, x) );
-						
-				kaonCorr_p_1d[p][q][x]->SetLineColor(kAzure);
+			
+				if( fitPip[p][q][x]->Eval(1) > 0 ){
+					p_fit_max = 1;
+					kaonCorr_p_1d[p][q][x]->SetBinContent(nBinsZ, .5);			
+					kaonCorr_p_1d[p][q][x]->SetBinError(nBinsZ, .5);			
+					kaonCorr_p_1d[p][q][x]->Fit( Form("fitPip_%i_%i_%i", p, q, x) );
+				}
+				if( fitPip[p][q][x]->Eval(1) < 0 ){
+					p_fit_max = 1;
+					kaonCorr_p_1d[p][q][x]->SetBinContent(nBinsZ, .5);			
+					kaonCorr_p_1d[p][q][x]->SetBinError(nBinsZ, 0.5);			
+				}
+				if( fitPip[p][q][x]->Eval(0) > 0 ){
+					p_fit_min = 0.3;
+					fitPip[p][q][x]->SetRange(.3, p_fit_max);
+					kaonCorr_p_1d[p][q][x]->SetBinContent(1, .5);			
+					kaonCorr_p_1d[p][q][x]->SetBinError(1, .5);			
+				}
+				if( fitPip[p][q][x]->Eval(0) < 0 ){
+					p_fit_min = 0.3;
+					kaonCorr_p_1d[p][q][x]->SetBinContent(1, 0.5);			
+					kaonCorr_p_1d[p][q][x]->SetBinError(1, 0.5);			
+				}
+				if( fitPim[p][q][x]->Eval(1) > 0 ){
+					m_fit_max = 1;
+					kaonCorr_m_1d[p][q][x]->SetBinContent(nBinsZ, .5);			
+					kaonCorr_m_1d[p][q][x]->SetBinError(nBinsZ, .5);			
+				}
+				if( fitPim[p][q][x]->Eval(1) < 0 ){
+					m_fit_max = 1;
+					kaonCorr_m_1d[p][q][x]->SetBinContent(nBinsZ, 0.5);			
+					kaonCorr_m_1d[p][q][x]->SetBinError(nBinsZ, 0.5);			
+				}
+				if( fitPim[p][q][x]->Eval(0) > 0 ){
+					m_fit_min = .3;
+					kaonCorr_m_1d[p][q][x]->SetBinContent(1, .5);			
+					kaonCorr_m_1d[p][q][x]->SetBinError(1, .5);			
+				}
+				if( fitPim[p][q][x]->Eval(0) < 0 ){
+					m_fit_min = .3;
+					kaonCorr_m_1d[p][q][x]->SetBinContent(1, 0.5);			
+					kaonCorr_m_1d[p][q][x]->SetBinError(1, 0.5);			
+				}
+				fitPip[p][q][x]->SetRange(p_fit_min, p_fit_max);
+				fitPim[p][q][x]->SetRange(m_fit_min, m_fit_max);
+					
+				kaonCorr_p_1d[p][q][x]->Fit( Form("fitPip_%i_%i_%i", p, q, x) );
+				kaonCorr_m_1d[p][q][x]->Fit( Form("fitPim_%i_%i_%i", p, q, x) );
+
+				kaonCorr_p_1d[p][q][x]->SetLineColor(kRed);
+				kaonCorr_p_1d[p][q][x]->GetYaxis()->SetRangeUser(0, 1);
 				kaonCorr_p_1d[p][q][x]->Draw();
-				fitPip[p][q][x]->SetLineColor(kBlue);
+				//fitPip[p][q][x]->SetLineColor(kBlue);
 				fitPip[p][q][x]->Draw("SAME");
-				kaonCorr_m_1d[p][q][x]->SetLineColor(kRed);
+				//kaonCorr_m_1d[p][q][x]->SetLineColor(kRed);
 				kaonCorr_m_1d[p][q][x]->Draw("SAME");
 				fitPim[p][q][x]->SetLineColor(kMagenta);
 				
@@ -158,11 +209,11 @@ int main( int argc, char** argv){
 				canvas.Clear();
 			
 				for( int c = 0; c < 4; c++ ){
-					if( fitPip[p][q][x]->GetParError(c) != 0 ){
+					if( fitPip[p][q][x]->GetParError(c) != 0 && kaonCorr_p_1d[p][q][x]->GetEntries() > 4 ){
 						hFitPipQ[p][x][c]->SetBinContent( q+1, fitPip[p][q][x]->GetParameter(c));
 						hFitPipQ[p][x][c]->SetBinError( q+1, fitPip[p][q][x]->GetParError(c));
 					}
-					if( fitPim[p][q][x]->GetParError(c) != 0 ){
+					if( fitPim[p][q][x]->GetParError(c) != 0 && kaonCorr_m_1d[p][q][x]->GetEntries() > 4 ){
 						hFitPimQ[p][x][c]->SetBinContent( q+1, fitPim[p][q][x]->GetParameter(c));
 						hFitPimQ[p][x][c]->SetBinError( q+1, fitPim[p][q][x]->GetParError(c));
 					}
@@ -176,7 +227,7 @@ int main( int argc, char** argv){
 				//fitPipQ[p][x][c]->SetParameters(10, 4, 1);
 				fitPipQ[p][x][c]->SetParameters(10, 4, 1, 1);
 				hFitPipQ[p][x][c]->Fit(Form("fitPipQ_%i_%i_%i",p, x, c));
-				
+				hFitPipQ[p][x][c]->Print("ALL");	
 				fitPipQ[p][x][c]->SetLineColor(kBlue);
 				hFitPipQ[p][x][c]->SetLineColor(kAzure);;
 				hFitPipQ[p][x][c]->Draw();
@@ -195,23 +246,18 @@ int main( int argc, char** argv){
 
 
 
-
+				//cout<<"Draw Q fit\n";
 				canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 				canvas.Clear();
 			}
 		
 			for( int i = 0; i < 4; i++ ){
-				for( int j = 0; j < 3; j++ ){
-					if( fitPipQ[p][x][i]->GetParError(j) != 0 && fitPipQ[p][x][i]->GetParameter(j) != 0){
+				for( int j = 0; j < 4; j++ ){
+					if( fitPipQ[p][x][i]->GetParError(j) != 0 && fitPipQ[p][x][i]->GetParameter(j) != 0 && abs(fitPipQ[p][x][i]->GetParameter(j)) < 1000  && hFitPipQ[p][x][i]->GetEntries()>3){
 						hFitPipX[p][i][j]->SetBinContent( x + 1, fitPipQ[p][x][i]->GetParameter(j) );	
 						hFitPipX[p][i][j]->SetBinError( x + 1, fitPipQ[p][x][i]->GetParError(j) );	
 					}
-					//if( fitPipX_f[x][i]->GetParError(j) == 0 && fitPipX_f[x][i]->GetParameter(j) != 0){
-					//	fitPipQ[i][j]->SetBinContent( x + 1, fitPipX_f[x][i]->GetParameter(j) );	
-					//	fitPipQ[i][j]->SetBinError( x + 1, fitPipX_f[x][i]->GetParameter(j)*.1 );	
-					//}
-					//fitPimQ[i][j]->SetBinContent( x + 1, fitPimX_f[x][i]->GetParameter(j) );	
-					if( fitPimQ[p][x][i]->GetParError(j) != 0 && fitPimQ[p][x][i]->GetParameter(j) != 0){
+					if( fitPimQ[p][x][i]->GetParError(j) != 0 && fitPimQ[p][x][i]->GetParameter(j) != 0 && abs(fitPimQ[p][x][i]->GetParameter(j)) < 1000  && hFitPimQ[p][x][i]->GetEntries()>3){
 						hFitPimX[p][i][j]->SetBinContent( x + 1, fitPimQ[p][x][i]->GetParameter(j) );	
 						hFitPimX[p][i][j]->SetBinError( x + 1, fitPimQ[p][x][i]->GetParError(j) );	
 					}
@@ -219,7 +265,7 @@ int main( int argc, char** argv){
 			}
 		}
 		for( int i = 0; i < 4; i++ ){
-			for( int j = 0; j < 3; j++ ){
+			for( int j = 0; j < 4; j++ ){
 				fitPipX[p][i][j] = new TF1( Form("fitPipX_%i_%i_%i",p, i, j), "[0] + [1]*x + [2]*x*x + [3]*x*x*x");
 				hFitPipX[p][i][j]->Fit( Form("fitPipX_%i_%i_%i", p, i, j) );
 				fitPipX[p][i][j]->Write(); 

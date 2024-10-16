@@ -41,23 +41,23 @@ int main( int argc, char** argv){
 
 	if( argc <3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File (no extension)]\n";
-		cerr << "[Sector cut (optional, 0 if all)] [Theta Cut (optional)]\n";
+		cerr << "./code [Output File (no extension)]\n";
+		cerr << "[Type (0 - pi2k, 1 - k2pi)] [Theta Cut (optional)]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
 	int nBinsQ2 = bins_Q2;
-	int nBinsXb = bins_xB;
+	int nBinsXb =(int) (10* (bins_xB/25.));
 	int nBinsZ = 2*bins_Z;
 
-	TString in_name = argv[1];
-       	TString out_name = argv[2];
+	//TString in_name = argv[1];
+       	TString out_name = argv[1];
+		
+	int type = atoi(argv[2]);
 
-	int sector_cut = 0;
-	if( argc > 3 ){  sector_cut = atoi(argv[3]); }
        	double max_theta_cut = 999;
-	if( argc > 4 ){ max_theta_cut = atoi(argv[4]); }
+	if( argc > 3 ){ max_theta_cut = atoi(argv[4]); }
 
        	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
 	
@@ -93,10 +93,18 @@ int main( int argc, char** argv){
 
 	//TFile * file = new TFile(in_name);
 	TChain * file = new TChain("ePi");
-	file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/kaons_10.2/final_skim.root");
-//	file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
-//	file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
-	//TTreeReader reader("ePi", file);
+	if(type == 0){
+		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
+		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
+		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
+	}
+	if(type == 1){
+		cout<<"Adding kaon files"<<std::endl;
+		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/kaons_10.2/final_skim.root");
+		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/kaons_10.4/final_skim.root");
+		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/kaons_10.6/final_skim.root");
+	}
+		//TTreeReader reader("ePi", file);
 	TTreeReader reader( file);
 
 	TTreeReaderValue<electron> e(reader, "e");
@@ -117,13 +125,15 @@ int main( int argc, char** argv){
 
 
 		int chargeIdx = 0;
-		
+	
+		//if( e->getW() < 19 || e->getV() < 19 ){continue;}
+
+
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			//if(accMatchType < 2 && !isGoodPion_no_acc_vec[i]) {continue;}
 			if( !isGoodPion_vec[i]) {continue;}
 			//if(accMatchType == 3 && !isGoodPion_3d_vec[i]) {continue;}
 			if(pi[i].getBeta_rich() < .0001){continue;}
-			if( sector_cut != 0 && pi[i].getDC_sector() != sector_cut ){ continue; }
 			if( pi[i].get3Momentum().Theta()*rad_to_deg > max_theta_cut ){ continue; }
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double p_pi = pi[i].get3Momentum().Mag();
@@ -168,7 +178,7 @@ int main( int argc, char** argv){
 		for( int k = 0; k <= nBinsXb; k++ ){
 			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
-					hBeta_p[i][j][k][l]->Write();
+					//hBeta_p[i][j][k][l]->Write();
 					if( j > 0 && k > 0 && l > 0 && hBeta_rich_p[i][j][k][l]->Integral() != 0){
 
 						hBeta_rich_p[i][j][k][l]->SetTitleSize(10);

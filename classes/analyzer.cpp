@@ -100,7 +100,7 @@ bool analyzer::applyElectronDetectorCuts( electron e ){
 	if( !( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() )) return false;
 	
 	//ELECTRON VERTEX CUT
-	if( ! ((e.getVt().Z() > -5) && (e.getVt().Z() < -1))) return false;
+	if( ! ((e.getVt().Z() > Vz_e_min_inbending) && (e.getVt().Z() < Vz_e_max_inbending))) return false;
 	
 	
 	return true;
@@ -206,7 +206,7 @@ bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
        
 	//DELTA VERTEX CUT
 	if( !( (pi.getVt() - e.getVt()).Z() > -7 && (pi.getVt() - e.getVt()).Z() < 5 ) ) { return false; }
-	
+	//if( ! ( abs( (pi.getVt() - e.getVt()).Z() ) < 20 ) ) { return false; }
 	return true;
 }
 

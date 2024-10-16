@@ -13,13 +13,13 @@ namespace cutVals{
 
 	const double xB_min = .1;
 	const double xB_max = .6;
-	const int bins_xB = 10;
+	const int bins_xB = 25;
 
 	
-	const double e_PCAL_W_min=15.0;
-	const double e_PCAL_V_min=15.0;
+	const double e_PCAL_W_min=19.0;
+	const double e_PCAL_V_min=19.0;
 	const double e_E_PCAL_min=0.07;
-	const double PCAL_ECIN_SF_min=0;
+	const double PCAL_ECIN_SF_min=0.2;
 	
 	const double y_max=0.75;
 	const double W_min=2.5;
@@ -33,6 +33,9 @@ namespace cutVals{
 
 	const double Mx_min = 1.7;
 	const double Mx_max = 5.0;
+	
+	const double Vz_e_min_inbending = -5.0;	
+	const double Vz_e_max_inbending = 1.0;
 
 	//Legacy cuts ("loose")
 	const double SamplingFraction_min=0.17;
