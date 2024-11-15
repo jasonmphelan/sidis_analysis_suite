@@ -63,6 +63,8 @@ void genPion::setKinematicInformation(TLorentzVector q, TLorentzVector pe, clas1
 
 	setPi_q( q, pe ); 					
 
+	setCharge( (int) (rp->getPid()/211) );
+
 	setZ(		pi4.E()/q.E()	);
 	//Z_LC.push_back(		(pi_q_dummy.E() + pi_q_dummy.Pz()) / (q.E() + q.P())	);
 

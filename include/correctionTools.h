@@ -6,9 +6,14 @@
 #include <iostream>
 #include "TString.h"
 #include "TH3F.h"
+#include "TF1.h"
 #include "TFile.h"
+#include "constants.h"
+#include "cut_values.h"
 #define CORR_PATH _DATA
 
+using namespace constants;
+using namespace cutVals;
 
 class correctionTools{
 public:
@@ -26,6 +31,7 @@ public:
 	void setFilePaths(int corr, TString path);
 	void printFilePaths();
 	void testHists(){ accCorrection[1]->Print("all");}
+	void loadFits();
 private:
 	int 	mode;
 	TString weight_name = "corrections.root";
@@ -45,7 +51,10 @@ private:
 	TH3F *	pi_to_k_Correction[2][4];
 	//TH3F *	rhoCorrection;
 	
-
+	TF1 * weightFit[2][bins_xB][bins_Q2];
+	TF1 * pi2kFit[2][bins_xB][bins_Q2][4];
+	TF1 * k2piFit[2][bins_xB][bins_Q2][4];
+	
 	double weight_Parameters[2][4][4][4];
 	double k_To_pi_Parameters[2][4][5][4][4];
 	double pi_To_k_Parameters[2][4][5][4][4];

@@ -79,8 +79,8 @@ int main( int argc, char** argv){
 	
 	double Mx_2pi_out;
 	double M_rho_out;
-	double rhoWeight;
-	double corr_err;
+	double rhoWeight[2];
+	double corr_err[2];
 
 	outTree->Branch("beam", &beam_out);
 	outTree->Branch("e", &e_out);
@@ -89,20 +89,20 @@ int main( int argc, char** argv){
 	outTree->Branch("Mx_2pi", &Mx_2pi_out);
 	outTree->Branch("M_rho", &M_rho_out);
 
-	outTree->Branch("rhoWeight", &rhoWeight);
+	outTree->Branch("rhoWeight", rhoWeight);
 	outTree->Branch("rhoErr", &corr_err);
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
-		if(event_count%10000 == 0){
+		if(event_count%1000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<std::endl;
 		}
 	
 		//initialize event variables
 		bool detectedPion[2] = {true, true};
 		bool goodPion[2] = {true, true};
-		double onePiEvents = 0;
-		double twoPiEvents = 0;
+		double onePiEvents[2] = {0};
+		double twoPiEvents[2] = {0};
 		int trials = 0;
 
 		pi_out.clear();
@@ -119,14 +119,14 @@ int main( int argc, char** argv){
 		
 		Mx_2pi_out = (double)(*Mx_2pi);
 		M_rho_out = (double)(*M_rho);
-		rhoWeight = 0;
-		corr_err = 999;
+		rhoWeight[2] = {0};
+		corr_err[2] = {999, 999};
 
 
 		//Restrict ROI
 		if( !isGoodPion_acc[0] && !isGoodPion_acc[1] ){continue;} //If event wouldn't be in our final sample, continue 
-		if( *Mx_2pi > 1.2 || *Mx_2pi < .75 ){continue;}
-		if( *M_rho > 1 || *M_rho < .45 ){continue;}
+		if( *Mx_2pi < 0 || *Mx_2pi > 1.7 ){continue;}
+		if( *M_rho < 0 ){continue;}
 
 		while( corr_err > err_level/100. || trials < 500){
 			trials++;
@@ -187,8 +187,15 @@ int main( int argc, char** argv){
 			//cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;	
 	
 		}	
-		
-		rhoWeight =  1. + onePiEvents/twoPiEvents ;
+
+		//Check for weird guys
+
+		if( onePiEvents == 0 || twoPiEvents == 0 ){
+			rhoWeight = 1.;
+		}
+		else{
+			rhoWeight =  1. + onePiEvents/twoPiEvents ;
+		}
 
 		outTree->Fill();
 

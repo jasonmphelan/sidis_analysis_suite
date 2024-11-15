@@ -12,8 +12,8 @@ namespace cutVals{
 	const int bins_Q2 = 12;
 
 	const double xB_min = .1;
-	const double xB_max = .6;
-	const int bins_xB = 25;
+	const double xB_max = .66;
+	const int bins_xB = 14;
 
 	
 	const double e_PCAL_W_min=19.0;

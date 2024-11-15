@@ -68,6 +68,34 @@ int main( int argc, char** argv){
 	TF1 *fitPim[nBinsQ2][nBinsXb][bins_p];
 	TF1 *fitPip[nBinsQ2][nBinsXb][bins_p];
 
+	//Fit parameters as a function of Q2 for fixed x
+	TH1F * hFitPipQ[bins_p][nBinsXb][4];//number of fit-to-z params
+	TH1F * hFitPimQ[bins_p][nBinsXb][4];
+	TF1 * fitPipQ[bins_p][nBinsXb][4];
+	TF1 * fitPimQ[bins_p][nBinsXb][4];
+
+	//Fit parameters as a function of x
+	TH1F * hFitPipX[bins_p][4][4]; //fit-to-z params, then fit-to-Q params
+	TH1F * hFitPimX[bins_p][4][4];
+	
+	TF1 * fitPipX[bins_p][4][4];
+	TF1 * fitPimX[bins_p][4][4];
+
+	for( int p = 0; p < bins_p; p++ ){
+		for( int q = 0; q < nBinsXb; q++ ){
+			for( int c = 0; c < 4; c++ ){
+				hFitPipQ[p][q][c] = new TH1F(Form("hFitPipQ_%i_%i_%i", p, q, c ), "", nBinsQ2, Q2_min, Q2_max);
+				hFitPimQ[p][q][c] = new TH1F(Form("hFitPimQ_%i_%i_%i", p, q, c ), "", nBinsQ2, Q2_min, Q2_max);
+
+			}
+		}
+		for( int c = 0; c < 4; c++ ){
+			for( int k = 0; k < 4; k++ ){
+				hFitPipX[p][c][k] = new TH1F(Form("hFitPipX_%i_%i_%i", p, c, k ), "", nBinsXb, xB_min, xB_max);
+				hFitPimX[p][c][k] = new TH1F(Form("hFitPimX_%i_%i_%i", p, c, k ), "", nBinsXb, xB_min, xB_max);
+			}
+		}
+	}
 	outFile->cd();
 	TCanvas canvas("canvas");
 	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
@@ -118,8 +146,7 @@ int main( int argc, char** argv){
 
 				kaonCorr_p_1d[p][q][x]->Fit( Form("fitPip_%i_%i_%i", p, q, x) );
 				kaonCorr_m_1d[p][q][x]->Fit( Form("fitPim_%i_%i_%i", p, q, x) );
-				
-				/*		
+			
 				if( fitPip[p][q][x]->Eval(1) > 0 ){
 					p_fit_max = 1;
 					kaonCorr_p_1d[p][q][x]->SetBinContent(nBinsZ, .5);			
@@ -167,7 +194,6 @@ int main( int argc, char** argv){
 					
 				kaonCorr_p_1d[p][q][x]->Fit( Form("fitPip_%i_%i_%i", p, q, x) );
 				kaonCorr_m_1d[p][q][x]->Fit( Form("fitPim_%i_%i_%i", p, q, x) );
-				*/
 
 				kaonCorr_p_1d[p][q][x]->SetLineColor(kRed);
 				kaonCorr_p_1d[p][q][x]->GetYaxis()->SetRangeUser(0, 1);
@@ -182,8 +208,80 @@ int main( int argc, char** argv){
 				canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 				canvas.Clear();
 			
+				for( int c = 0; c < 4; c++ ){
+					if( fitPip[p][q][x]->GetParError(c) != 0 && kaonCorr_p_1d[p][q][x]->GetEntries() > 4 ){
+						hFitPipQ[p][x][c]->SetBinContent( q+1, fitPip[p][q][x]->GetParameter(c));
+						hFitPipQ[p][x][c]->SetBinError( q+1, fitPip[p][q][x]->GetParError(c));
+					}
+					if( fitPim[p][q][x]->GetParError(c) != 0 && kaonCorr_m_1d[p][q][x]->GetEntries() > 4 ){
+						hFitPimQ[p][x][c]->SetBinContent( q+1, fitPim[p][q][x]->GetParameter(c));
+						hFitPimQ[p][x][c]->SetBinError( q+1, fitPim[p][q][x]->GetParError(c));
+					}
+
+				}
 			}
 
+			for( int c = 0; c < 4; c++ ){
+				//fitPipQ[p][x][c] = new TF1( Form("fitPipQ_%i_%i_%i",p,  x, c), "[0]*([1] - x)*([1] - x) + [2]");
+				fitPipQ[p][x][c] = new TF1( Form("fitPipQ_%i_%i_%i",p,  x, c), "[0]+ [1]*x + [2]*x*x + [3]*x*x*x");
+				//fitPipQ[p][x][c]->SetParameters(10, 4, 1);
+				fitPipQ[p][x][c]->SetParameters(10, 4, 1, 1);
+				hFitPipQ[p][x][c]->Fit(Form("fitPipQ_%i_%i_%i",p, x, c));
+				hFitPipQ[p][x][c]->Print("ALL");	
+				fitPipQ[p][x][c]->SetLineColor(kBlue);
+				hFitPipQ[p][x][c]->SetLineColor(kAzure);;
+				hFitPipQ[p][x][c]->Draw();
+				fitPipQ[p][x][c]->Draw("SAME");
+
+				//fitPimQ[p][x][c] = new TF1( Form("fitPimQ_%i_%i_%i",p,  x, c), "[0]*([1] - x)*([1] - x) + [2]");
+				fitPimQ[p][x][c] = new TF1( Form("fitPimQ_%i_%i_%i",p,  x, c), "[0] + [1]*x + [2]*x*x + [3]*x*x*x");
+				//fitPimQ[p][x][c]->SetParameters(10, 4, 1);
+				fitPimQ[p][x][c]->SetParameters(10, 4, 1, 1);
+				hFitPimQ[p][x][c]->Fit(Form("fitPimQ_%i_%i_%i",p, x, c));
+				
+				fitPimQ[p][x][c]->SetLineColor(kRed);
+				hFitPimQ[p][x][c]->SetLineColor(kMagenta);;
+				hFitPimQ[p][x][c]->Draw("SAME");
+				fitPimQ[p][x][c]->Draw("SAME");
+
+
+
+				//cout<<"Draw Q fit\n";
+				canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
+				canvas.Clear();
+			}
+		
+			for( int i = 0; i < 4; i++ ){
+				for( int j = 0; j < 4; j++ ){
+					if( fitPipQ[p][x][i]->GetParError(j) != 0 && fitPipQ[p][x][i]->GetParameter(j) != 0 && abs(fitPipQ[p][x][i]->GetParameter(j)) < 1000  && hFitPipQ[p][x][i]->GetEntries()>3){
+						hFitPipX[p][i][j]->SetBinContent( x + 1, fitPipQ[p][x][i]->GetParameter(j) );	
+						hFitPipX[p][i][j]->SetBinError( x + 1, fitPipQ[p][x][i]->GetParError(j) );	
+					}
+					if( fitPimQ[p][x][i]->GetParError(j) != 0 && fitPimQ[p][x][i]->GetParameter(j) != 0 && abs(fitPimQ[p][x][i]->GetParameter(j)) < 1000  && hFitPimQ[p][x][i]->GetEntries()>3){
+						hFitPimX[p][i][j]->SetBinContent( x + 1, fitPimQ[p][x][i]->GetParameter(j) );	
+						hFitPimX[p][i][j]->SetBinError( x + 1, fitPimQ[p][x][i]->GetParError(j) );	
+					}
+				}
+			}
+		}
+		for( int i = 0; i < 4; i++ ){
+			for( int j = 0; j < 4; j++ ){
+				fitPipX[p][i][j] = new TF1( Form("fitPipX_%i_%i_%i",p, i, j), "[0] + [1]*x + [2]*x*x + [3]*x*x*x");
+				hFitPipX[p][i][j]->Fit( Form("fitPipX_%i_%i_%i", p, i, j) );
+				fitPipX[p][i][j]->Write(); 
+				
+				fitPimX[p][i][j] = new TF1( Form("fitPimX_%i_%i_%i",p, i, j), "[0] + [1]*x + [2]*x*x + [3]*x*x*x");
+				hFitPimX[p][i][j]->Fit( Form("fitPimX_%i_%i_%i", p, i, j) );
+				fitPimX[p][i][j]->Write(); 
+			
+			
+				//hFitPipX[p][i][j]->SetLineColor(kRed);
+				//hFitPipX[p][i][j]->Draw("SAME");
+				hFitPimX[p][i][j]->SetLineColor(kAzure);
+				hFitPimX[p][i][j]->Draw("Same");
+				canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
+				canvas.Clear();
+			}
 		}
 	}
 	

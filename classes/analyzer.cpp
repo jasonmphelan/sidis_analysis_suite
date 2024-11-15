@@ -132,28 +132,28 @@ bool analyzer::applyElectronFiducials( electron e ){
 }
 
 bool analyzer::applyElectronPCAL( electron e ){
-	return (! (	e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min));
+	return ( e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min);
 }
 
 bool analyzer::applyElectronEDep( electron e ){
 
 	//PCAL MIN EDEP CUT
-	return (! ( e.getEpcal() > e_E_PCAL_min) );
+	return  ( e.getEpcal() > e_E_PCAL_min) ;
 }
 bool analyzer::applyElectronSF( electron e ){
 	//Electron SF cut
-	return (  !(epid.isElectron(&e)) );
+	return (epid.isElectron(&e)) ;
 }
 	
 bool analyzer::applyElectronCorrelation( electron e ){
 	//SF CORRELATION CUT
-	return( !( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() ));
+	return(  e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() );
 }
 
 
 bool analyzer::applyElectronVertex( electron e ){
 	//ELECTRON VERTEX CUT
-	return (! ((e.getVt().Z() > -5) && (e.getVt().Z() < -1)));
+	return ((e.getVt().Z() > -5) && (e.getVt().Z() < -1));
 }
 
 bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
@@ -254,8 +254,8 @@ bool analyzer::applyPionDetectorChi2( pion pi ){
 		return false;
 	}
 	//PION CHI2 vs P CUT
-	return(! (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
-         	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) ))); 
+	return (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
+         	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) )); 
 }
 
 bool analyzer::applyPionDetectorVertex( pion pi, electron e ){
@@ -412,6 +412,8 @@ int analyzer::acceptance_match_3d_cont( double phi_part, double theta, double p,
 	return -1;
 }
 
+
+//Load matching functions
 void analyzer::loadMatchingFunctions( TString fileName ){
 
 	TFile matchFile3D( (TString) CUT_PATH + "/acceptance_matching/" + fileName);
@@ -430,7 +432,7 @@ void analyzer::loadMatchingFunctions(){
 }
 
 
-
+//Find gemc/gen match
 int analyzer::FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> part_list){
 
 	double temp_min_dp = 9999;
@@ -464,7 +466,7 @@ int analyzer::FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> 
 	return p_idx;
 }
 
-
+//Load acceptance map
 void analyzer::loadAcceptanceMap(TString fileName){
 	TFile f(fileName);
 
@@ -488,6 +490,7 @@ void analyzer::loadAcceptanceMap(TString fileName){
 	}
 }
 
+//Check if in acceptance map
 int analyzer::checkAcceptance( double p, double phi, double theta, int particle ){
 	double par_0 = -999;
 	double par_1 = -999;

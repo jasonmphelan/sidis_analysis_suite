@@ -10,7 +10,12 @@ include_directories(${CLAS12ROOT}/Clas12Banks ${CLAS12ROOT}/Clas12Root ${INCLUDE
 add_executable(makeRatio makeRatioBinned_new.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp)
 target_link_libraries(makeRatio ${ROOT_LIBRARIES} clashit_tree) 
 
+add_executable(makeRatioBinned makeRatioBinned3D.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp)
+target_link_libraries(makeRatioBinned ${ROOT_LIBRARIES} clashit_tree) 
+
 add_executable(makeXsRatio makeXsRatioBinned.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp)
 target_link_libraries(makeXsRatio ${ROOT_LIBRARIES} clashit_tree) 
 
 
+add_executable(makeKinematics makeKinematicPlots.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp )
+target_link_libraries(makeKinematics ${ROOT_LIBRARIES} clashit_tree) 

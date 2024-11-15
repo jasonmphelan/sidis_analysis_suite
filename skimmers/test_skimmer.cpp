@@ -99,6 +99,7 @@ int main( int argc, char** argv){
 	std::vector<region_part_ptr> electrons, pions, pipluses, piminuses; //For reading from hipo file... not outputted
 	std::vector<int> electronsMC;
 	std::vector<std::vector<int>> pionsMC;
+	std::vector<std::vector<int>> pidMC;
 	
 	// Set Output file and tree
 	TFile * outputFile;
@@ -204,7 +205,16 @@ int main( int argc, char** argv){
 			electrons   = c12.getByID( 11   );
 			pipluses    = c12.getByID( 211  );
 			piminuses   = c12.getByID(-211  );
-			
+
+			if( RunType == 1 ){
+				std::vector<region_part_ptr> kpluses, kminuses; 
+				kpluses = c12.getByID(321);
+				kminuses = c12.getByID(-321);
+
+				pipluses.insert( pipluses.end(), kpluses.begin(), kpluses.end() );
+				piminuses.insert( piminuses.end(), kminuses.begin(), kminuses.end() );
+			}
+
 			pions = pipluses;
 			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );
 
@@ -218,16 +228,14 @@ int main( int argc, char** argv){
 				std::vector<int> pimsMC;
 				for ( int i = 0; i<nMcPart; i++ ){
 					mcId = c12.mcparts()->getPid(i);
-					switch (mcId){
-						case 11:
-							electronsMC.push_back(i);
-							break;
-						case 211:
-							pipsMC.push_back(i);
-							break;
-						case -211:
-							pimsMC.push_back(i);
-							break;
+					if( mcId == 11 ){
+						electronsMC.push_back(i);
+					}
+					if( mcId == 211 || mcId == 321 ){
+						pipsMC.push_back(i);
+					}
+					if( mcId == -211 || mcId == -321 ){
+						pimsMC.push_back(i);
 					}
 				}
 				pionsMC.push_back(pipsMC);
@@ -266,9 +274,9 @@ int main( int argc, char** argv){
 					int chargeIdx = (int) (pi_dummy.getCharge() < 0);
 					int pi_match = anal.FindMatch(pi_dummy.get3Momentum(), mcparts, pionsMC[chargeIdx] );
 					mcparts->setEntry(pi_match);
-					if( pi_match > -1 ){ 
+					if( pi_match > -1  && abs( mcparts->getPid() )!=321  ){ 
 						genPi_dummy.Clear();
-						genPi_dummy.setKinematicInformation(e_gen.get4Momentum(), e_gen.getQ(), mcparts);
+						genPi_dummy.setKinematicInformation(e_gen.getQ(), e_gen.get4Momentum(), mcparts);
 						pi_gen.push_back(genPi_dummy); 
 					}
 					else { continue; }

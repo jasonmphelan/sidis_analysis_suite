@@ -49,9 +49,17 @@ int main( int argc, char** argv){
 	TH1F * hXb[2];
 	TH1F * hZ[2];
 	TH1F * hPt[2];
+	TH1F * hMx_rho[2];
+	TH1F * hMx_2pi[2];
 	
 	hQ2[0] = new TH1F("hQ2_all", ";Q^{2};", 50, Q2_min, Q2_max);
 	hQ2[1] = new TH1F("hQ2_sideband", ";Q^{2};", 50, Q2_min, Q2_max);
+	
+	hMx_2pi[0] = new TH1F("hMx_2pi_all", ";Q^{2};", 50, .2, .9);
+	hMx_2pi[1] = new TH1F("hMx_2pi_sideband", ";Q^{2};", 50, .2, .9);
+	
+	hMx_rho[0] = new TH1F("hMx_rho_all", ";Q^{2};", 50, .6, 1.4);
+	hMx_rho[1] = new TH1F("hMx_rho_sideband", ";Q^{2};", 50, .6, 1.4);
 	
 	hXb[0] = new TH1F("hXb_all", ";x_{B};", 50, xB_min, xB_max);
 	hXb[1] = new TH1F("hXb_sideband", ";x_{B};", 50, xB_min, xB_max);
@@ -61,9 +69,7 @@ int main( int argc, char** argv){
 	
 	hPt[0] = new TH1F("hPt_all", ";p_{T};", 50, 0, 2);
 	hPt[1] = new TH1F("hPt_sideband", ";p_{T};", 50, 0, 2);
-	analyzer anal(0, -1);
 
-	anal.loadMatchingFunctions();
 	//Load input tree
         TTreeReader reader_rec("ePi", file_rec);
 
@@ -80,6 +86,16 @@ int main( int argc, char** argv){
 			cout<<"Events Analyzed: "<<event_count<<std::endl;
 		}
 	
+		hMx_2pi[0]->Fill(*Mx_2pi);
+		hMx_rho[0]->Fill(*M_rho);
+		
+		if((*Mx_2pi > 1.1 && *Mx_2pi < 1.3) &&
+		((*M_rho > .4 && *M_rho < .6)||
+		(*M_rho > .85 && *M_rho < 1)) ){
+			hMx_2pi[1]->Fill(*Mx_2pi);
+			hMx_rho[1]->Fill(*M_rho);
+		}
+	
 		for( int i = 0; i < (int)(pi.end() - pi.begin());i++ ){
 			if( !isGoodPion[i] ){continue;}
 			if( *Mx_2pi < 1.3 && *M_rho > .4 &&  *M_rho < 1){
@@ -89,6 +105,8 @@ int main( int argc, char** argv){
 				hXb[0]->Fill( e->getXb() );
 				hZ[0]->Fill( z );
 				hPt[0]->Fill( pi[i].getPi_q().Pt() );
+
+			
 			}
 
 			if((*Mx_2pi > 1.1 && *Mx_2pi < 1.3) &&
@@ -114,6 +132,11 @@ int main( int argc, char** argv){
 	hXb[1]->Write();
 	hZ[1]->Write();
 	hPt[1]->Write();
+
+	hMx_2pi[0]->Write();
+	hMx_2pi[1]->Write();
+	hMx_rho[0]->Write();
+	hMx_rho[1]->Write();
 	file_out->Close();
 
 }

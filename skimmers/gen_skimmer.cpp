@@ -16,8 +16,8 @@
 #include <TBenchmark.h>
 #include "clas12reader.h"
 //#include "DCfid_SIDIS.h"
-#include "electron.h"
-#include "pion.h"
+//#include "electron.h"
+//#include "pion.h"
 #include "genElectron.h"
 #include "genPion.h"
 #include "analyzer.h"
@@ -44,15 +44,15 @@ int main( int argc, char** argv){
 	if( argc < 6 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [# of Files] [Beam energy]\n";
-		cerr << "	[Run Type] [Single File?] [Inclusive (0, 1)] [Output File Name (no extension)]\n";
+		cerr << "	[Single File?] [Inclusive (0, 1)] [Output File Name (no extension)]\n";
 		return -1;
 	}
 	
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
        	double Ebeam = atof(argv[2]); // [GeV]
-	int inclusive =atoi( argv[5]);
-	int singleFile =atoi( argv[4]);
-	TString outFileName = argv[6]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
+	int singleFile =atoi( argv[3]);
+	int inclusive =atoi( argv[4]);
+	TString outFileName = argv[5]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
 
 	
 	// Check valid beam energy
@@ -94,7 +94,7 @@ int main( int argc, char** argv){
 	std::vector<genPion> pi_gen ;
 	
 	std::vector<int> electronsMC;
-	std::vector<std::vector<int>> pionsMC, pipsMC, pimsMC;
+	std::vector<int> pionsMC, pipsMC, pimsMC;
 	
 	// Set Output file and tree
 	TFile * outputFile;
@@ -124,7 +124,6 @@ int main( int argc, char** argv){
 	
 	double accCharge = 0;
 	int goodElectron = 0;
-
 
 	////////////////////////////////////Begin file loop////////////////////////////////////////////////////
     	for(Int_t i=0;i< files.GetNFiles();i++){//files->GetEntries();i++){
@@ -164,17 +163,15 @@ int main( int argc, char** argv){
 
     	    	// process the events...
     	    	while((c12.next()==true)){
-           		if( RunType > 0 && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
-           		if( RunType == 0 && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
+           		if( event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			event++;
 			//if(event > 10000){break;}	
 			//Get run and event info	
 			
 			evnum  = c12.runconfig()->getEvent();
 			runnum = c12.runconfig()->getRun();
-			
 			///////////////////////////Initialize variables//////////////////////////////////////////////	
-			electronsMC.clear();
+			//electronsMC.clear();
 			pionsMC.clear();
 			pipsMC.clear();
 			pimsMC.clear();
@@ -198,10 +195,10 @@ int main( int argc, char** argv){
 						electronsMC.push_back(i);
 						break;
 					case 211:
-						pipsMC[0].push_back(i);
+						pipsMC.push_back(i);
 						break;
 					case -211:
-						pimsMC[1].push_back(i);
+						pimsMC.push_back(i);
 						break;
 				}
 			}
@@ -210,17 +207,20 @@ int main( int argc, char** argv){
 			Npi 	= pionsMC.size();
 			Ne      = electronsMC.size();
 			
-			if( Ne < 1 ){ continue; } //Keep only events with one electron...
+			//if( Ne < 1 ){ continue; } //Keep only events with one electron...
 			if( Npi == 0 && inclusive != 1 ){ continue; }	
-		
+			
+           		//if( event%1000 == 0){cout<<"Found Particles for Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			
 			//////////////electron analysis////////////////////
 			//Find good electrons
 			int e_idx = electronsMC[0];//no ambiguity with MC electron
-			mvcparts->setEntry(e_idx);
-			e_gen.setElectron( mcparts);
-			if( !anal.applyElectronDetectorCuts( e_gen )){continue;}
+			mcparts->setEntry(e_idx);
+			e_gen.setMomentum( mcparts );
+			e_gen.setKinematicInformation( Ebeam, mcparts );
+			if( !anal.applyElectronKinematicCuts( e_gen )){continue;}
 		
+           		//if( event%1000 == 0){cout<<"Analyzed e- for Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			////////////////Pion analysis/////////////////
 			
 			genPion genPi_dummy;
@@ -229,15 +229,16 @@ int main( int argc, char** argv){
 				if( inclusive == 1 ){ continue; }
 				genPi_dummy.Clear();
 				mcparts->setEntry( pionsMC[i] );
-				genPi_dummy.setPion( e.getQ(),e.get4Momentum(), mcparts );
-				if( !anal.applyPionDetectorCuts( genPi_dummy, e ) ) {continue;}
+				genPi_dummy.setMomentum( mcparts );
+				genPi_dummy.setKinematicInformation( e_gen.getQ(),e_gen.get4Momentum(), mcparts );
+				if( !anal.applyPionKinematicCuts( genPi_dummy ) ) {continue;}
 				
-				piMC.push_back(genPi_dummy);
+				pi_gen.push_back(genPi_dummy);
 					
 			}
 
 			//goodElectron++;
-			if(piMC.size() == 0 && inclusive == 0){continue;}	
+			if(pi_gen.size() == 0 && inclusive == 0){continue;}	
 			outTree->Fill();
 			
 		}

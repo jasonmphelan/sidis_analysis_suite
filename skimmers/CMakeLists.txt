@@ -28,3 +28,7 @@ add_executable(kaon_skimmer kaon_skimmer.cpp ${CMAKE_SOURCE_DIR}/classes/electro
 							${CMAKE_SOURCE_DIR}/classes/genPion.cpp ${CMAKE_SOURCE_DIR}/classes/genElectron.cpp)
 
 target_link_libraries(kaon_skimmer ${ROOT_LIBRARIES} -lEG PkgConfig::hipo4 -L${CLAS12ROOT}/lib -lClas12Banks -lClas12Root clashit_tree genhit_tree)
+
+add_executable(gen_skimmer gen_skimmer.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp ${CMAKE_SOURCE_DIR}/classes/e_pid.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/reader.cpp ${CMAKE_SOURCE_DIR}/classes/genElectron.cpp ${CMAKE_SOURCE_DIR}/classes/genPion.cpp )
+
+target_link_libraries(gen_skimmer ${ROOT_LIBRARIES} -lEG PkgConfig::hipo4 -L${CLAS12ROOT}/lib -lClas12Banks -lClas12Root clashit_tree genhit_tree)

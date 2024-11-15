@@ -33,9 +33,15 @@ int reader::getRunNum( int i ){
 
 
 void reader::readRunFiles(clas12root::HipoChain &fileList){
-	setDataPaths();
-	getRunList();
-	getRunFiles(fileList);
+	if( EBeam == 0 ){
+		readRunFilesAllE( fileList );
+	}
+
+	else{
+		setDataPaths();
+		getRunList();
+		getRunFiles(fileList);
+	}
 }
 
 void reader::readRunFilesAllE(clas12root::HipoChain &fileList){
@@ -158,14 +164,15 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 		}
 	}
 	else if (runType == 1){
-		for( int j = 0; j < nRuns[beamType]; j++ ){
-			for( int i = 0; i < 75000; i++){
+		//for( int j = 0; j < nRuns[beamType]; j++ ){
+			for( int i = 0;  i < 75000; i++){
 				if( nFiles != 0 && i >= nFiles ) break;
 				inFile = name + ".root";
+				cout<<"File "<<i<<" : "<<inFile<<endl;
 				if( gSystem->AccessPathName(inFile) ) continue;
 				chain->Add(inFile);
 			}
-		}
+		//}
 	}
 	else{ cout<<"(Currently) invalid run type... no files added\n"; }
 //	else {
@@ -181,8 +188,13 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 	//return files;
 }
 void reader::getRunSkimsByName( TChain * chain, TString name ){
-	getRunList();
-	getSkimsByName( chain, name );
+	if( EBeam == 0 ){
+		getRunSkimsAllEnergy(chain, name);
+	}
+	else{
+		getRunList();
+		getSkimsByName( chain, name );
+	}
 }
 void reader::getRunSkimsAllEnergy( TChain * chain, TString name ){
 	setEnergy(10.2);

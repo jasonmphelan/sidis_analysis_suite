@@ -39,6 +39,7 @@ using std::ofstream;
 using namespace cutVals;
 using namespace constants;
 
+void makeComparisonCanvas(TH1F* h1, TH1F* h2,TFile * outFile, TString outFileName, TString tit_1, TString tit_2, TString yTit);
 
 int main( int argc, char** argv){
 
@@ -49,14 +50,16 @@ int main( int argc, char** argv){
 		cerr << "[Apply Corrections? (1 - MC, 2 - MC + pi2k, 3 - MC + pi2k + k2pi)]\n";
 		return -1;
 	}
-	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
+	cerr << "Files used: " << argv[1] << " " <<argv[2] << " " <<argv[3]<<" "<<atoi(argv[4])<<" "<<atoi(argv[5])<<"\n";
 
 	TString in_name = argv[1];
 	TString k_name = argv[2];
        	TString out_name = argv[3];
 	int matchType = atoi(argv[4]);
 	int applyCorr = atoi(argv[5]);
-       	
+
+	cout<<"Read inputs\n";
+
 	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
 
 	//TFile * outFile = new TFile( outName, "RECREATE");
@@ -78,7 +81,8 @@ int main( int argc, char** argv){
 			}
 		}
 	}
-	
+
+	cout<<"Made Histograms\n";	
 	correctionTools corrector(1);
 	corrector.loadHistograms();	
 
@@ -91,6 +95,8 @@ int main( int argc, char** argv){
 
 	int event_total = reader_rec.GetEntries();
 	double events_in_bin[2][bins_Q2][bins_xB][bins_Z][bins_p] = {0};
+	
+	cout<<"Begin Event Loop\n";
 
 	while (reader_rec.Next()) {
 		int event_count = reader_rec.GetCurrentEntry();
@@ -245,9 +251,16 @@ int main( int argc, char** argv){
 
 	for( int i = 1; i <= bins_Q2; i++ ){
 		for( int j = 1; j <= bins_xB; j++ ){
+			cout<<"XB : "<<j<<" Q2 : "<<i<<std::endl;			
 			//hZ[i-1][j-1][0]->Divide(hZ[i-1][j-1][1]);
+			//hZ_k[i-1][j-1][0]->Divide(hZ_k[i-1][j-1][1]);
+	
+			makeComparisonCanvas(hZ[i-1][j-1][0], hZ_k[i-1][j-1][0], outFile, Form("piVk_pip_%i_%i", i, j),  "#pi Sample", "k Sample", "#sigma^{+}/#sigma^{-}");
+			makeComparisonCanvas(hZ[i-1][j-1][1], hZ_k[i-1][j-1][1], outFile, Form("piVk_pim_%i_%i", i, j),  "#pi Sample", "k Sample", "#sigma^{+}/#sigma^{-}");
+			
+			makeComparisonCanvas(hZ[i-1][j-1][1], hZ[i-1][j-1][0], outFile, Form("pi_ratio_%i_%i", i, j),  "#pi^{+}", "#pi^{-}", "Counts");
+			makeComparisonCanvas(hZ_k[i-1][j-1][1], hZ_k[i-1][j-1][0], outFile, Form("k_ratio_%i_%i", i, j),  "#pi^{+}", "#pi^{-}", "Counts");
 
-			//TH1F * helper_3 = (TH1F *)hZ[i-1][j-1][0]->Clone();
 			//hZ[i-1][j-1][0]->Scale(-1.);
 			//hZ[i-1][j-1][0]->Add(helper_2);
 
@@ -257,13 +270,128 @@ int main( int argc, char** argv){
 			//hZ[i-1][j-1][0]->Divide(helper_3);
 		
 			//hZ[i-1][j-1][0]->Print("ALL");
-			hZ[i-1][j-1][0]->Write();
-			hZ_k[i-1][j-1][0]->Write();
-			hZ[i-1][j-1][1]->Write();
-			hZ_k[i-1][j-1][1]->Write();
+			//hZ[i-1][j-1][0]->Write();
+			//hZ_k[i-1][j-1][0]->Write();
+			//hZ[i-1][j-1][1]->Write();
+			//hZ_k[i-1][j-1][1]->Write();
+			
+			//hZ[i-1][j-1][0]->Divide(hZ[i-1][j-1][1]);
+			//hZ_k[i-1][j-1][0]->Divide(hZ_k[i-1][j-1][1]);
+			
+			//makeComparisonCanvas(hZ[i-1][j-1][0], hZ_k[i-1][j-1][0], outFile, Form("piVk_ratio_%i_%i", i, j),  "#pi Sample", "k Sample", "#sigma^{+}/#sigma^{-}");
 		}
 	}		
 
 	outFile->Close();
 
+}
+
+void makeComparisonCanvas(TH1F* h1, TH1F* h2,TFile * outFile, TString outFileName, TString tit_1, TString tit_2, TString yTit){
+
+	double fontSize = 20;
+	double labelSize = 15;
+	double titleSize = 20;
+	int fontStyle = 43;
+
+	double temp_h1 =h1->GetMaximum();
+	double temp_h2 =h2->GetMaximum();
+	double maximum;
+	if(temp_h1 >= temp_h2){ maximum = temp_h1; }
+	else{ maximum = temp_h2; }
+
+	TString temp_x = "z";
+
+	h1->GetYaxis()->SetRangeUser(0, 1.3*maximum);
+	h1->SetTitle("");
+	h1->GetXaxis()->SetTitle("");
+	h2->GetYaxis()->SetRangeUser(0, 1.3*maximum);
+	h1->GetYaxis()->SetTitle(yTit);
+
+	h1->SetMarkerStyle(kFullCircle);
+	h1->SetLineColor(kAzure);
+	h1->SetMarkerColor(kAzure);
+	h2->SetLineColor(kRed);
+	h1->SetStats(0);
+
+	
+	cout<<"Start Canvas\n";
+	TCanvas * c1 = new TCanvas("c1", "c1");
+	TPad * upper = new TPad("p1", "p1", 0, .3, 1, 1);
+	upper->SetBottomMargin(0.017);
+	upper->SetLeftMargin(0.15);
+
+	upper->Draw();
+	upper->cd();
+	h1->Draw("E");
+	h1->GetXaxis()->SetTitleFont(fontStyle);
+	h1->GetXaxis()->SetTitleSize(titleSize);
+	h1->GetXaxis()->SetTitleOffset(0.9);
+	h1->GetYaxis()->SetTitleFont(fontStyle);
+	h1->GetYaxis()->SetTitleSize(titleSize);
+
+	h1->SetLabelFont(fontStyle, "xyz");
+	h1->SetLabelSize(0, "x");
+	h1->SetLabelSize(labelSize, "y");
+
+	h1->SetLineWidth(2);
+	h2->SetLineWidth(1);
+
+	h1->GetYaxis()->SetTitleSize(titleSize);
+	h2->Draw("hist E SAME");
+	
+	c1->cd();
+	
+	TPad * lower = new TPad("p2", "p2", 0, 0.05, 1, .3);
+	lower->SetTopMargin(0.017);
+	lower->SetBottomMargin(0.4);
+	lower->SetLeftMargin(0.15);
+	lower->Draw();
+	lower->cd();
+
+	cout<<"Start Ratio Plot!\n";
+
+	TH1F * ratio = (TH1F *)h1->Clone();
+	
+	ratio->Divide(h2);
+	ratio->Sumw2();
+	ratio->SetStats(0);
+	ratio->SetTitle("");
+
+	ratio->GetYaxis()->SetRangeUser(0.5, 1.5);
+	ratio->SetMarkerStyle(8);
+	ratio->SetLineColor(kBlack);
+	ratio->SetMarkerColor(kBlack);
+	ratio->GetYaxis()->SetTitle("Ratio");
+	ratio->GetXaxis()->SetTitle(temp_x);
+	
+	ratio->GetXaxis()->SetTitleFont(fontStyle);
+	ratio->GetXaxis()->SetTitleSize(titleSize);
+	ratio->GetXaxis()->SetTitleOffset(0.9);
+	ratio->GetYaxis()->SetTitleFont(fontStyle);
+	ratio->GetYaxis()->SetTitleSize(titleSize);
+	
+	ratio->GetXaxis()->SetLabelSize(labelSize);
+	ratio->GetYaxis()->SetLabelSize(labelSize);
+	ratio->GetYaxis()->SetNdivisions(505);
+
+
+	ratio->Draw();
+
+	
+	upper->cd();
+	TLegend * legend = new TLegend(0.67,0.71, .89, .89);
+	legend->SetHeader("Legend", "C");
+	legend->AddEntry(h2, tit_2, "l");
+	legend->AddEntry(h1, tit_1, "l");
+	legend->Draw();
+	
+	outFile->cd();
+	c1->Write(outFileName);
+	c1->SaveAs(outFileName);
+
+	delete c1;
+	delete ratio;
+	delete h1;
+	delete h2;
+	cout<<"Write Hist!\n";
 }
