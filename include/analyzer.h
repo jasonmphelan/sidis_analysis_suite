@@ -49,6 +49,8 @@ public:
 	double	calcQStar ( TVector3 eP3, TVector3 piP3, double Ebeam );
 	void loadMatchingFunctions( TString fileName );
 	void loadMatchingFunctions();
+	void loadMatchingFunctions3D( TString fileName );
+	void loadMatchingFunctions3D();
 	void loadAcceptanceMap( TString fileName );
 	int acceptance_match_3d_cont( double phi_part, double theta, double p, int chargeIdx);
 	int acceptance_match_3d( double phi_part, double theta, double p, int charge);
@@ -81,6 +83,7 @@ private:
 	TH3F *	rhoCorrection;
 
 	TF1 * match3d[6][3];
+	TF1 * match2d[6][2][2]; //[sector][max/min][pip/pim]
 
 	e_pid epid;
 	DCfid_SIDIS dcfid;

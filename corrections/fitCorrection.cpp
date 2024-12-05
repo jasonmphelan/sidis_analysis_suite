@@ -141,11 +141,13 @@ int main( int argc, char** argv){
 			kaonCorr_m_1d[q][x]->Fit( Form("fitPim_%i_%i", q, x) );
 			kaonCorr_p_1d[q][x]->Draw();
 			fitPip[q][x]->Draw("SAME");
+			fitPip[q][x]->Write();
 			canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-			kaonCorr_m_1d[q][x]->Draw();
 			canvas.Clear();
+			kaonCorr_m_1d[q][x]->Draw();
+			fitPim[q][x]->Draw("same");
 			canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-			fitPim[q][x]->Draw("SAME");
+			fitPim[q][x]->Write();
 			canvas.Clear();
 			
 		}

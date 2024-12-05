@@ -94,7 +94,7 @@ int main( int argc, char** argv){
 	TTreeReaderValue<double> M_rho(reader_rec, "M_rho");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
-	TTreeReaderValue<double> rhoWeight(reader_rec, "rhoWeight");
+	TTreeReaderArray<double> rhoWeight(reader_rec, "rhoWeight");
 
 	//Fill histograms
 	while (reader_rec.Next()) {
@@ -112,10 +112,10 @@ int main( int argc, char** argv){
 			int this_bin_xB = (int)( ( (e->getXb() - xB_min)/(xB_max-xB_min) )*nBinsXb);
 			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*nBinsZ);
 		
-			if( *rhoWeight <= 1 || *rhoWeight > 10 ){ continue; }
+			if( rhoWeight[i] <= 1 || rhoWeight[i] > 10 ){ continue; }
 
-			hMx_2pi[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( *Mx_2pi, *rhoWeight );
-			hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( *M_rho, *rhoWeight );
+			hMx_2pi[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( *Mx_2pi, rhoWeight[i] );
+			hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( *M_rho, rhoWeight[i] );
 			
 		}
 	}

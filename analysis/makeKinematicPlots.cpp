@@ -109,28 +109,28 @@ int main( int argc, char** argv){
 	for( int j = 0; j <= bins_Q2; j++ ){
 		for( int k = 0; k <= bins_xB; k++ ){
 			for( int i = 0; i < 2; i++ ){
-				h_W[i][j][k]             = new TH1F("hW_"+data_type[i]+Form("_%i_%i", j, k), Form("W_%i_%i;W [GeV];Counts [a.u.]", j, k), 250, 2.5, 3.7);
-				h_Xb[i][j][k]            = new TH1F("hXb_"+data_type[i]+Form("_%i_%i", j, k), Form("xB_%i_%i;x_{B};Counts [a.u.]", j, k), 250, 0.15, .6);
-				h_Q2[i][j][k]            = new TH1F("hQ2_"+data_type[i]+Form("_%i_%i", j, k), Form("Q2_%i_%i;Q^{2} [GeV^{2}];Counts [a.u.]", j, k), 250, 0, 8);
-				h_eta[i][j][k]           = new TH1F("hEta_"+data_type[i]+Form("_%i_%i", j, k), Form("eta_%i_%i;#eta;Counts [a.u.]", j, k), 250, 0.5, 4.5);
-				h_y[i][j][k]             = new TH1F("hY_"+data_type[i]+Form("_%i_%i", j, k), Form("y_%i_%i;y;Counts [a.u.]", j, k), 250, 0, 1);
-				h_omega[i][j][k]         = new TH1F("hOmega_"+data_type[i]+Form("_%i_%i", j, k), Form("omega_%i_%i;#omega [GeV];Counts [a.u.]", j, k), 250, 0, 10);
-				h_theta_e[i][j][k]       = new TH1F("hTheta_e_"+data_type[i]+Form("_%i_%i",j, k), Form("theta_e_%i_%i;#theta_{e} [rad];Counts [a.u.]", j, k), 250, 0, 45);
-				h_Vz_e[i][j][k]          = new TH1F("hVz_e_"+data_type[i]+Form("_%i_%i", j, k), Form("Vz_e_%i_%i;V_{z}^{e} [cm];Counts [a.u.]", j, k), 250, -10, 10);
-				h_p_e[i][j][k]           = new TH1F("hP_e_"+data_type[i]+Form("_%i_%i", j, k), Form("p_e_%i_%i;p_{e} [GeV];Counts [a.u.]", j, k), 250, 3, 7);
+				h_W[i][j][k]             = new TH1F("hW_"+data_type[i]+Form("_%i_%i", j, k), Form("W_%i_%i;W [GeV];Counts [a.u.]", j, k), 100, 2.5, 3.7);
+				h_Xb[i][j][k]            = new TH1F("hXb_"+data_type[i]+Form("_%i_%i", j, k), Form("xB_%i_%i;x_{B};Counts [a.u.]", j, k), 100, 0.15, .6);
+				h_Q2[i][j][k]            = new TH1F("hQ2_"+data_type[i]+Form("_%i_%i", j, k), Form("Q2_%i_%i;Q^{2} [GeV^{2}];Counts [a.u.]", j, k), 100, 0, 8);
+				h_eta[i][j][k]           = new TH1F("hEta_"+data_type[i]+Form("_%i_%i", j, k), Form("eta_%i_%i;#eta;Counts [a.u.]", j, k), 100, 0.5, 4.5);
+				h_y[i][j][k]             = new TH1F("hY_"+data_type[i]+Form("_%i_%i", j, k), Form("y_%i_%i;y;Counts [a.u.]", j, k), 100, 0, 1);
+				h_omega[i][j][k]         = new TH1F("hOmega_"+data_type[i]+Form("_%i_%i", j, k), Form("omega_%i_%i;#omega [GeV];Counts [a.u.]", j, k), 100, 0, 10);
+				h_theta_e[i][j][k]       = new TH1F("hTheta_e_"+data_type[i]+Form("_%i_%i",j, k), Form("theta_e_%i_%i;#theta_{e} [rad];Counts [a.u.]", j, k), 100, 0, 45);
+				h_Vz_e[i][j][k]          = new TH1F("hVz_e_"+data_type[i]+Form("_%i_%i", j, k), Form("Vz_e_%i_%i;V_{z}^{e} [cm];Counts [a.u.]", j, k), 100, -10, 10);
+				h_p_e[i][j][k]           = new TH1F("hP_e_"+data_type[i]+Form("_%i_%i", j, k), Form("p_e_%i_%i;p_{e} [GeV];Counts [a.u.]", j, k), 100, 3, 7);
 				h_phi_e[i][j][k]         = new TH1F("hPhi_e_"+data_type[i]+Form("_%i_%i", j, k), Form("phi_e_%i_%i;#phi_{e} [rad];Counts [a.u.]", j, k), 360, -180, 180);
 			
-				h_Z[i][j][k]             = new TH1F("hZ_"+data_type[i]+Form("_%i_%i", j, k), Form("Z_%i_%i;Z;Counts [a.u.]", j, k), 250, .3, .9);
-				h_p_pi[i][j][k]          = new TH1F("hP_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("p_pi_%i_%i;p_{#pi} [GeV];Counts [a.u.]", j, k), 250, 0, 5);
-				h_Vz_pi[i][j][k]         = new TH1F("hVz_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("Vx_pi_%i_%i;V_{z}^{#pi} [cm];Counts [a.u.]", j, k), 250, -10, 10);
-				h_theta_pi[i][j][k]      = new TH1F("hTheta_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("theta_pi_%i_%i;#theta_{#pi} [rad];Counts [a.u.]", j, k), 250, 0, 45);
-				h_phi_pi[i][j][k]        = new TH1F("hPhi_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("phi_pi_%i_%i;#phi_{#pi} [rad];Counts [a.u.]", j, k), 250, -180, 180);
-				h_Pt_pi[i][j][k]         = new TH1F("hPt_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("Pt_pi_%i_%i;P^{T}_{#pi} [GeV];Counts [a.u.]", j, k), 250, 0, 1.3);
-				h_Mx[i][j][k]            = new TH1F("hMx_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 250, 1, 5);
+				h_Z[i][j][k]             = new TH1F("hZ_"+data_type[i]+Form("_%i_%i", j, k), Form("Z_%i_%i;Z;Counts [a.u.]", j, k), 100, .3, .9);
+				h_p_pi[i][j][k]          = new TH1F("hP_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("p_pi_%i_%i;p_{#pi} [GeV];Counts [a.u.]", j, k), 100, 0, 5);
+				h_Vz_pi[i][j][k]         = new TH1F("hVz_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("Vx_pi_%i_%i;V_{z}^{#pi} [cm];Counts [a.u.]", j, k), 100, -10, 10);
+				h_theta_pi[i][j][k]      = new TH1F("hTheta_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("theta_pi_%i_%i;#theta_{#pi} [rad];Counts [a.u.]", j, k), 100, 0, 45);
+				h_phi_pi[i][j][k]        = new TH1F("hPhi_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("phi_pi_%i_%i;#phi_{#pi} [rad];Counts [a.u.]", j, k), 100, -180, 180);
+				h_Pt_pi[i][j][k]         = new TH1F("hPt_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("Pt_pi_%i_%i;P^{T}_{#pi} [GeV];Counts [a.u.]", j, k), 100, 0, 1.3);
+				h_Mx[i][j][k]            = new TH1F("hMx_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 1, 5);
 
-				hQ2_omega[i][j][k]		= new TH2F("hQ2_omega_"+data_type[i]+Form("_%i_%i", j, k), "", 250, 2, 8, 250, 2 ,5 );
-				hQ2_W[i][j][k]		= new TH2F("hQ2_W_"+data_type[i]+Form("_%i_%i", j, k), "", 250, 2, 8, 250, 1.5 ,3.7 );
-				hQ2_Z[i][j][k]		= new TH2F("hQ2_Z_"+data_type[i]+Form("_%i_%i", j, k), "", 250, 2, 8, 250, .3 ,1 );
+				hQ2_omega[i][j][k]		= new TH2F("hQ2_omega_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 2 ,5 );
+				hQ2_W[i][j][k]		= new TH2F("hQ2_W_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 1.5 ,3.7 );
+				hQ2_Z[i][j][k]		= new TH2F("hQ2_Z_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, .3 ,1 );
 			}
 		}
 	}

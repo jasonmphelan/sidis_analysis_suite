@@ -71,6 +71,7 @@ int main( int argc, char** argv){
 	
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
+	anal.loadMatchingFunctions();
 
 	//Load input tree
         //TTreeReader reader_rec("ePi", file_rec);

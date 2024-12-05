@@ -73,7 +73,7 @@ int main( int argc, char** argv){
 	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
 	canvas.Clear();
 
-	for( int p = 2; p <  bins_p; p++ ){
+	for( int p = 0; p <  bins_p; p++ ){
 		for( int x = 0; x < nBinsXb; x++ ){
 			for( int q = 0; q <  nBinsQ2; q++ ){
 				kaonCorr_p_1d[p][q][x] = new TH1F( Form("kaonCorr_p_1d_%i_%i_%i", p, q, x), ";z;w+", nBinsZ, Z_min, Z_max );
@@ -172,16 +172,17 @@ int main( int argc, char** argv){
 				kaonCorr_p_1d[p][q][x]->SetLineColor(kRed);
 				kaonCorr_p_1d[p][q][x]->GetYaxis()->SetRangeUser(0, 1);
 				kaonCorr_p_1d[p][q][x]->Draw();
-				//fitPip[p][q][x]->SetLineColor(kBlue);
+				fitPip[p][q][x]->SetLineColor(kBlue);
 				fitPip[p][q][x]->Draw("SAME");
-				//kaonCorr_m_1d[p][q][x]->SetLineColor(kRed);
+				kaonCorr_m_1d[p][q][x]->SetLineColor(kRed);
 				kaonCorr_m_1d[p][q][x]->Draw("SAME");
 				fitPim[p][q][x]->SetLineColor(kMagenta);
 				
 				fitPim[p][q][x]->Draw("SAME");
 				canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 				canvas.Clear();
-			
+				fitPim[p][q][x]->Write();		
+				fitPip[p][q][x]->Write();		
 			}
 
 		}

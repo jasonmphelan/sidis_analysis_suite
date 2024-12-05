@@ -7,6 +7,7 @@
 #include "TTree.h"
 #include "TClonesArray.h"
 #include "TVector3.h"
+#include "TGraph2D.h"
 #include "TLorentzVector.h"
 #include "TH1.h"
 #include "TF1.h"
@@ -14,64 +15,62 @@
 #include "TH2.h"
 #include "TH3.h"
 #include "TCanvas.h"
+#include "TChain.h"
 #include "TLine.h"
 #include "TLegend.h"
 #include "TTreeReader.h"
 #include "TTreeReaderValue.h"
 #include "TTreeReaderArray.h"
 #include "TEventList.h"
-#include "cut_values.h"
 #include "electron.h"
 #include "pion.h"
-#include "analyzer.h"
-#include "reader.h"
+#include "constants.h"
+#include "cut_values.h"
+#include "correctionTools.h"
+#define CORR_PATH _DATA
+#define HIST_PATH _HIST
 
-#ifdef __CINT__
-#pragma link C++ class std::vector<TVector3>+;
-#pragma link C++ class vector<TVector3>+;
-#pragma link C++ class std::vector<TLorentzVector>+;
-#pragma link C++ class vector<TLorentzVector>+;
-#pragma link C++ class std::vector<clashit>+;
-#pragma link C++ class vector<clashit>+;
-#endif
 
 using std::cerr;
 using std::isfinite;
 using std::cout;
+using std::endl;
 using std::ofstream;
-using namespace cutVals; 
 
+using namespace cutVals;
+using namespace constants;
 
 int main( int argc, char** argv){
 
-	auto start = std::chrono::high_resolution_clock::now();
-
-	if( argc < 4 ){
+	if( argc < 3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input path] [Output File] [# of input files] [Beam Energy] \n";
+		cerr << "./code [Output File] [Input File]\n";
 		return -1;
 	}
-	cerr << "Files used: " << argv[2] << "\nnFiles " << atoi(argv[3]) << "\n";
+	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
-	TString in_name = argv[1];
-       	TString out_name = argv[2];
-       	int nFiles = atoi(argv[3]);
-       	double EBeam = atof(argv[4]);
-        
-	TFile * outFile = new TFile(out_name, "RECREATE");
-
-	reader skimReader;
-	skimReader.setNumFiles( nFiles);
-	skimReader.setRunType( 0 );
-	skimReader.setEnergy( EBeam );
-
-	TChain * chain = new TChain("ePi");
-	skimReader.getRunSkimsByName(chain, in_name);
-
-        //TFile * file_rec = new TFile(in_name, "UPDATE");
+	TString out_name = argv[1];
 	
-	analyzer anal( 0, -1 );
-	anal.setAnalyzerLevel(0);
+	TChain * file_rec = new TChain("ePi");
+	
+	for( int i = 2; i <= argc; i++ ){	
+		file_rec->Add(argv[i]);
+	}
+
+        TFile * outFile = new TFile(out_name, "RECREATE");
+	//TFile * radWeightFile = new TFile("/work/clas12/users/tkutz/radgen/build/RC_graph_radgen_deuterium.root");
+	//TGraph2D * rad_gen = (TGraph2D *)radWeightFile->Get("rcgr");
+        
+	//TFile * weightFile = new TFile( "../corrections/corrections/" + corrFileName );	
+
+	//TH3F * accWeight_pip = (TH3F *)weightFile->Get("hAccCorrectionP");
+	//TH3F * accWeight_pim = (TH3F *)weightFile->Get("hAccCorrectionM");
+	//TH3F * binWeight_pip = (TH3F *)weightFile->Get("hBinMigrationP");
+	//TH3F * binWeight_pim = (TH3F *)weightFile->Get("hBinMigrationM");
+
+	// Declare histograms
+
+	cout<<"Creating Histograms\n";
 	
 	TH1F * h_Z[2][bins_Q2+1][bins_xB+1];
 
@@ -138,23 +137,19 @@ int main( int argc, char** argv){
 
 	cout<<"Beginning Event Loop\n";
 
-	//Load input tree
-        //TTreeReader reader_rec("ePi", file_rec);
-        TTreeReader reader_rec( chain );
+	//TFile * file_rec = new TFile(in_name);
+	TTreeReader reader_rec(file_rec);
+
 	TTreeReaderValue<electron> e(reader_rec, "e");
-        TTreeReaderArray<pion> pi(reader_rec, "pi");
+	TTreeReaderArray<pion> pi(reader_rec, "pi");
+	TTreeReaderArray<bool> isGoodPion_vec(reader_rec, "isGoodPion");
 
-	int event_total = reader_rec.GetEntries();
 
+	int event_count = 0;
 	while (reader_rec.Next()) {
-                int event_count = reader_rec.GetCurrentEntry();
+                if(event_count%100000 == 0){cout<<"Events Analyzed: "<<event_count<<endl;}
+                event_count++;
 
-		if(event_count%1000000 == 0){
-			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
-		}
-
-		int radWeight = 1;
-		int chargeIdx;
                 double Q2 = e->getQ2();
                 double W = sqrt(e->getW2());
                 double xB = e->getXb();
@@ -169,12 +164,36 @@ int main( int argc, char** argv){
                 double Vz_e = e->getVt().z();
 
 
+		int chargeIdx = 0;
+		double radWeight = 1.;
+		//if(weights == 1){
+		//	radWeight = rad_gen->Interpolate(xB, Q2);
+		//}
+		/*
+                h_W[chargeIdx][0]->Fill(W, radWeight);
+                h_Xb[chargeIdx][0]->Fill(xB, radWeight);
+                h_Q2[chargeIdx][0]->Fill(Q2, radWeight);
+                h_y[chargeIdx][0]->Fill(y, radWeight);
+                h_omega[chargeIdx][0]->Fill(omega, radWeight);
+                h_Pt_e[chargeIdx][0]->Fill(pT_e, radWeight);
+                h_theta_e[chargeIdx][0]->Fill(theta_e*rad_to_deg, radWeight);
+                h_Vz_e[chargeIdx][0]->Fill(Vz_e, radWeight);
+                h_p_e[chargeIdx][0]->Fill(p_e, radWeight);
+                h_phi_e[chargeIdx][0]->Fill(phi_e*rad_to_deg, radWeight);
 
-		//if( !anal.applyElectronKinematicCuts( *e ) ){ continue; }
-
+                h_W[chargeIdx][this_bin_Q2]->Fill(W, radWeight);
+                h_Xb[chargeIdx][this_bin_Q2]->Fill(xB, radWeight);
+                h_Q2[chargeIdx][this_bin_Q2]->Fill(Q2, radWeight);
+                h_y[chargeIdx][this_bin_Q2]->Fill(y, radWeight);
+                h_omega[chargeIdx][this_bin_Q2]->Fill(omega, radWeight);
+                h_Pt_e[chargeIdx][this_bin_Q2]->Fill(pT_e, radWeight);
+                h_theta_e[chargeIdx][this_bin_Q2]->Fill(theta_e*rad_to_deg, radWeight);
+                h_Vz_e[chargeIdx][this_bin_Q2]->Fill(Vz_e, radWeight);
+                h_p_e[chargeIdx][this_bin_Q2]->Fill(p_e, radWeight);
+                h_phi_e[chargeIdx][this_bin_Q2]->Fill(phi_e*rad_to_deg, radWeight);
+		*/
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
-               
-                	//if(!anal.applyPionKinematicCuts(pi[i])){ continue; }
+			if(!isGoodPion_vec[i]) {continue;}
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double M_x = pi[i].getMx();
 			double pT_pi = pi[i].getPi_q().Pt();
@@ -235,10 +254,10 @@ int main( int argc, char** argv){
 			hQ2_Z[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, Z);
 			hQ2_W[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( xB, W);
 			
-
 		}
-	
 	}
+	
+	//file_rec->Close();
 
 	outFile->cd();
 	
@@ -289,6 +308,4 @@ int main( int argc, char** argv){
 		}
 	}
 	outFile->Close();
-
-	return 0;
 }

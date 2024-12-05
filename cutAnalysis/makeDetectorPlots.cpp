@@ -65,7 +65,7 @@ int main( int argc, char** argv){
 	anal.loadCutValues(-1, Ebeam);
 	
 	reader runReader;
-	runReader.setNumFiles( 1 );
+	runReader.setNumFiles( 2 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	
@@ -94,6 +94,11 @@ int main( int argc, char** argv){
 	TH2F * hBeta_p_pi[11][2];
 	TH1F * hBeta_pi[11][2];
 
+	TH1F * hPositives = new TH1F("hPos", "hPos", 500, 0.75, 1.01);
+	TH1F * hNegatives = new TH1F("hMin", "hMin", 500, 0.75, 1.01);
+	
+	TH2F * hPos_b_p = new TH2F("hPos_b_p", "hPos_b_p", 150, 0, 10, 500, 0.75, 1.01);
+	TH2F * hNeg_b_p = new TH2F("hMin_b_p", "hMin_b_p", 150, 0, 10, 500, 0.75, 1.01);
 
 	double e_ext[3] = {150, 300,  250};
 	double pi_ext[3] = {175, 350,  275};
@@ -182,6 +187,22 @@ int main( int argc, char** argv){
 			Ne = Npi = Npips = Npims = 0;
 
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
+			//Fill hists with all negatives and positives
+			std::vector<region_part_ptr> allParts = c12.getDetParticles();	
+	
+			for( auto particle : allParts ){
+					
+				if( particle->par()->getCharge() > 0 ){
+					hPositives->Fill(particle->getBeta());
+					hPos_b_p->Fill(particle->par()->getP(),particle->getBeta() );	
+				}
+				if( particle->par()->getCharge() < 0 ){
+					hNegatives->Fill(particle->getBeta());
+					hNeg_b_p->Fill( particle->par()->getP(),particle->getBeta());	
+				}
+
+			}
+
 			
 			// Get Particles By PID
 			electrons   = c12.getByID( 11   );
@@ -313,6 +334,11 @@ int main( int argc, char** argv){
 	
 	std::cout<<"Writing tree to file\n";
    	outputFile->cd();
+	hPositives->Write();
+	hNegatives->Write();
+	
+	hPos_b_p->Write();
+	hNeg_b_p->Write();
 	for( int i = 0; i < 2; i++ ){
 		hPCAL_WV[i]->Write();
 		hEdep[i]->Write();

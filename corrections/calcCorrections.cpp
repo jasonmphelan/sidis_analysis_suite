@@ -162,7 +162,7 @@ int main( int argc, char** argv){
 	analyzer anal(0, -1);
 	anal.setAnalyzerLevel(0);
 	anal.loadCutValues(-1, 10.2);
-
+	anal.loadMatchingFunctions();
 	
         TTreeReader reader_gen(genChain);
 	TTreeReaderValue<genElectron> e_gen(reader_gen, "e_gen");
@@ -262,7 +262,7 @@ int main( int argc, char** argv){
 				double binMigrationCorr = binMigrationPos/binMigrationMin;
 				double mcCorr = mcCorrPos/mcCorrMin;
 				
-				
+								
 
 
 				binMigration_p->SetBinContent( i+1, j+1, k,  binMigrationPos );

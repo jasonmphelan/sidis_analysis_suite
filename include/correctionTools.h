@@ -28,15 +28,17 @@ public:
 
 	double getCorrectionFactor( int type, int charge );
 	double getCorrectionError( int type, int charge );
-	void setFilePaths(int corr, TString path);
+//	void setFilePaths(int corr, TString path);
 	void printFilePaths();
 	void testHists(){ accCorrection[1]->Print("all");}
 	void loadFits();
+
+	void setCorrectionFile(TString name){ weight_name = name; }
 private:
 	int 	mode;
-	TString weight_name = "corrections.root";
-	TString kaon_To_pi_name = "corrections_k_To_pi.root";
-	TString pi_To_kaon_name = "corrections_pi_To_k.root";
+	TString weight_name = "corrections_10.4_fit.root";
+	TString kaon_To_pi_name = "corrections_k2pi_fit.root";
+	TString pi_To_kaon_name = "corrections_pi2k_fit.root";
 
 	double kin[4];
 	

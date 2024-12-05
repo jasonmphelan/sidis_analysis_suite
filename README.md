@@ -16,7 +16,3 @@ cmake ../
 make
 ```
 
-TO DO:
-- Update final skimmer to do 3d matching
-- Update skimmers to handle MC and generator
-- Reimpliment various analysis/correction macros from old analysis

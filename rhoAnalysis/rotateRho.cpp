@@ -102,7 +102,7 @@ int main( int argc, char** argv){
 		bool detectedPion[2] = {true, true};
 		bool goodPion[2] = {true, true};
 		double onePiEvents[2] = {0};
-		double twoPiEvents[2] = {0};
+		double twoPiEvents = 0;
 		int trials = 0;
 
 		pi_out.clear();
@@ -119,8 +119,10 @@ int main( int argc, char** argv){
 		
 		Mx_2pi_out = (double)(*Mx_2pi);
 		M_rho_out = (double)(*M_rho);
-		rhoWeight[2] = {0};
-		corr_err[2] = {999, 999};
+		rhoWeight[0] = 0; // (pi+, pi-)
+		rhoWeight[1] = 0; // (pi+, pi-)
+		corr_err[0] = 999;
+		corr_err[1] = 999;
 
 
 		//Restrict ROI
@@ -128,9 +130,9 @@ int main( int argc, char** argv){
 		if( *Mx_2pi < 0 || *Mx_2pi > 1.7 ){continue;}
 		if( *M_rho < 0 ){continue;}
 
-		while( corr_err > err_level/100. || trials < 500){
+		while( (corr_err[0] > err_level/100. || corr_err[1] > err_level/100.) || trials < 500){
 			trials++;
-			if( trials > 10000 && corr_err > 900 ){ break; }
+			if( trials > 10000 && ( corr_err[0] > 900 || corr_err[1] > 900 ) ){ break; }
 			detectedPion[0] = false;
 		       	detectedPion[1] = false;
 			goodPion[0] = false;
@@ -170,10 +172,11 @@ int main( int argc, char** argv){
 					
 			}
 
-			if( ( detectedPion[0] == true && goodPion[0] == true && detectedPion[1] == false ) ||
-				( detectedPion[1] == true && goodPion[1] == true && detectedPion[0] == false ) ){
-					onePiEvents++;
-
+			if( detectedPion[0] == true && goodPion[0] == true && detectedPion[1] == false ) {
+				onePiEvents[ (int) ( pi[0].getCharge() < 0 )]++;
+			}				
+			if ( detectedPion[1] == true && goodPion[1] == true && detectedPion[0] == false ) {
+				onePiEvents[ (int) ( pi[1].getCharge() < 0 )]++;
 			}
 			else if( ( detectedPion[0] == true && detectedPion[1] == true ) &&
 				( goodPion[0] == true || goodPion[1] == true  ) ){
@@ -181,22 +184,25 @@ int main( int argc, char** argv){
 			}
 
 			//check uncertainty
-			if( onePiEvents != 0 && twoPiEvents != 0 ){
-				corr_err =  sqrt( 1./onePiEvents + 1./twoPiEvents );
+			if( onePiEvents[0] != 0 && twoPiEvents != 0 ){
+				corr_err[0] =  sqrt( 1./onePiEvents[0] + 1./twoPiEvents );
+			}
+			if( onePiEvents[1] != 0 && twoPiEvents != 0 ){
+				corr_err[1] =  sqrt( 1./onePiEvents[1] + 1./twoPiEvents );
 			}
 			//cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;	
 	
 		}	
 
 		//Check for weird guys
-
-		if( onePiEvents == 0 || twoPiEvents == 0 ){
-			rhoWeight = 1.;
+		for( int i = 0; i < 2; i++ ){
+			if( onePiEvents[i] == 0 || twoPiEvents == 0 ){
+				rhoWeight[i] = 1.;
+			}
+			else{
+				rhoWeight[i] =  1. + onePiEvents[i]/twoPiEvents ;
+			}
 		}
-		else{
-			rhoWeight =  1. + onePiEvents/twoPiEvents ;
-		}
-
 		outTree->Fill();
 
 		/*

@@ -25,6 +25,10 @@
 #include "reader.h"
 #include "analyzer.h"
 #include "reader.h"
+#include "TTreeReader.h"
+#include "TTreeReaderValue.h"
+#include "TTreeReaderArray.h"
+#include "TGraph.h"
 
 using namespace clas12;
 using namespace constants;
@@ -43,7 +47,7 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 4 ){
+	if( argc < 2 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [out name] [in name]\n";
 		return -1;
@@ -84,7 +88,7 @@ int main( int argc, char** argv){
 		}
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
                         int sector_i = pi[i].getDC_sector() - 1;
-    			int chargeIdx = (int)(pi[i].getCharge < 0);			
+    			int chargeIdx = (int)(pi[i].getCharge() < 0);			
 			
 			if ( !isGoodPion[i] ) { continue; }
 		
@@ -105,8 +109,11 @@ int main( int argc, char** argv){
 	double cutValsMin[2][6][7];
 	double cutValsMax[2][6][6];
 	
+	outFile->cd();
 
 	for( int sec = 0; sec < 6; sec++ ){
+		hThetaP[sec][0]->Write();
+		hThetaP[sec][1]->Write();
 		for( int bin = 0; bin < 7; bin++ ){
 			for( int idx = 0; idx < 2; idx++ ){
 				cutValsMin[idx][sec][bin] = getThetaPct( .01, hTheta[sec][bin][idx] );
@@ -178,7 +185,7 @@ int main( int argc, char** argv){
 	
 	fitMax[1][1]->Draw("SAME");
 	fitMin[1][1]->Draw("SAME");
-	
+
 	outFile->Close();
 }
 

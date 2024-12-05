@@ -347,10 +347,18 @@ bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
 
 //2d acceptance matching cut
 bool analyzer::acceptance_match_2d( double theta, double p, int sector_i){
-		double acc_map_pip_min = pips_parameters[sector_i-1][0] + pips_parameters[sector_i-1][1]/p;                      
-                double acc_map_pim_min = pims_parameters[sector_i-1][0] + pims_parameters[sector_i-1][1]/p;
+		//double acc_map_pip_min = pips_parameters[sector_i-1][0] + pips_parameters[sector_i-1][1]/p;                      
+                //double acc_map_pim_min = pims_parameters[sector_i-1][0] + pims_parameters[sector_i-1][1]/p;
 
-		return (theta > acc_map_pip_min && theta > acc_map_pim_min );
+		bool max_pip = (bool) ( theta < match2d[sector_i - 1][0][0]->Eval(p) );
+		bool max_pim = (bool) ( theta < match2d[sector_i - 1][0][1]->Eval(p) );
+		
+		bool min_pip = (bool) ( theta > match2d[sector_i - 1][1][0]->Eval(p) );
+		bool min_pim = (bool) ( theta > match2d[sector_i - 1][1][1]->Eval(p) );
+		
+		return (max_pip && max_pim && min_pip && min_pim);
+
+		//return (theta > acc_map_pip_min && theta > acc_map_pim_min );
 }
 
 //Discrete 3d accepance matching cut
@@ -416,6 +424,21 @@ int analyzer::acceptance_match_3d_cont( double phi_part, double theta, double p,
 //Load matching functions
 void analyzer::loadMatchingFunctions( TString fileName ){
 
+	TFile matchFile2D( (TString) CUT_PATH + "/acceptance_matching/" + fileName);
+
+	TString chargeType[2] = {"pip", "pim"};	
+	TString boundType[2] = {"max", "min"};
+	for( int i = 0; i < 6; i++ ){		
+		for( int j = 0; j < 2; j++ ){
+			for( int k = 0; k < 2; k++ ){
+				match2d[i][j][k] = (TF1 *)matchFile2D.Get(boundType[j] + Form("_%i_", i) + chargeType[k]);
+			}
+		}
+	}
+}
+
+void analyzer::loadMatchingFunctions3D( TString fileName ){
+
 	TFile matchFile3D( (TString) CUT_PATH + "/acceptance_matching/" + fileName);
 
 	TString chargeType[2] = {"pip", "pim"};	
@@ -428,6 +451,9 @@ void analyzer::loadMatchingFunctions( TString fileName ){
 }
 
 void analyzer::loadMatchingFunctions(){
+	loadMatchingFunctions("matchCut2D.root");
+}
+void analyzer::loadMatchingFunctions3D(){
 	loadMatchingFunctions("matchCut3D.root");
 }
 

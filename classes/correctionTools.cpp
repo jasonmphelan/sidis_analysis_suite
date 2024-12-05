@@ -55,11 +55,11 @@ void correctionTools::loadFits(){
 			weightFit[1][x][q] = (TF1*)weightFile->Get( Form("fitPim_%i_%i", q, x) );
 
 			for( int p = 0; p < 4; p++ ){
-				k2piFit[0][x][q][p] = (TF1*)k2piFile->Get( Form("fitPip_%i_%i_%i", q, x, p) );
-				k2piFit[1][x][q][p] = (TF1*)k2piFile->Get( Form("fitPip_%i_%i_%i", q, x, p) );
+				k2piFit[0][x][q][p] = (TF1*)k2piFile->Get( Form("fitPip_%i_%i_%i", p, q, x) );
+				k2piFit[1][x][q][p] = (TF1*)k2piFile->Get( Form("fitPip_%i_%i_%i", p, q, x) );
 				
-				pi2kFit[0][x][q][p] = (TF1*)pi2kFile->Get( Form("fitPip_%i_%i_%i", q, x, p) );
-				pi2kFit[1][x][q][p] = (TF1*)pi2kFile->Get( Form("fitPip_%i_%i_%i", q, x, p) );
+				pi2kFit[0][x][q][p] = (TF1*)pi2kFile->Get( Form("fitPip_%i_%i_%i", p, q, x) );
+				pi2kFit[1][x][q][p] = (TF1*)pi2kFile->Get( Form("fitPip_%i_%i_%i", p, q, x) );
 			}
 		}
 	}
@@ -248,7 +248,6 @@ double correctionTools::getCorrectionFactor( int type, int charge ){
 		int this_bin_Q2 = (int)( ( (q - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
                 int this_bin_xB = (int)( ( (x - xB_min)/(xB_max-xB_min) )*bins_xB);
 		
-	
 		double mcWeight = weightFit[charge][this_bin_xB][this_bin_Q2]->Eval(z);
 		double pi2kWeight = pi2kFit[charge][this_bin_xB][this_bin_Q2][this_bin_p]->Eval(z); 
 		double k2piWeight = k2piFit[charge][this_bin_xB][this_bin_Q2][this_bin_p]->Eval(z); 
@@ -260,6 +259,8 @@ double correctionTools::getCorrectionFactor( int type, int charge ){
 		if( type == 3 ) kWeight = k2piWeight;
 		if( type > 3 ){ return 0; }	
 		
+		if( type == 2  && this_bin_p < 2 ) return 1;
+		if( type == 3  && this_bin_p < 2 ) return 0;
 		//Check if in correction phase space       
 		if( kWeight <= 0 ){return 0;}
 		if( kWeight >= 1 ){return 1;}
@@ -354,9 +355,34 @@ double correctionTools::getCorrectionError( int type, int charge ){
 			this_bin_p = j;
 		}
 	}
+	int this_bin_Q2 = (int)( ( (q - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
+        int this_bin_xB = (int)( ( (x - xB_min)/(xB_max-xB_min) )*bins_xB);
 
 	if( mode == 0 ){ return 0; }
-	if( mode == 1 ){ return 0; }	
+	if( mode == 1 ){ 
+
+		double mcErr = 0;
+		double pi2kErr = 0;
+		double k2piErr = 0;
+
+		if( type == 0 ) return 1.;
+	
+		for( int i = 0; i < 4; i++ ){
+			mcErr += pow(pow(x, i)* weightFit[charge][this_bin_xB][this_bin_Q2]->GetParError(i), 2);
+			pi2kErr += pow(pow(x, i)* pi2kFit[charge][this_bin_xB][this_bin_Q2][this_bin_p]->GetParError(i), 2);
+			k2piErr += pow(pow(x, i)* k2piFit[charge][this_bin_xB][this_bin_Q2][this_bin_p]->GetParError(i), 2);
+		}
+		
+		if( type == 1 ) return mcErr;
+		if( type == 2  && this_bin_p < 2 ) return 1;
+		if( type == 2 ) return pi2kErr;
+		if( type == 3  && this_bin_p < 2 ) return 0;
+		if( type == 3 ) return  k2piErr;
+		if( type > 3 ){ return 0; }	
+		
+		//Check if in correction phase space       
+
+	}
 	else{
 		int x_bin_w = binMigration[1]->GetXaxis()->FindBin(x);
 		int y_bin_w = binMigration[1]->GetYaxis()->FindBin(q);

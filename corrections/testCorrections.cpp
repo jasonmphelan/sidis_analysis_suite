@@ -45,11 +45,11 @@ int main( int argc, char** argv){
 	
 	correctionTools corrector(1);
 //	corrector.loadParameters();
-	corrector.loadHistograms();
+	corrector.loadFunctions();
 	//corrector.testHists();
 	corrector.setKinematics(x, q2, z, p);
 
-	cout<<"Correction Value : "<<corrector.getCorrectionFactor( corrType, 0 )<<endl;
+	cout<<"Correction Value : "<<corrector.getCorrectionFactor( corrType, 2 )<<endl;
 }
 
 

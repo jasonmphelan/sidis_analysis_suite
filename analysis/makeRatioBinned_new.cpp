@@ -60,7 +60,9 @@ int main( int argc, char** argv){
 	TString out_name = argv[4];
 	int matchType = atoi(argv[5]);
 	int applyCorr = atoi(argv[6]);
-       	
+
+	cout<<"Create and Load files\n";
+
 	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
 
 	//TFile * outFile = new TFile( outName, "RECREATE");
@@ -78,6 +80,8 @@ int main( int argc, char** argv){
 
 	TString charge_str[2] = {"", "_Pim"};
 
+	cout<<"Make histograms\n";
+
 	for( int i = 0; i < bins_Q2; i++ ){
 		for( int j = 0; j < bins_xB; j++ ){
 			for( int k = 0; k < 2; k++ ){
@@ -92,12 +96,13 @@ int main( int argc, char** argv){
 	}
 	
 	correctionTools corrector(1);
-	corrector.loadHistograms();	
+	corrector.loadFits();	
 
 	////////////////////////////
 	///////// Pions ////////////
 	////////////////////////////
 
+	cout<<"Begin analysis\n";
 
 	TTreeReader reader_rec("ePi", inFile);
 
@@ -135,18 +140,21 @@ int main( int argc, char** argv){
 
 			double weight = 1;
 			
-			double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
-			double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+			//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
+			//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+			double mc_weight = corrector.getCorrectionFactor( 1, chargeIdx );
 			double k_weight = corrector.getCorrectionFactor(2, chargeIdx);
-			double bin_err = corrector.getCorrectionError(0, chargeIdx);
-			double acc_err = corrector.getCorrectionError(1, chargeIdx);
+			//double bin_err = corrector.getCorrectionError(0, chargeIdx);
+			//double acc_err = corrector.getCorrectionError(1, chargeIdx);
+			double mc_err = corrector.getCorrectionFactor( 1, chargeIdx );
 			double k_err = corrector.getCorrectionError(2, chargeIdx);
 			
 			if( applyCorr > 0 ){
 				//if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
 				//if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
 				
-				weight *= acc_weight*bin_weight;
+				//weight *= acc_weight*bin_weight;
+				weight *= mc_weight;
 			}
 			if( applyCorr > 1 ){
 				weight *= k_weight;
@@ -154,12 +162,13 @@ int main( int argc, char** argv){
 
 			double eventWeightErr = 0;
 			if( applyCorr > 1 ){
-				eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
+				//eventWeightErr +=  weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
+				eventWeightErr +=  weight*sqrt( pow(mc_err/mc_weight, 2) + pow(k_err/k_weight, 2) );
 			}
 			if( applyCorr == 1 ){
-				eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
+				eventWeightErr += mc_err;
 			}
-
 
 			//weight *= corrector.getCorrectionFactor(2, chargeIdx);	
 			
@@ -211,26 +220,32 @@ int main( int argc, char** argv){
 				corrector.setKinematics( e_k->getXb(), e_k->getQ2(), k[i].getZ(), p_pi );
 				double weight = 1;
 				
-				double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
-				double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+			
+				//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
+				//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+				double mc_weight = corrector.getCorrectionFactor( 1, chargeIdx );
 				double k_weight = corrector.getCorrectionFactor(3, chargeIdx);
-				double bin_err = corrector.getCorrectionError(0, chargeIdx);
-				double acc_err = corrector.getCorrectionError(1, chargeIdx);
+				//double bin_err = corrector.getCorrectionError(0, chargeIdx);
+				//double acc_err = corrector.getCorrectionError(1, chargeIdx);
+				double mc_err = corrector.getCorrectionFactor( 1, chargeIdx );
 				double k_err = corrector.getCorrectionError(3, chargeIdx);
+			
 				
 				if( applyCorr > 0 ){
 					//if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
 					//if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
 					
-					weight *= acc_weight*bin_weight;
+					weight *= mc_weight; //acc_weight*bin_weight;
 				}
 				if( applyCorr > 1 ){
 					weight *= k_weight;
 				}	
-			
+				
+
 				double eventWeightErr = 0;
 				
-				eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
+				eventWeightErr +=  weight*sqrt( pow(mc_err/mc_weight, 2) + pow(k_err/k_weight, 2) );
 			
 				sumWeights[1][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += weight*weight;	
 				sumWeightsErr[1][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += eventWeightErr*eventWeightErr;	
@@ -283,25 +298,35 @@ int main( int argc, char** argv){
 				corrector.setKinematics( e_r->getXb(), e_r->getQ2(), r[i].getZ(), p_pi );
 				double weight = 1;
 				
-				double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
-				double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
-				double bin_err = corrector.getCorrectionError(0, chargeIdx);
-				double acc_err = corrector.getCorrectionError(1, chargeIdx);
+				//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
+				//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+				//double bin_err = corrector.getCorrectionError(0, chargeIdx);
+				//double acc_err = corrector.getCorrectionError(1, chargeIdx);
+				
+				//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
+				//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+				double mc_weight = corrector.getCorrectionFactor( 1, chargeIdx );
+				//double k_weight = corrector.getCorrectionFactor(3, chargeIdx);
+				//double bin_err = corrector.getCorrectionError(0, chargeIdx);
+				//double acc_err = corrector.getCorrectionError(1, chargeIdx);
+				double mc_err = corrector.getCorrectionFactor( 1, chargeIdx );
+				//double k_err = corrector.getCorrectionError(3, chargeIdx);
 				
 				if( applyCorr > 0 ){
 					//if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
 					//if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
 					
-					weight *= acc_weight*bin_weight;
+					weight *= mc_weight;//acc_weight*bin_weight;
 				}
 				if( applyCorr > 3 ){
 					if( *rhoWeight <= 1 || *rhoWeight > 10 ){continue;}
 					weight *= (*rhoWeight);
 				}	
-			
+					
 				double eventWeightErr = 0;
 				
-				eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(*rhoError / *rhoWeight, 2) );
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(*rhoError / *rhoWeight, 2) );
+				eventWeightErr += weight*sqrt( pow(mc_err/mc_weight, 2) + pow(*rhoError / *rhoWeight, 2) );
 			
 				if( *Mx_2pi < 1.15 ){
 					hZ_r[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
