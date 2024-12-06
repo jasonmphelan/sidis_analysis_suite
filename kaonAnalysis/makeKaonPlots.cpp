@@ -78,11 +78,11 @@ int main( int argc, char** argv){
 			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					for( int m = 0; m <= bins_p; m++ ){//momentum bins
-						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 100, .97, 1.01);
-						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 100, .97, 1.01);
+						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 500, .0, 1.25);
+						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 500, .0, 1.25);
 					}
-					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 100, .95 ,1 );
-					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 100, .95 ,1 );
+					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, 0 ,1.25 );
+					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, 0 ,1.25 );
 			
 				}
 			}
@@ -151,15 +151,18 @@ int main( int argc, char** argv){
 				}
 			}
 		
-			h_Beta[chargeIdx][0][0][0][0]->Fill(pi[i].getBeta());
-			h_Beta_rich[chargeIdx][0][0][0][0]->Fill(pi[i].getBeta_rich());
-			hBeta_p[chargeIdx][0][0][0]->Fill(p_pi, pi[i].getBeta());
-			hBeta_rich_p[chargeIdx][0][0][0]->Fill(p_pi, pi[i].getBeta_rich());
+			double m_TOF = p_pi*sqrt( 1 + pi[i].getBeta()*pi[i].getBeta() )/(pi[i].getBeta());
+			double m_RICH = p_pi*sqrt( 1 + pi[i].getBeta()*pi[i].getBeta() )/(pi[i].getBeta());
+
+			h_Beta[chargeIdx][0][0][0][0]->Fill(m_TOF);
+			h_Beta_rich[chargeIdx][0][0][0][0]->Fill(m_RICH);
+			hBeta_p[chargeIdx][0][0][0]->Fill(p_pi, m_TOF);
+			hBeta_rich_p[chargeIdx][0][0][0]->Fill(p_pi, m_RICH);
 			
-			h_Beta[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(pi[i].getBeta());
-			h_Beta_rich[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(pi[i].getBeta_rich());
-			hBeta_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, pi[i].getBeta());
-			hBeta_rich_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, pi[i].getBeta_rich());
+			h_Beta[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m_TOF);
+			h_Beta_rich[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m_RICH);
+			hBeta_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, m_TOF);
+			hBeta_rich_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, m_RICH);
 			
 		}
 	}

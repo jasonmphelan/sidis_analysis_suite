@@ -75,8 +75,8 @@ int main( int argc, char** argv){
 	TF1 *fitPim_k[nBinsQ2][nBinsXb][nBinsZ][bins_p];
 	TF1 *fitPip_k[nBinsQ2][nBinsXb][nBinsZ][bins_p];
 	
-	double min[4] = { .995, .995, .995, .995 };
-	double max[4] = { 1.005, 1.005, 1.005,  1.005 };
+	double min[4] = { 0 };
+	double max[4] = { .3, .3, .3,  .3 };
 	double min_k[4] = { .985, .985, .985, .985 };
 
 	TH3F * kaonCorr_p[bins_p];
@@ -109,11 +109,12 @@ int main( int argc, char** argv){
 					double fitProb = 0;
 
 					fitPip[j][k][l][m] = new TF1(Form("f_pip_%i_%i_%i_%i", j, k, l, m), "gaus", min[m], max[m]);
-					fitPip[j][k][l][m]->SetParameters( hBeta[0][j+1][k+1][l+1][m+1]->GetMaximum(), hBeta[0][j+1][k+1][l+1][m+1]->GetMean(), hBeta[0][j+1][k+1][l+1][m+1]->GetRMS() ); 
+					fitPip[j][k][l][m]->SetParameters( hBeta[0][j+1][k+1][l+1][m+1]->GetMaximum(), .139, .05 ); 
 					hBeta[0][j+1][k+1][l+1][m+1]->Fit( Form("f_pip_%i_%i_%i_%i", j, k, l, m), "R" );
 					fitProb = fitPip[j][k][l][m]->GetProb();	
 				
 					//if bad fit, try lorentzian	
+					/*
 					if( fitPip[j][k][l][m]->GetProb() < .75 ){
 						fitPip[j][k][l][m] = new TF1(Form("f_pip_%i_%i_%i_%i", j, k, l, m), "gaus",
 										min[m]+.0005, max[m]);
@@ -129,15 +130,15 @@ int main( int argc, char** argv){
 						fitPip[j][k][l][m]->SetParameters( hBeta[0][j+1][k+1][l+1][m+1]->GetMaximum(), hBeta[0][j+1][k+1][l+1][m+1]->GetMean(), hBeta[0][j+1][k+1][l+1][m+1]->GetRMS() ); 
 						hBeta[0][j+1][k+1][l+1][m+1]->Fit( Form("f_pip_%i_%i_%i_%i", j, k, l, m), "R" );
 					}
-					
+					*/
 						
 					//fit negative pions	
 					fitPim[j][k][l][m] = new TF1(Form("f_pim_%i_%i_%i_%i", j, k, l, m), "gaus", min[m], max[m]);
-					fitPim[j][k][l][m]->SetParameters( hBeta[1][j+1][k+1][l+1][m+1]->GetMaximum(), hBeta[1][j+1][k+1][l+1][m+1]->GetMean(), hBeta[1][j+1][k+1][l+1][m+1]->GetRMS() ); 
+					fitPim[j][k][l][m]->SetParameters( hBeta[1][j+1][k+1][l+1][m+1]->GetMaximum(), .139, .05 ); 
 					hBeta[1][j+1][k+1][l+1][m+1]->Fit( Form("f_pim_%i_%i_%i_%i", j, k, l, m), "R" );
 					
 					fitProb = fitPim[j][k][l][m]->GetProb();	
-					
+					/*
 					if( fitPim[j][k][l][m]->GetProb() < .75 ){
 						fitPim[j][k][l][m] = new TF1(Form("f_pim_%i_%i_%i_%i", j, k, l, m), 
 										"gaus",
@@ -158,15 +159,15 @@ int main( int argc, char** argv){
 						hBeta[1][j+1][k+1][l+1][m+1]->Fit( Form("f_pim_%i_%i_%i_%i", j, k, l, m), "R" );
 					
 					}	
-					
+					*/
 					double pip_num = 0;
 					double pip_fit_mean = fitPip[j][k][l][m]->GetParameter(1);
 					double pip_fit_std = fitPip[j][k][l][m]->GetParameter(2);
 					int pip_bin_min = hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->FindBin( pip_fit_mean - 2*pip_fit_std );
-					//int pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->GetBin( pip_fit_mean + 2*pip_fit_std );
-					int pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->GetNbinsX( );
+					int pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->GetBin( pip_fit_mean + 2*pip_fit_std );
+					//int pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->GetNbinsX( );
 					
-					for( int bin = pip_bin_min; bin <= pip_bin_max; bin++ ){
+					for( int bin = 1; bin <= pip_bin_max; bin++ ){
 						pip_num+=hBeta[0][j+1][k+1][l+1][m+1]->GetBinContent(bin);
 					}
 
@@ -177,9 +178,9 @@ int main( int argc, char** argv){
 					double pim_fit_mean = fitPim[j][k][l][m]->GetParameter(1);
 					double pim_fit_std = fitPim[j][k][l][m]->GetParameter(2);
 					int pim_bin_min = hBeta[1][j+1][k+1][l+1][m+1]->GetXaxis()->FindBin( pim_fit_mean - 2*pim_fit_std );
-					int pim_bin_max = hBeta[1][j+1][k+1][l+1][m+1]->GetNbinsX( );
+					int pim_bin_max = hBeta[1][j+1][k+1][l+1][m+1]->GetBin( pim_fit_mean + 2*pim_fit_std );
 					
-					for( int bin = pim_bin_min; bin <= pim_bin_max; bin++ ){
+					for( int bin = 1; bin <= pim_bin_max; bin++ ){
 						pim_num+=hBeta[1][j+1][k+1][l+1][m+1]->GetBinContent(bin);
 					}
 
