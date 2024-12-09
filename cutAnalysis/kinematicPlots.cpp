@@ -122,12 +122,12 @@ int main( int argc, char** argv){
 		h_Pt_pi[i]         = new TH1F("hPt_pi_"+data_type[i], Form("Pt_pi_%i_%i;P^{T}_{#pi} [GeV];Counts [a.u.]", j, k), 50, 0, 1.3);
 		h_Mx[i]            = new TH1F("hMx_"+data_type[i], Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 250, 0, 4);
 
-		hQ2_W[i]		= new TH2F("hQ2_W_"+data_type[i], "", 250, 0, 10, 250, 1.5 ,4.5 );
-		hQ2_omega[i]		= new TH2F("hQ2_omega_"+data_type[i], "", 250, 0, 10, 250, 1.5 ,10 );
-		hZ_Mx[i] 		= new TH2F("hZ_Mx_"+data_type[i], "", 50, .3, .8, 50, 1.5 ,3.5 );
-		hQ2_Mx[i]		= new TH2F("hQ2_Mx_"+data_type[i], "", 50, 2, 8, 50, 1.5 ,3.5 );
-		hXb_Mx[i]		= new TH2F("hXb_Mx_"+data_type[i], "", 50, .1, .6, 50, 1.5 ,3.5 );
-		hPt_Mx[i]		= new TH2F("hPt_Mx_"+data_type[i], "", 50, 0, 1.3, 50, 1.5 ,3.5 );
+		hQ2_W[i]		= new TH2F("hQ2_W_"+data_type[i], "; Q^{2} [GeV^{2}];W [GeV]", 250, 0, 10, 250, 1.5 ,4.5 );
+		hQ2_omega[i]		= new TH2F("hQ2_omega_"+data_type[i], ";Q^{2} [GeV^{2}];#omega [GeV]", 250, 0, 10, 250, 1.5 ,10 );
+		hZ_Mx[i] 		= new TH2F("hZ_Mx_"+data_type[i], ";z;M_{X} [GeV]", 50, .3, .8, 50, 1.5 ,3.5 );
+		hQ2_Mx[i]		= new TH2F("hQ2_Mx_"+data_type[i], ";Q^{2} [GeV^{2}];M_{X} [GeV]", 50, 2, 8, 50, 1.5 ,3.5 );
+		hXb_Mx[i]		= new TH2F("hXb_Mx_"+data_type[i], ";x_{B};M_{X} [GeV]", 50, .1, .6, 50, 1.5 ,3.5 );
+		hPt_Mx[i]		= new TH2F("hPt_Mx_"+data_type[i], ";p_{#pi}^{#perp} [GeV];M_{X} [GeV]", 50, 0, 1.3, 50, 1.5 ,3.5 );
 	}
 
 	analyzer anal( 0, -1 );
@@ -157,22 +157,22 @@ int main( int argc, char** argv){
 			hQ2_omega[idx]->Fill( e.getQ2(), e.getOmega()  );
 			
 			h_W[idx]->Fill( sqrt( e.getW2() ) );
-			//if( sqrt(e.getW2() < 2.5 ) ){continue;}
+			if( sqrt(e.getW2() < 2.5 ) ){continue;}
 			
 			h_Q2[idx]->Fill( e.getQ2() );
-			//if( e.getQ2() < 2 ){ continue; }
+			if( e.getQ2() < 2 ){ continue; }
 
 			h_y[idx]->Fill( e.getY() );
-			//if( e.getY() > 0.75 ){continue;}
+			if( e.getY() > 0.75 ){continue;}
 
 			h_Mx[idx]->Fill( pi[i].getMx() );
-			//if( pi[i].getMx() < 0.7 ){ continue; }
+			if( pi[i].getMx() < 0.7 ){ continue; }
 
 			h_p_pi->Fill( pi[i].get3Momentum().Mag() );
-			//if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum() > 5 ){continue;}
+			if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum() > 5 ){continue;}
 
 			h_theta_e[idx]->Fill( e.get3Momentum().Mag()*rad_to_deg );
-			//if( e.get3Momentum().Mag()*rad_to_deg < 5 || e.get3Momentum().Mag()*rad_to_deg > 40 ){continue;}
+			if( e.get3Momentum().Mag()*rad_to_deg < 5 || e.get3Momentum().Mag()*rad_to_deg > 40 ){continue;}
 				
 			h_theta_pi[idx]->Fill( pi[i].get3Momentum().Mag()*rad_to_deg );
 			
