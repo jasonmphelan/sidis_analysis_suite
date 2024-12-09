@@ -164,7 +164,7 @@ int main( int argc, char** argv){
 	std::vector<region_part_ptr> electrons, pions, pipluses, piminuses; //For reading from hipo file... not outputted
 	
 	// Set Output file and tree
-	TFile * outputFile = new TFile(outFile_name + ".pdf", "RECREATE");
+	TFile * outputFile = new TFile(outFile_name + ".root", "RECREATE");
 	int nFiles = 0;
 	int RunType = 0;
 	int inclusive = 0;
