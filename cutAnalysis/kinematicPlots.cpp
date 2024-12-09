@@ -200,6 +200,24 @@ int main( int argc, char** argv){
 	}
 
         outFile->Close();
+	
+	std::ofstream txtFile;
+        txtFile.open(outFile_name + ".txt");
+        txtFile<< "\t(e,e'pi+)\t#(e,e'pi-)\n";
+        txtFile<< "All tracks\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
+        txtFile<< "Event Builder\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
+        txtFile<< "PCAL WV\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
+        txtFile<< "PCAL Edep\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
+        txtFile<< "SF Cuts\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
+        txtFile<< "SF Correlation\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
+        txtFile<< "Electron Vertex\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
+        txtFile<< "Pion Vertex\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
+        txtFile<< "Chi2\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
+        txtFile<< "Electron DC Fiducials\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
+        txtFile<< "Pion DC Fiducials\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
+        txtFile.close();
+
+
 	auto finish = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = finish - start;
 	std::cout<<"Done. Elapsed Time : "<<elapsed.count()<<std::endl;
