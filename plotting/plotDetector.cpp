@@ -76,22 +76,43 @@ void drawCut(TString varTit, double xMin, double xMax, double yMin, double yMax,
 		l2->SetLineWidth(2);	
 		l2->Draw("same");
 	}
-	if( varTit == "hEpcal_pip" || varTit == "hEpcal_pim" ){
+	if( varTit == "hEdep_pip" || varTit == "hEdep_pim" ){
 		TLine * l1 = new TLine( .07, yMin, .07, yMax );
 		l1->SetLineColor( kRed );
 		l1->SetLineWidth(2);	
 		l1->Draw("same");
 		
 	}
-	if( varTit == "hSFcorr_pip" || varTit == "hSFcorr_pim" ){
+	if( varTit == "hSF_corr_pip" || varTit == "hSF_corr_pim" ){
 		TLine * l1 = new TLine( 0, .2, .2, 0 );
 		l1->SetLineColor( kRed );
 		l1->SetLineWidth(2);	
 		l1->Draw("same");
 		
 	}
-	
-	
+	if( varTit == "hChi2_pip" || varTit == "hChi2_pim" ){
+		TLine * l1 = new TLine( 0, -3, xMax, -3 );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+		
+		TLine * l2 = new TLine( 0, 3, 2.44, 3 );
+		l2->SetLineColor( kRed );
+		l2->SetLineWidth(2);	
+		l2->Draw("same");
+		
+		TF1 * f1 = new TF1("f1", "[0]+[1]*exp(-x/[2]) + [3]*exp(-x/[4])", 2.44, 4.6);
+		f1->SetParameters(0.00869, 14.98587, 1.18236, 1.81751, 4.86394);
+		f1->SetLineColor( kRed );
+		f1->SetLineWidth(2);	
+		f1->Draw("same");
+		
+		TF1 * f2 = new TF1("f2", "[0]+[1]*exp(-x/[2]) + [3]*exp(-x/[4])", 4.6, xMax);
+		f2->SetParameters(-1.14099,24.14992,1.36554,2.66876,6.80552 );
+		f2->SetLineColor( kRed );
+		f2->SetLineWidth(2);	
+		f2->Draw("same");
+	}	
 }
 
 
@@ -114,7 +135,7 @@ void makeCanvas(TH1F * h1, TString varTit, TString outfileName){
 
 	h1->GetYaxis()->SetRangeUser(0, 1.3*maximum);
 	h1->SetTitle("");
-	h1->GetXaxis()->SetTitle("");
+	//h1->GetXaxis()->SetTitle("");
 
 	h1->SetMarkerStyle(kFullCircle);
 	h1->SetLineColor(kBlack);
@@ -126,8 +147,8 @@ void makeCanvas(TH1F * h1, TString varTit, TString outfileName){
 	TCanvas * c1 = new TCanvas("c1", "c1", 1600, 1000);
 	
 	
-	h1->GetXaxis()->SetTitle(temp_x);
-	h1->GetYaxis()->SetTitle("Counts [a.u.]");
+	//h1->GetXaxis()->SetTitle(temp_x);
+	//h1->GetYaxis()->SetTitle("Counts [a.u.]");
 	
 	h1->GetXaxis()->SetLabelSize(labelSize);
 	h1->Draw("E");
@@ -164,8 +185,8 @@ void makeCanvas(TH2F * h1, TString xAxis, TString yAxis, TString outFileName){
 	int fontStyle = 43;	
 
 	h1->SetTitle("");
-	h1->GetXaxis()->SetTitle(xAxis);
-	h1->GetYaxis()->SetTitle(yAxis);
+	//h1->GetXaxis()->SetTitle(xAxis);
+	//h1->GetYaxis()->SetTitle(yAxis);
 	gStyle->SetPalette(kBlueGreenYellow);
 
 	TCanvas * c1 = new TCanvas("c1", "c1");
@@ -208,13 +229,13 @@ void makeCanvas(TH2F * h1, TH2F * h2, TString xAxis, TString yAxis, TString outF
 	int fontStyle = 43;	
 
 	h1->SetTitle("");
-	h1->GetXaxis()->SetTitle(xAxis);
-	h1->GetYaxis()->SetTitle(yAxis);
+	//h1->GetXaxis()->SetTitle(xAxis);
+	//h1->GetYaxis()->SetTitle(yAxis);
 
 	TCanvas * c1 = new TCanvas("c1", "c1");
 	//h1->SetMaximum(1);
 	h1->Draw("SCAT");
-	gStyle->SetPalette(kBlueGreenYellow);
+	gStyle->SetPalette(kBird);
 	h2->Draw("COL same");
 	h1->GetXaxis()->SetTitleFont(fontStyle);
 	h1->GetXaxis()->SetTitleSize(titleSize);
@@ -242,16 +263,54 @@ void makeCanvas(TH2F * h1, TH2F * h2, TString xAxis, TString yAxis, TString outF
 }
 
 void plotDetector(){
-	TFile * f1 = new TFile( "test.root" );
+	TFile * f1 = new TFile( "detector_plots_10.2.root" );
 	TIter keyList( f1->GetListOfKeys() );
 	TKey *key;
 	
 	while( (key = (TKey*)keyList()) ){
 		TClass *cl = gROOT->GetClass(key->GetClassName());
+		bool madeHist = false;
 		if( cl->InheritsFrom("TH2")){
 			TH2F * h1 = (TH2F*)key->ReadObj();
-			//TH2F * h1 = (TH2F *)f1->Get("hSF_sec_0_pip");
+			for( int i = 0; i < 3; i++ ){
+				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pip", i) ){
+					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
+					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					madeHist = true;
+				}
+				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pip", i) ){
+					madeHist = true;
+				}
+				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pim", i) ){
+					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
+					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					madeHist = true;
+				}
+				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pim", i) ){
+					madeHist = true;
+				}
+				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pip", i) ){
+					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
+					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					madeHist = true;
+				}
+				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pip", i) ){
+					madeHist = true;
+				}
+				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pim", i) ){
+					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
+					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					madeHist = true;
+				}
+				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pim", i) ){
+					madeHist = true;
+				}
+			}
+
+			if( madeHist ){continue;}
+
 			makeCanvas(h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+
 		}
 		else{
 			TH1F * h1 = (TH1F *)key->ReadObj();
