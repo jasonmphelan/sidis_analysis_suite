@@ -119,35 +119,35 @@ int main( int argc, char** argv){
 	
 
 	for( int i = 0; i < 2; i++ ){
-		hPCAL_WV[i] = new TH2F( "hPCAL_WV_"+spec[i], "", 400, 0, 200, 400, 0, 200 );
-		hEdep[i] = new TH2F( "hEdep_"+spec[i], "", 400, 0, 1.4, 400, 0, 1.4 );
-		hSF_corr[i] = new TH2F( "hSF_corr_"+spec[i], "", 400, 0, .35, 400, 0, .35 );
-		hVz_e[i] = new TH1F( "hVz_e_"+spec[i], "", 400, -10, 10);
+		hPCAL_WV[i] = new TH2F( "hPCAL_WV_"+spec[i], ";V_{PCAL} [cm];W_{PCAL}", 400, 0, 200, 400, 0, 200 );
+		hEdep[i] = new TH2F( "hEdep_"+spec[i], ";#Delta E_{PCAL} [GeV];#Delta (E_{ECIN} + E_{ECOUT}) [GeV]", 400, 0, 1.4, 400, 0, 1.4 );
+		hSF_corr[i] = new TH2F( "hSF_corr_"+spec[i], ";#Delta E_{PCAL}/p_{e} [GeV];#Delta E_{ECIN}/p_{e}", 400, 0, .35, 400, 0, .35 );
+		hVz_e[i] = new TH1F( "hVz_e_"+spec[i], ";V_{Z}^{e} [cm];Counts [a.u.]", 400, -10, 10);
 
-		hVz_pi[i] = new TH1F( "hVz_"+spec[i], "", 400, -15, 15);
-		hChi2[i] = new TH2F( "hChi2_"+spec[i], "", 400, 0, 9, 400, -4.5, 4.5);
+		hVz_pi[i] = new TH1F( "hVz_"+spec[i], ";V_{Z}^{#pi} - V_{Z}^{e} [cm];Counts [a.u.]", 400, -15, 15);
+		hChi2[i] = new TH2F( "hChi2_"+spec[i], ";#chi^{2}_{PID};p_{#pi} [GeV];Counts [a.u.]", 400, 0, 9, 400, -4.5, 4.5);
 	
 		for( int j = 0; j < 3; j++ ){
-			hFid_e[i][j][0] = new TH2F(Form("hFid_e_bef_reg_%i_", j) + spec[i], "", 350, -e_ext[j], e_ext[j], 350, -e_ext[j], e_ext[j]);
-			hFid_e[i][j][1] = new TH2F(Form("hFid_e_aft_reg_%i_", j) + spec[i], "", 350, -e_ext[j], e_ext[j], 350, -e_ext[j], e_ext[j]);
+			hFid_e[i][j][0] = new TH2F(Form("hFid_e_bef_reg_%i_", j) + spec[i], ";x_{DC} [mm];y_{DC} [mm]", 350, -e_ext[j], e_ext[j], 350, -e_ext[j], e_ext[j]);
+			hFid_e[i][j][1] = new TH2F(Form("hFid_e_aft_reg_%i_", j) + spec[i],";x_{DC} [mm];y_{DC} [mm]" , 350, -e_ext[j], e_ext[j], 350, -e_ext[j], e_ext[j]);
 			
-			hFid_pi[i][j][0] = new TH2F(Form("hFid_pi_bef_reg_%i_", j) + spec[i], "", 350, -pi_ext[j], pi_ext[j], 350, -pi_ext[j], pi_ext[j]);
-			hFid_pi[i][j][1] = new TH2F(Form("hFid_pi_aft_reg_%i_", j) + spec[i], "", 350, -pi_ext[j], pi_ext[j], 350, -pi_ext[j], pi_ext[j]);
+			hFid_pi[i][j][0] = new TH2F(Form("hFid_pi_bef_reg_%i_", j) + spec[i],";x_{DC} [mm];y_{DC} [mm]", 350, -pi_ext[j], pi_ext[j], 350, -pi_ext[j], pi_ext[j]);
+			hFid_pi[i][j][1] = new TH2F(Form("hFid_pi_aft_reg_%i_", j) + spec[i],";x_{DC} [mm];y_{DC} [mm]",  350, -pi_ext[j], pi_ext[j], 350, -pi_ext[j], pi_ext[j]);
 		}
 		
 		for( int j = 0; j < 6; j++ ){
-			hSF[i][j] = new TH2F( Form("hSF_sec_%i_", j)+spec[i], "", 400, 0, 8, 400, .1, .35 );
+			hSF[i][j] = new TH2F( Form("hSF_sec_%i_", j)+spec[i], ";p_{e} [GeV];#Delta(E_{PCAL} + E_{ECIN} + E_{ECOUT})/p_{e}", 400, 0, 8, 400, .1, .35 );
 		}
 	}
 
 	for( int i = 0; i < 11; i++ ){
-		hBeta_p_e[i] = new TH2F( (TString) "hBeta_p_e_" + cuts[i], "", 400, 0, 5.5, 400, .85, 1.15);
-		hBeta_p_pi[i][0] = new TH2F((TString) "hBeta_p_pip_" + cuts[i], "", 400, 0, 5.5, 400, .85, 1.15);
-		hBeta_p_pi[i][1] = new TH2F((TString) "hBeta_p_pim_" + cuts[i], "", 400, 0, 5.5, 400, .85, 1.15);
+		hBeta_p_e[i] = new TH2F( (TString) "hBeta_p_e_" + cuts[i], ";p_{e} [GeV];#beta", 400, 0, 5.5, 400, .85, 1.15);
+		hBeta_p_pi[i][0] = new TH2F((TString) "hBeta_p_pip_" + cuts[i], ";p_{#pi -} [GeV];#beta", 400, 0, 5.5, 400, .85, 1.15);
+		hBeta_p_pi[i][1] = new TH2F((TString) "hBeta_p_pim_" + cuts[i], ";p_{#pi -} [GeV];#beta", 400, 0, 5.5, 400, .85, 1.15);
 	
-		hBeta_e[i] = new TH1F( (TString)"hBeta_e_" + cuts[i], "", 400, .975, 1.025 );
-		hBeta_pi[i][0] = new TH1F( (TString)"hBeta_pip_" + cuts[i], "", 400, .85, 1.15 );
-		hBeta_pi[i][1] = new TH1F( (TString)"hBeta_pim_" + cuts[i], "", 400, .85, 1.15 );
+		hBeta_e[i] = new TH1F( (TString)"hBeta_e_" + cuts[i], ";#beta;Counts [a.u.]", 400, .975, 1.025 );
+		hBeta_pi[i][0] = new TH1F( (TString)"hBeta_pip_" + cuts[i], ";#beta;Counts [a.u.]", 400, .85, 1.15 );
+		hBeta_pi[i][1] = new TH1F( (TString)"hBeta_pim_" + cuts[i], ";#beta;Counts [a.u.]", 400, .85, 1.15 );
 	}
 
 	// Set output variables
