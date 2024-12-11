@@ -61,6 +61,81 @@ void drawCut(TString varTit, double yMax, TCanvas * c1){
 		l2->SetLineWidth(2);	
 		l2->Draw("same");
 	}
+	if( varTit == "hZ_pip" || varTit == "hZ_pim" ){
+		TLine * l1 = new TLine( .3, 0, .3, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+	}
+	if( varTit == "hY_pip" || varTit == "hY_pim" ){
+		TLine * l1 = new TLine( .75, 0, .75, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+	}
+	if( varTit == "hW_pip" || varTit == "hW_pim" ){
+		TLine * l1 = new TLine( 2.5, 0, 2.5, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+	}
+	if( varTit == "hTheta_e_pip" || varTit == "hTheta_e_pim" ){
+		TLine * l1 = new TLine( 5, 0, 5, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+		
+		TLine * l2 = new TLine( 35, 0, 35, yMax );
+		l2->SetLineColor( kRed );
+		l2->SetLineWidth(2);	
+		l2->Draw("same");
+	}
+	if( varTit == "hTheta_pi_pip" || varTit == "hTheta_pi_pim" ){
+		TLine * l1 = new TLine( 5, 0, 5, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+		
+		TLine * l2 = new TLine( 35, 0, 35, yMax );
+		l2->SetLineColor( kRed );
+		l2->SetLineWidth(2);	
+		l2->Draw("same");
+	}
+	if( varTit == "hQ2_pip" || varTit == "hQ2_pim" ){
+		TLine * l1 = new TLine( 2, 0, 2, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+	}
+	if( varTit == "hP_pi_pip" || varTit == "hP_pi_pim" ){
+		TLine * l1 = new TLine( 1.25, 0, 1.25, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+		
+		TLine * l2 = new TLine( 5, 0, 5, yMax );
+		l2->SetLineColor( kRed );
+		l2->SetLineWidth(2);	
+		l2->Draw("same");
+	}
+	if( varTit == "hP_e_pip" || varTit == "hP_e_pim" ){
+		TLine * l1 = new TLine( 3, 0, 3, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+		
+		TLine * l2 = new TLine( 10, 0, 10, yMax );
+		l2->SetLineColor( kRed );
+		l2->SetLineWidth(2);	
+		l2->Draw("same");
+	}
+	if( varTit == "hMx_pip" || varTit == "hMx_pim" ){
+		TLine * l1 = new TLine( 1.7, 0, 1.7, yMax );
+		l1->SetLineColor( kRed );
+		l1->SetLineWidth(2);	
+		l1->Draw("same");
+		
+	}
 }
 void drawCut(TString varTit, double xMin, double xMax, double yMin, double yMax, TCanvas * c1){
 	c1->cd();
@@ -263,7 +338,7 @@ void makeCanvas(TH2F * h1, TH2F * h2, TString xAxis, TString yAxis, TString outF
 }
 
 void plotDetector(){
-	TFile * f1 = new TFile( "detector_plots_10.2.root" );
+	TFile * f1 = new TFile( "test.root" );
 	TIter keyList( f1->GetListOfKeys() );
 	TKey *key;
 	
