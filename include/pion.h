@@ -106,7 +106,8 @@ class pion{// : public TObject {
 		void setDC_x3		(double iDC_x3		)		{DC_x3   	= iDC_x3 	; return;}
 		void setDC_y3		(double iDC_y3		)		{DC_y3   	= iDC_y3   	; return;}
 		void setDC_z3		(double iDC_z3		)		{DC_z3   	= iDC_z3   	; return;}
-		
+		void setEdge		( double iEdge, int layer		)		{edge[layer]		= iEdge		; return;}
+
 		double  getDC_chi2      (void)          {return DC_chi2         ;}
 		int     getDC_NDF       (void)          {return DC_NDF          ;}
 		int     getDC_sector    (void)          {return DC_sector       ;}
@@ -123,7 +124,8 @@ class pion{// : public TObject {
 		double  getDC_y3        (void)          {return DC_y3           ;}
 		double  getDC_z3        (void)          {return DC_z3           ;}
 
-	/*	
+		double getEdge		(int layer	)		{return edge[layer]		;}
+		/*	
 		// Cherenkov banks
 		void setNphe		(double iNphe		)		{Nphe		= iNphe		; return;}
 		void setKov_x		(double iKov_x		)		{Kov_x		= iKov_x	; return;}
@@ -239,7 +241,8 @@ class pion{// : public TObject {
 		double DC_x3            ;
 		double DC_y3            ;
 		double DC_z3            ;
-	/*
+		double edge[3]		;
+		/*
 		double Nphe		;
                 double Kov_x		;
                 double Kov_y		;

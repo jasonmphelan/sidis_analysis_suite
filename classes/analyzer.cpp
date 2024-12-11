@@ -180,7 +180,7 @@ bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
 	double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
 	double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
 	double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
-
+	/*
 	for (int regionIdx=0; regionIdx<3; regionIdx++) {
 		// DC_e_fid:
 		// sector:  1-6
@@ -198,7 +198,7 @@ bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
 		
 		if (DC_fid == false) { return false; }
 	}
-
+	*/
 	//PION CHI2 vs P CUT
 	if(! (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
          	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) ))) 
@@ -220,6 +220,7 @@ bool analyzer::applyPionDetectorFiducials( pion pi ){
 	// p            pi momentum    (pi.P())
 	//
 
+	
 
 	double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
 	double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};

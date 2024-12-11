@@ -226,7 +226,9 @@ void pion::setDetectorInformation(clas12::region_part_ptr rp){
 	setDC_z3(rp->traj(clas12::DC,DC_layers[2])->getZ());
 	setBeta(rp->par()->getBeta());
 
-	
+	setEdge( rp->traj(clas12::DC, DC_layers[0])->getEdge(), 0 );
+	setEdge( rp->traj(clas12::DC, DC_layers[1])->getEdge(), 1 );
+	setEdge( rp->traj(clas12::DC, DC_layers[2])->getEdge(), 2 );
 	if( isMC ){return;}
 
 	// RICH info
