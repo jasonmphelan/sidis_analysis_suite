@@ -96,10 +96,10 @@ int main( int argc, char** argv){
 					if( p_fit_max == 1 && p_fit_min > 0 &&  kaonCorr_p[p]->GetBinContent( x+1, q+1, z+1 ) <= 0){
 						p_fit_max = kaonCorr_p_1d[p][q][x]->GetBinCenter(z+1) + .025;
 					}
-
-					kaonCorr_m_1d[p][q][x]->SetBinContent( z+1, kaonCorr_m[p]->GetBinContent( x+1, q+1, z+1 ));
-					kaonCorr_m_1d[p][q][x]->SetBinError( z+1, kaonCorr_m[p]->GetBinError( x+1, q+1, z+1 ));
-					
+					if( kaonCorr_p[p]->GetBinContent( x+1, q+1, z+1 ) > 0 ){
+						kaonCorr_m_1d[p][q][x]->SetBinContent( z+1, kaonCorr_m[p]->GetBinContent( x+1, q+1, z+1 ));
+						kaonCorr_m_1d[p][q][x]->SetBinError( z+1, kaonCorr_m[p]->GetBinError( x+1, q+1, z+1 ));
+					}
 					if( m_fit_min == 0 &&  kaonCorr_m[p]->GetBinContent( x+1, q+1, z+1 ) > 0 ){
 						m_fit_min = kaonCorr_m_1d[p][q][x]->GetBinCenter(z+1) - .025;
 					}
@@ -109,15 +109,62 @@ int main( int argc, char** argv){
 				}
 
 				fitPip[p][q][x] = new TF1( Form("fitPip_%i_%i_%i", p, q, x), "[0]+ [1]*x + [2]*x*x + [3]*x*x*x", p_fit_min, p_fit_max );
-				//fitPip[p][q][x] = new TF1( Form("fitPip_%i_%i_%i", p, q, x), "[0]+ [1]*pow((1. - x), [2])", Z_min, Z_max );
 				fitPip[p][q][x]->SetParameters( 1, 1, 1, 1);
 				
 				fitPim[p][q][x] = new TF1( Form("fitPim_%i_%i_%i", p, q, x), "[0]+ [1]*x + [2]*x*x + [3]*x*x*x", m_fit_min, m_fit_max );
-				//fitPim[p][q][x] = new TF1( Form("fitPim_%i_%i_%i", p, q, x), "[0]+ [1]*pow((1. - x), [2])", Z_min, Z_max );
 				fitPim[p][q][x]->SetParameters( 1, 1, 1, 1 );
-
-				kaonCorr_p_1d[p][q][x]->Fit( Form("fitPip_%i_%i_%i", p, q, x) );
-				kaonCorr_m_1d[p][q][x]->Fit( Form("fitPim_%i_%i_%i", p, q, x) );
+			
+				if( kaonCorr_p_1d[p][q][x]->GetEntries() == 3 ){
+					TF1 * temp = new TF1( "temp", "[0]+ [1]*x + [2]*x*x", p_fit_min, p_fit_max );
+					kaonCorr_p_1d[p][q][x]->Fit( "temp" );
+					fitPip[p][q][x]->SetParameters( temp->GetParameter(0), temp->GetParameter(1), temp->GetParameter(2), 0 );
+					delete temp;
+				}
+				else if( kaonCorr_p_1d[p][q][x]->GetEntries() == 2 ){
+					TF1 * temp = new TF1( "temp", "[0]+ [1]*x ", p_fit_min, p_fit_max );
+					kaonCorr_p_1d[p][q][x]->Fit( "temp" );
+					fitPip[p][q][x]->SetParameters( temp->GetParameter(0), temp->GetParameter(1), 0, 0 );
+					delete temp;
+				}
+				else if( kaonCorr_p_1d[p][q][x]->GetEntries() == 1 ){
+					TF1 * temp = new TF1( "temp", "[0] ", p_fit_min, p_fit_max );
+					kaonCorr_p_1d[p][q][x]->Fit( "temp" );
+					fitPip[p][q][x]->SetParameters( temp->GetParameter(0), 0, 0, 0 );
+					delete temp;
+				}
+				else if( kaonCorr_p_1d[p][q][x]->GetEntries() == 0 ){
+					fitPip[p][q][x]->SetParameters( 0, 0, 0, 0 );
+				}
+					
+				else{
+					kaonCorr_p_1d[p][q][x]->Fit( Form("fitPip_%i_%i_%i", p, q, x) );
+				}
+				cout<<"###############################\n\n"<<kaonCorr_p_1d[p][q][x]->GetEntries()<<std::endl;
+				if( kaonCorr_m_1d[p][q][x]->GetEntries() == 3 ){
+					TF1 * temp = new TF1( "temp", "[0]+ [1]*x + [2]*x*x", m_fit_min, m_fit_max );
+					kaonCorr_m_1d[p][q][x]->Fit( "temp" );
+					fitPim[p][q][x]->SetParameters( temp->GetParameter(0), temp->GetParameter(1), temp->GetParameter(2), 0 );
+					delete temp;
+				}
+				else if( kaonCorr_m_1d[p][q][x]->GetEntries() == 2 ){
+					TF1 * temp = new TF1( "temp", "[0]+ [1]*x ", m_fit_min, m_fit_max );
+					kaonCorr_m_1d[p][q][x]->Fit( "temp" );
+					fitPim[p][q][x]->SetParameters( temp->GetParameter(0), temp->GetParameter(1), 0, 0 );
+					delete temp;
+				}
+				else if( kaonCorr_m_1d[p][q][x]->GetEntries() == 1 ){
+					TF1 * temp = new TF1( "temp", "[0] ", m_fit_min, m_fit_max );
+					kaonCorr_m_1d[p][q][x]->Fit( "temp" );
+					fitPim[p][q][x]->SetParameters( temp->GetParameter(0), 0, 0, 0 );
+					delete temp;
+				}
+				else if( kaonCorr_m_1d[p][q][x]->GetEntries() == 0 ){
+					fitPim[p][q][x]->SetParameters( 0, 0, 0, 0 );
+				}
+					
+				else{
+					kaonCorr_m_1d[p][q][x]->Fit( Form("fitPim_%i_%i_%i", p, q, x) );
+				}
 				
 				/*		
 				if( fitPip[p][q][x]->Eval(1) > 0 ){

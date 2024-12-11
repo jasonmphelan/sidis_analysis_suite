@@ -100,19 +100,19 @@ int main( int argc, char** argv){
 					kaonCorr_p_1d[q][x]->SetBinError( z+1, kaonCorr_p->GetBinError( x+1, q+1, z+1 ));
 				
 				}
-				else{
-					kaonCorr_p_1d[q][x]->SetBinContent( z+1, 0);
-				}
+				//else{
+				//	kaonCorr_p_1d[q][x]->SetBinContent( z+1, 0);
+				//}
 					
 				//if( !isnan(kaonCorr_m->GetBinContent( x+1, q+1, z+1) ) || isfinite(kaonCorr_m->GetBinContent( x+1, q+1, z+1) )  ){
-				if( !isnan(kaonCorr_m->GetBinError( x+1, q+1, z+1) )  ){
+				if( !isnan(kaonCorr_m->GetBinError( x+1, q+1, z+1) )   ){
 					kaonCorr_m_1d[q][x]->SetBinContent( z+1, kaonCorr_m->GetBinContent( x+1, q+1, z+1 ));
 					kaonCorr_m_1d[q][x]->SetBinError( z+1, kaonCorr_m->GetBinError( x+1, q+1, z+1 ));
 				
 				}
-				else{
-					kaonCorr_m_1d[q][x]->SetBinContent( z+1, 0);
-				}
+				//else{
+				//	kaonCorr_m_1d[q][x]->SetBinContent( z+1, 0);
+				//}
 			}
 			for( int z = 0; z < bins_Z; z++ ){
 				if( p_fit_min == 0 &&  kaonCorr_p->GetBinContent( x+1, q+1, z+1 ) > 0 ){
@@ -128,7 +128,9 @@ int main( int argc, char** argv){
 					m_fit_max = kaonCorr_m_1d[q][x]->GetBinCenter(z+1) + .025;
 				}
 			}
-
+			
+			
+			cout<<"##############################################################\n\n"<<kaonCorr_p_1d[q][x]->GetEntries() << std::endl;
 			fitPip[q][x] = new TF1( Form("fitPip_%i_%i", q, x), "[0]+ [1]*x + [2]*x*x + [3]*x*x*x", p_fit_min, p_fit_max );
 			//fitPip[q][x] = new TF1( Form("fitPip_%i_%i", q, x), "[0]+ [1]*pow((1. - x), [2])", Z_min, Z_max );
 			fitPip[q][x]->SetParameters( 1, 1, 1, 1 );
@@ -137,15 +139,25 @@ int main( int argc, char** argv){
 			//fitPim[q][x] = new TF1( Form("fitPim_%i_%i", q, x), "[0]+ [1]*pow((1. - x), [2])", Z_min, Z_max );
 			fitPim[q][x]->SetParameters( 1, 1, 1, 1 );
 			
-			kaonCorr_p_1d[q][x]->Fit( Form("fitPip_%i_%i", q, x) );
-			kaonCorr_m_1d[q][x]->Fit( Form("fitPim_%i_%i", q, x) );
+			if( kaonCorr_p_1d[q][x]->GetEntries() == 0 ){
+				fitPip[q][x]->SetParameters( 0, 0, 0, 0 );
+			}
+			else{
+				kaonCorr_p_1d[q][x]->Fit( Form("fitPip_%i_%i", q, x) );
+			}
+			if( kaonCorr_m_1d[q][x]->GetEntries() == 0 ){
+				fitPim[q][x]->SetParameters( 0, 0, 0, 0);
+			}
+			else{
+				kaonCorr_m_1d[q][x]->Fit( Form("fitPim_%i_%i", q, x) );
+			}
 			kaonCorr_p_1d[q][x]->Draw();
-			fitPip[q][x]->Draw("SAME");
+			fitPip[q][x]->Draw("SAME E3");
 			fitPip[q][x]->Write();
 			canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 			canvas.Clear();
 			kaonCorr_m_1d[q][x]->Draw();
-			fitPim[q][x]->Draw("same");
+			fitPim[q][x]->Draw("same E3");
 			canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
 			fitPim[q][x]->Write();
 			canvas.Clear();
