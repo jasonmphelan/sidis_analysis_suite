@@ -46,7 +46,7 @@ int main( int argc, char** argv){
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 6 ){
+	if( argc < 5 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [Input Path] [Output File] [# of input files] [File Type] [Beam Energy]\n";
 		return -1;
@@ -59,14 +59,20 @@ int main( int argc, char** argv){
        	int runType = atoi(argv[4]);
        	double EBeam = atof(argv[5]);
 
+	cout<<"Read inputs\n";
+
 	reader skimReader;
 	skimReader.setNumFiles( nFiles);
 	skimReader.setRunType( runType );
 	skimReader.setEnergy( EBeam );
 
+	cout<<"Set Reader\n";
+
 	TChain * chain = new TChain("ePi");
 	skimReader.getRunSkimsByName(chain, in_name);
-	
+
+	cout<<"Loaded skims\n";
+
 	TString data_type[2] = {"pip", "pim"};
 	TH1F* h_W[2];    
 	TH1F* h_Xb[2];    
@@ -139,7 +145,7 @@ int main( int argc, char** argv){
         TTreeReaderArray<pion> pi(reader_rec, "pi");
 
         
-
+	cout<<"BEGIN EVENT LOOP\n";
 	int event_total = reader_rec.GetEntries();
 
 	while (reader_rec.Next()) {
@@ -153,37 +159,40 @@ int main( int argc, char** argv){
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			int idx = (int)( pi[i].getCharge() < 0 );
 
-			hQ2_W[idx]->Fill( e.getQ2(), sqrt( e.getW2() ) );
-			hQ2_omega[idx]->Fill( e.getQ2(), e.getOmega()  );
+			hQ2_W[idx]->Fill( e->getQ2(), sqrt( e->getW2() ) );
+			hQ2_omega[idx]->Fill( e->getQ2(), e->getOmega()  );
 			
-			h_W[idx]->Fill( sqrt( e.getW2() ) );
-			if( sqrt(e.getW2() < 2.5 ) ){continue;}
+			h_W[idx]->Fill( sqrt( e->getW2() ) );
+			if( sqrt(e->getW2() < 2.5 ) ){continue;}
 			
-			h_Q2[idx]->Fill( e.getQ2() );
-			if( e.getQ2() < 2 ){ continue; }
+			h_Q2[idx]->Fill( e->getQ2() );
+			if( e->getQ2() < 2 ){ continue; }
 
-			h_y[idx]->Fill( e.getY() );
-			if( e.getY() > 0.75 ){continue;}
+			h_y[idx]->Fill( e->getY() );
+			if( e->getY() > 0.75 ){continue;}
 
 			h_Mx[idx]->Fill( pi[i].getMx() );
 			if( pi[i].getMx() < 0.7 ){ continue; }
 
-			h_p_pi->Fill( pi[i].get3Momentum().Mag() );
-			if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum() > 5 ){continue;}
+			h_p_pi[idx]->Fill( pi[i].get3Momentum().Mag() );
+			if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum().Mag() > 5 ){continue;}
 
-			h_theta_e[idx]->Fill( e.get3Momentum().Mag()*rad_to_deg );
-			if( e.get3Momentum().Mag()*rad_to_deg < 5 || e.get3Momentum().Mag()*rad_to_deg > 40 ){continue;}
+			h_theta_e[idx]->Fill( e->get3Momentum().Theta()*rad_to_deg );
+			if( e->get3Momentum().Theta()*rad_to_deg < 5 || e->get3Momentum().Theta()*rad_to_deg > 40 ){continue;}
 				
-			h_theta_pi[idx]->Fill( pi[i].get3Momentum().Mag()*rad_to_deg );
+			h_theta_pi[idx]->Fill( pi[i].get3Momentum().Theta()*rad_to_deg );
+			if( pi[i].get3Momentum().Theta()*rad_to_deg < 5 || pi[i].get3Momentum().Theta()*rad_to_deg > 40 ){continue;}
 			
-			h_Z->Fill( pi[i].getZ() );
+			h_Z[idx]->Fill( pi[i].getZ() );
 		}
 	}
 	
 	cout<<"Completed good event list... \n";
 
         cout<<"Writing to file\n";
-        outFile->cd();
+        
+	TFile * outFile = new TFile( out_name+".root", "RECREATE");
+	outFile->cd();
 	for( int i = 0; i < 2; i++ ){
 		h_W[i]->Write();             
 		h_Q2[i]->Write();            
@@ -200,9 +209,9 @@ int main( int argc, char** argv){
 	}
 
         outFile->Close();
-	
+	/*	
 	std::ofstream txtFile;
-        txtFile.open(outFile_name + ".txt");
+        txtFile.open(out_name + ".txt");
         txtFile<< "\t(e,e'pi+)\t#(e,e'pi-)\n";
         txtFile<< "All tracks\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
         txtFile<< "Event Builder\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
@@ -216,7 +225,7 @@ int main( int argc, char** argv){
         txtFile<< "Electron DC Fiducials\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
         txtFile<< "Pion DC Fiducials\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
         txtFile.close();
-
+	*/
 
 	auto finish = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = finish - start;
