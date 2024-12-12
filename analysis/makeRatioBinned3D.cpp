@@ -106,9 +106,10 @@ int main( int argc, char** argv){
 	////////////////////////////
 	///////// Pions ////////////
 	////////////////////////////
-
+	double beam_energy = 10.2;
 
 	TTreeReader reader_rec("ePi", inFile);
+	TTreeReaderValue<double> eBeam_rec( reader_rec, "eBeam" );
 
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
@@ -190,6 +191,7 @@ int main( int argc, char** argv){
 	///////////////////////////////////////
 
 	TTreeReader reader_k("ePi", kFile);
+	TTreeReaderValue<double> eBeam_k( reader_k, "eBeam" );
 
 	TTreeReaderValue<electron> e_k(reader_k, "e");
 	TTreeReaderArray<pion> k(reader_k, "pi");
@@ -262,6 +264,7 @@ int main( int argc, char** argv){
 	///////////////////////////////////////
 	
 	TTreeReader reader_r("ePi", rFile);
+	TTreeReaderValue<double> eBeam_r( reader_r, "eBeam" );
 
 	TTreeReaderValue<electron> e_r(reader_r, "e");
 	TTreeReaderArray<pion> r(reader_r, "pi");

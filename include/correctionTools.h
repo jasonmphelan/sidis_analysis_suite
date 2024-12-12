@@ -24,6 +24,10 @@ public:
 	void loadParameters();
 	void loadHistograms();
 
+	void setWeightName( TString newName ){ weight_name = newName; };
+	void setPi2kName( TString newName ){ pi_To_kaon_name = newName; };
+	void setK2piName( TString newName ){ kaon_To_pi_name = newName; };
+
 	void setKinematics( double x, double q, double z, double p ); 
 
 	double getCorrectionFactor( int type, int charge );
@@ -34,9 +38,10 @@ public:
 	void loadFits();
 
 	void setCorrectionFile(TString name){ weight_name = name; }
+	void loadNewEnergy( double energy );
 private:
 	int 	mode;
-	TString weight_name = "corrections_10.4_fit.root";
+	TString weight_name = "corrections_10.2_fit.root";
 	TString kaon_To_pi_name = "corrections_k2pi_fit.root";
 	TString pi_To_kaon_name = "corrections_pi2k_fit.root";
 

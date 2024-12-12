@@ -44,6 +44,11 @@ void correctionTools::loadHistograms(){
 
 }
 
+void correctionTools::loadNewEnergy( double energy ){
+	setWeightName(Form("corrections_%.1f_fit.root", energy));
+	loadFits();
+}
+
 void correctionTools::loadFits(){
  	weightFile = new TFile((TString) _DATA + "/correctionFiles/"+ weight_name);
 	pi2kFile = new TFile((TString) _DATA + "/correctionFiles/"+ kaon_To_pi_name);
@@ -254,7 +259,8 @@ double correctionTools::getCorrectionFactor( int type, int charge ){
 		double kWeight = 0;
 
 		if( type == 0 ) return 1.;
-		if( type == 1 ) return mcWeight;
+		if( type == 1 && mcWeight > 0) return mcWeight;
+		if( type == 1 && mcWeight <= 0) return 0;
 		if( type == 2 ) kWeight = pi2kWeight;
 		if( type == 3 ) kWeight = k2piWeight;
 		if( type > 3 ){ return 0; }	

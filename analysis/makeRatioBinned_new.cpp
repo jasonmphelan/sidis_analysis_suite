@@ -103,9 +103,11 @@ int main( int argc, char** argv){
 	////////////////////////////
 
 	cout<<"Begin analysis\n";
+	double beam_energy = 10.2; //current energy of file
 
 	TTreeReader reader_rec("ePi", inFile);
 
+	TTreeReaderValue<double> eBeam( reader_rec, "eBeam" );
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	
@@ -116,11 +118,15 @@ int main( int argc, char** argv){
 
 	while (reader_rec.Next()) {
 		int event_count = reader_rec.GetCurrentEntry();
-
+		
 		if(event_count%100000 == 0){
 			cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
 		}
 
+		if( *eBeam != beam_energy ){
+			corrector.loadNewEnergy( *eBeam );
+			beam_energy = *eBeam;
+		}
 
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			
@@ -187,6 +193,7 @@ int main( int argc, char** argv){
 	///////////////////////////////////////
 
 	TTreeReader reader_k("ePi", kFile);
+	TTreeReaderValue<double> eBeam_k( reader_k, "eBeam" );
 
 	TTreeReaderValue<electron> e_k(reader_k, "e");
 	TTreeReaderArray<pion> k(reader_k, "pi");
@@ -202,6 +209,10 @@ int main( int argc, char** argv){
 
 			if(event_count%100000 == 0){
 				cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
+			}
+			if( *eBeam_k != beam_energy ){
+				corrector.loadNewEnergy( *eBeam_k );
+				beam_energy = *eBeam_k;
 			}
 
 			for( int i = 0; i < (int) ( k.end() - k.begin() ); i++ ){
@@ -263,6 +274,7 @@ int main( int argc, char** argv){
 	///////////////////////////////////////
 	
 	TTreeReader reader_r("ePi", rFile);
+	TTreeReaderValue<double> eBeam_r( reader_r, "eBeam" );
 
 	TTreeReaderValue<electron> e_r(reader_r, "e");
 	TTreeReaderArray<pion> r(reader_r, "pi");
@@ -280,6 +292,10 @@ int main( int argc, char** argv){
 
 			if(event_count%100000 == 0){
 				cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
+			}
+			if( *eBeam_r != beam_energy ){
+				corrector.loadNewEnergy( *eBeam_r );
+				beam_energy = *eBeam_r;
 			}
 
 			for( int i = 0; i < (int) ( r.end() - r.begin() ); i++ ){
