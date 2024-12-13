@@ -7,6 +7,6 @@ include_directories(${CLAS12ROOT}/Clas12Banks ${CLAS12ROOT}/Clas12Root ${INCLUDE
 #add_executable(makeRatio makeRatioBinned.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp )
 #target_link_libraries(makeRatio ${ROOT_LIBRARIES} clashit_tree) 
 
-add_executable(makePlots plotDetectorC12.cpp)
+add_executable(makePlots plotDetectorC12.cpp ${CMAKE_SOURCE_DIR}/classes/e_pid.cpp)
 target_link_libraries(makePlots ${ROOT_LIBRARIES} clashit_tree) 
 

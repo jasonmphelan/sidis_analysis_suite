@@ -22,6 +22,7 @@
 #include "TClass.h"
 #include <TROOT.h>
 #include <TStyle.h>
+#include "e_pid.h"
 
 using std::cerr;
 using std::isfinite;
@@ -258,6 +259,12 @@ void drawCut(TString varTit, double xMin, double xMax, double yMin, double yMax,
 		f2->SetLineWidth(2);	
 		f2->Draw("same");
 	}	
+	for( int i = 1; i <= 6; i++ ){
+		if( varTit == Form("hSF_sec_%i_pip", i-1) || varTit == Form("hSF_sec_%i_pim", i-1) ){
+			e_pid sfCut;
+			sfCut.drawMom(i, c1);
+		}
+	}
 }
 
 

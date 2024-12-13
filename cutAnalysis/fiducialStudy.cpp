@@ -81,7 +81,7 @@ int main( int argc, char** argv){
 	anal.loadCutValues(-1, Ebeam);
 	
 	reader runReader;
-	runReader.setNumFiles( 5 );
+	runReader.setNumFiles( 10 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	
@@ -154,8 +154,8 @@ int main( int argc, char** argv){
     	    	while((c12.next()==true)){
            		if( event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			event++;
-			evnum  = c12.runconfig()->getEvent();
-			runnum = c12.runconfig()->getRun();
+			//evnum  = c12.runconfig()->getEvent();
+			//runnum = c12.runconfig()->getRun();
 			
 			///////////////////////////Initialize variables//////////////////////////////////////////////	
 			electrons.clear();
@@ -183,7 +183,7 @@ int main( int argc, char** argv){
 			Npi 	= pions.size();
 			
 			if( Ne < 1 ){ continue; } //Keep only events with one electron...
-			if( Npi == 0 && inclusive != 1 ){ continue; }	
+			//if( Npi == 0 && inclusive != 1 ){ continue; }	
 			
 			//////////////electron analysis////////////////////
 			int e_idx = GetLeadingElectron(electrons, Ne);	
@@ -192,61 +192,54 @@ int main( int argc, char** argv){
 			
 			pion pi_dummy;
 			//Find good pions			
-			for(int i = 0; i < Npi; i++){
 
+				
+			
+			int chargeIdx = 0;// = (int)(pi_dummy.getCharge() < 0);
+			
+			int eBin = getThetaBin(e.get3Momentum().Theta()*rad_to_deg);
+			int piBin = -1;
+		
+			for( int j = 0; j < 3; j++ ){//loop through DC layers
+				if( eBin >= 0){
+					hFid_e[chargeIdx][j][eBin][e.getDC_sector() - 1][1]->Fill(e.getEdge(j), abs(e.getDC_chi2()/e.getDC_NDF()));
+					hFid_e[chargeIdx][j][eBin][e.getDC_sector() - 1][0]->Fill(e.getEdge(j));	
+					hFid_e[chargeIdx][j][0][e.getDC_sector() - 1][1]->Fill(e.getEdge(j), abs(e.getDC_chi2()/e.getDC_NDF()));
+					hFid_e[chargeIdx][j][0][e.getDC_sector() - 1][0]->Fill(e.getEdge(j));
+				}
+			}
+			if( Npi == 0 ){continue;}
+			for( int  i = 0; i < Npi; i++ ){	
 				pi_dummy.Clear();
 				pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
-	
-			
-				int chargeIdx = (int)(pi_dummy.getCharge() < 0);
-
-				//PCAL Fiducials
-				if( !anal.applyElectronPCAL( e ) ){continue;}
-				
-				//Electron Min Edep
-				if( !anal.applyElectronEDep( e )){continue;}
-				
-				//Electron SF Cut
-				if( !anal.applyElectronSF( e )){continue;}
-				//Electron SF Correcleation
-				if( !anal.applyElectronCorrelation( e )){continue;}
-				
-				int eBin = getThetaBin(e.get3Momentum().Theta()*rad_to_deg);
+				chargeIdx = (int)(pi_dummy.getCharge() < 0);
 				int piBin = getThetaBin(pi_dummy.get3Momentum().Theta()*rad_to_deg);
-				if( eBin < 0 || piBin < 0 ){continue;}
-				if( pi_dummy.getDC_sector() == 0 || e.getDC_sector() == 0 ){continue;}
-				if( pi_dummy.getChi2() == 9999 || e.getChi2() == 9999 ){continue;}
-				for( int j = 0; j < 3; j++ ){//loop through DC layers
-					//cout<<"Pion theta bin : "<<piBin<<std::endl;
-					//cout<<"Pion chi2 : "<<pi_dummy.getChi2()<<std::endl;
-					//cout<<"Pion edge " << j <<" : "<<pi_dummy.getEdge(j)<<std::endl;
-					hFid_e[chargeIdx][j][eBin][e.getDC_sector() - 1][1]->Fill(e.getEdge(j), abs(e.getChi2()));
-					hFid_e[chargeIdx][j][eBin][e.getDC_sector() - 1][0]->Fill(e.getEdge(j));	
-					hFid_e[chargeIdx][j][0][e.getDC_sector() - 1][1]->Fill(e.getEdge(j), abs(e.getChi2()));
-					hFid_e[chargeIdx][j][0][e.getDC_sector() - 1][0]->Fill(e.getEdge(j));
-					
-					hFid_pi[chargeIdx][j][piBin][pi_dummy.getDC_sector() - 1][1]->Fill(pi_dummy.getEdge(j), abs(pi_dummy.getChi2()));
-					hFid_pi[chargeIdx][j][piBin][pi_dummy.getDC_sector() - 1][0]->Fill(pi_dummy.getEdge(j));
-					hFid_pi[chargeIdx][j][0][pi_dummy.getDC_sector() - 1][1]->Fill(pi_dummy.getEdge(j), abs(pi_dummy.getChi2()));
-					hFid_pi[chargeIdx][j][0][pi_dummy.getDC_sector() - 1][0]->Fill(pi_dummy.getEdge(j));
-					
-				}	
+				if( piBin >= 0 && piBin < 5 && pi_dummy.getDC_sector() >0 ){
+					for( int j = 0; j < 3; j++ ){
+						hFid_pi[chargeIdx][j][piBin][pi_dummy.getDC_sector() - 1][1]->Fill(pi_dummy.getEdge(j), abs(pi_dummy.getDC_chi2()/pi_dummy.getDC_NDF()));
+						hFid_pi[chargeIdx][j][piBin][pi_dummy.getDC_sector() - 1][0]->Fill(pi_dummy.getEdge(j));
+						hFid_pi[chargeIdx][j][0][pi_dummy.getDC_sector() - 1][1]->Fill(pi_dummy.getEdge(j), abs(pi_dummy.getDC_chi2()/pi_dummy.getDC_NDF()));
+						hFid_pi[chargeIdx][j][0][pi_dummy.getDC_sector() - 1][0]->Fill(pi_dummy.getEdge(j));
+					}
+				}
+			
+			}	
+			
+			//Electron Vertex
+			//if( !anal.applyElectronVertex( e )){continue;}
+			
+			////All Cuts (Check)
+			//if( !anal.applyElectronDetectorCuts( e )){continue;}
+			//hBeta_p_e[7]->Fill( e.get3Momentum().Mag(), e.getBeta() );
+			//hBeta_e[7]->Fill( e.getBeta() );
+			//hBeta_p_pi[7][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
+			//hBeta_pi[7][chargeIdx]->Fill( pi_dummy.getBeta() );
+			
+			//Pion Vertex
+			//if( !anal.applyPionDetectorVertex( pi_dummy, e ) ){ continue; }
+			
 
-				//Electron Vertex
-				//if( !anal.applyElectronVertex( e )){continue;}
-				
-				////All Cuts (Check)
-				//if( !anal.applyElectronDetectorCuts( e )){continue;}
-				//hBeta_p_e[7]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				//hBeta_e[7]->Fill( e.getBeta() );
-				//hBeta_p_pi[7][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				//hBeta_pi[7][chargeIdx]->Fill( pi_dummy.getBeta() );
-				
-				//Pion Vertex
-				//if( !anal.applyPionDetectorVertex( pi_dummy, e ) ){ continue; }
-				
-
-			}
+			//}
 
 			
 		}
@@ -265,6 +258,7 @@ int main( int argc, char** argv){
 				hFid_pi[i][j][k][l][1]->Divide(hFid_pi[i][j][k][l][0]);
 				
 				hFid_e[i][j][k][l][1]->Write();
+				//hFid_e[i][j][k][l][0]->Write();
 				hFid_pi[i][j][k][l][1]->Write();
 			
 				}
