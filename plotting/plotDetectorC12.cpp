@@ -44,7 +44,7 @@ int main( int argc, char** argv){
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2] << "\nnFiles " << atoi(argv[3]) << "\n";
 	*/
-	TFile * f1 = new TFile( "test.root" );
+	TFile * f1 = new TFile( "/work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/detector_plots_10.2.root" );
 	TIter keyList( f1->GetListOfKeys() );
 	TKey *key;
 	
@@ -90,7 +90,7 @@ int main( int argc, char** argv){
 
 			if( madeHist ){continue;}
 
-			makeCanvas(h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+			makeCanvas(h1, "VAR", "VAR", "plotting/"+(TString)h1->GetName()+".pdf");	
 
 		}
 		else{

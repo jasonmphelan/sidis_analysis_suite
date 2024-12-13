@@ -79,7 +79,10 @@ namespace cutVals{
 	const int bins_p = 4;
 	const double p_bin_edges[5] = { 1.25, 2.25, 2.50, 3.5, 5.00};
 	const double p_bin_edges_3d[5] = { 1.25, 2.00, 2.50, 3.5, 5.00};
-	
+
+	const double e_fid_cuts[3] = {5, 5, 10};//[region]
+	const double pi_fid_cuts[2][3] = { {3, 3, 10}, {3, 5, 9} };//[charge][region]
+
 }
 
 #endif
