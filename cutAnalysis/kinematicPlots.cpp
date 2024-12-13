@@ -144,7 +144,8 @@ int main( int argc, char** argv){
 	TTreeReaderValue<electron> e(reader_rec, "e");
         TTreeReaderArray<pion> pi(reader_rec, "pi");
 
-        
+       	int counts[2][10] = {0};
+
 	cout<<"BEGIN EVENT LOOP\n";
 	int event_total = reader_rec.GetEntries();
 
@@ -158,31 +159,41 @@ int main( int argc, char** argv){
 
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			int idx = (int)( pi[i].getCharge() < 0 );
+	
+
 
 			hQ2_W[idx]->Fill( e->getQ2(), sqrt( e->getW2() ) );
 			hQ2_omega[idx]->Fill( e->getQ2(), e->getOmega()  );
 			
+			counts[idx][0]++;
 			h_W[idx]->Fill( sqrt( e->getW2() ) );
 			if( sqrt(e->getW2() < 2.5 ) ){continue;}
 			
+			counts[idx][1]++;
 			h_Q2[idx]->Fill( e->getQ2() );
 			if( e->getQ2() < 2 ){ continue; }
 
+			counts[idx][2]++;
 			h_y[idx]->Fill( e->getY() );
 			if( e->getY() > 0.75 ){continue;}
 
+			counts[idx][3]++;
 			h_Mx[idx]->Fill( pi[i].getMx() );
 			if( pi[i].getMx() < 0.7 ){ continue; }
 
+			counts[idx][4]++;
 			h_p_pi[idx]->Fill( pi[i].get3Momentum().Mag() );
 			if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum().Mag() > 5 ){continue;}
 
+			counts[idx][5]++;
 			h_theta_e[idx]->Fill( e->get3Momentum().Theta()*rad_to_deg );
 			if( e->get3Momentum().Theta()*rad_to_deg < 5 || e->get3Momentum().Theta()*rad_to_deg > 40 ){continue;}
 				
+			counts[idx][6]++;
 			h_theta_pi[idx]->Fill( pi[i].get3Momentum().Theta()*rad_to_deg );
 			if( pi[i].get3Momentum().Theta()*rad_to_deg < 5 || pi[i].get3Momentum().Theta()*rad_to_deg > 40 ){continue;}
 			
+			counts[idx][7]++;
 			h_Z[idx]->Fill( pi[i].getZ() );
 		}
 	}
@@ -209,23 +220,20 @@ int main( int argc, char** argv){
 	}
 
         outFile->Close();
-	/*	
+		
 	std::ofstream txtFile;
         txtFile.open(out_name + ".txt");
         txtFile<< "\t(e,e'pi+)\t#(e,e'pi-)\n";
-        txtFile<< "All tracks\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
-        txtFile<< "Event Builder\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
-        txtFile<< "PCAL WV\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
-        txtFile<< "PCAL Edep\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
-        txtFile<< "SF Cuts\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
-        txtFile<< "SF Correlation\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
-        txtFile<< "Electron Vertex\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
-        txtFile<< "Pion Vertex\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
-        txtFile<< "Chi2\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
-        txtFile<< "Electron DC Fiducials\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
-        txtFile<< "Pion DC Fiducials\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
+        txtFile<< "All events\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
+        txtFile<< "W2\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
+        txtFile<< "Q2\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
+        txtFile<< "y\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
+        txtFile<< "Mx\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
+        txtFile<< "p_pi\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
+        txtFile<< "theta_e\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
+        txtFile<< "theta_pi\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
         txtFile.close();
-	*/
+	
 
 	auto finish = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = finish - start;
