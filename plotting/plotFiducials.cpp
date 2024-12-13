@@ -191,10 +191,7 @@ void drawCut(TString varTit, double xMin, double xMax, double yMin, double yMax,
 }
 
 
-void makeCanvas(TH1F * h1, TString varTit, TString outfileName){
-
-	//h1->Sumw2();
-	//h2->Sumw2();
+void format(TH1F * h1){
 
 	double fontSize = 35;
 	double labelSize = 30;
@@ -206,7 +203,6 @@ void makeCanvas(TH1F * h1, TString varTit, TString outfileName){
 	
 	double maximum = h1->GetMaximum();
 
-	TString temp_x = varTit;
 
 	h1->GetYaxis()->SetRangeUser(0, 1.3*maximum);
 	h1->SetTitle("");
@@ -219,14 +215,10 @@ void makeCanvas(TH1F * h1, TString varTit, TString outfileName){
 
 	
 
-	TCanvas * c1 = new TCanvas("c1", "c1", 1600, 1000);
-	
-	
 	//h1->GetXaxis()->SetTitle(temp_x);
 	//h1->GetYaxis()->SetTitle("Counts [a.u.]");
 	
 	h1->GetXaxis()->SetLabelSize(labelSize);
-	h1->Draw("E");
 	h1->GetXaxis()->SetTitleFont(fontStyle);
 	h1->GetXaxis()->SetTitleSize(titleSize);
 	h1->GetXaxis()->SetTitleOffset(0.9);
@@ -240,157 +232,68 @@ void makeCanvas(TH1F * h1, TString varTit, TString outfileName){
 
 	h1->GetYaxis()->SetTitleSize(titleSize);
 
-	drawCut(h1->GetName(), 1.3*maximum, c1 );
 
-	c1->SaveAs(outfileName);
-
-	delete c1;
-	delete h1;
 }
 
-void makeCanvas(TH2F * h1, TString xAxis, TString yAxis, TString outFileName){
-
-	//TFile * inFile_1 = new TFile(inFileName);
-
-	//TH2F * h1 = (TH2F *)inFile_1->Get(histName);
-	h1->SetStats(0);
-	double fontSize = 20;
-	double labelSize = 15;
-	double titleSize = 20;
-	int fontStyle = 43;	
-
-	h1->SetTitle("");
-	//h1->GetXaxis()->SetTitle(xAxis);
-	//h1->GetYaxis()->SetTitle(yAxis);
-	gStyle->SetPalette(kBlueGreenYellow);
-
-	TCanvas * c1 = new TCanvas("c1", "c1");
-	h1->Draw("COL");
-	h1->GetXaxis()->SetTitleFont(fontStyle);
-	h1->GetXaxis()->SetTitleSize(titleSize);
-	h1->GetXaxis()->SetTitleOffset(0.9);
-	h1->GetYaxis()->SetTitleFont(fontStyle);
-	h1->GetYaxis()->SetTitleSize(titleSize);
-
-	h1->SetLabelFont(fontStyle, "xyz");
-	h1->SetLabelSize(labelSize, "x");
-	h1->SetLabelSize(labelSize, "y");
-
-	double nXbins = h1->GetXaxis()->GetNbins();
-	double nYbins = h1->GetYaxis()->GetNbins();
-	double xMin = h1->GetXaxis()->GetBinLowEdge( 1 );
-	double xMax = h1->GetXaxis()->GetBinUpEdge( nXbins );
-	double yMin = h1->GetYaxis()->GetBinLowEdge( 1 );
-	double yMax = h1->GetYaxis()->GetBinUpEdge( nYbins );
-
-	h1->GetYaxis()->SetTitleSize(titleSize);
-	drawCut(h1->GetName(), xMin, xMax, yMin, yMax, c1);
-	c1->SetLogz();	
-	c1->SaveAs(outFileName);
-
-	delete c1;
-}
-
-void makeCanvas(TH2F * h1, TH2F * h2, TString xAxis, TString yAxis, TString outFileName){
-
-	//TFile * inFile_1 = new TFile(inFileName);
-
-	//TH2F * h1 = (TH2F *)inFile_1->Get(histName);
-	h1->SetStats(0);
-	h2->SetStats(0);
-	double fontSize = 20;
-	double labelSize = 15;
-	double titleSize = 20;
-	int fontStyle = 43;	
-
-	h1->SetTitle("");
-	//h1->GetXaxis()->SetTitle(xAxis);
-	//h1->GetYaxis()->SetTitle(yAxis);
-
-	TCanvas * c1 = new TCanvas("c1", "c1");
-	//h1->SetMaximum(1);
-	h1->Draw("SCAT");
-	gStyle->SetPalette(kBird);
-	h2->Draw("COL same");
-	h1->GetXaxis()->SetTitleFont(fontStyle);
-	h1->GetXaxis()->SetTitleSize(titleSize);
-	h1->GetXaxis()->SetTitleOffset(0.9);
-	h1->GetYaxis()->SetTitleFont(fontStyle);
-	h1->GetYaxis()->SetTitleSize(titleSize);
-
-	h1->SetLabelFont(fontStyle, "xyz");
-	h1->SetLabelSize(labelSize, "x");
-	h1->SetLabelSize(labelSize, "y");
-
-	double nXbins = h1->GetXaxis()->GetNbins();
-	double nYbins = h1->GetYaxis()->GetNbins();
-	double xMin = h1->GetXaxis()->GetBinLowEdge( 1 );
-	double xMax = h1->GetXaxis()->GetBinUpEdge( nXbins );
-	double yMin = h1->GetYaxis()->GetBinLowEdge( 1 );
-	double yMax = h1->GetYaxis()->GetBinUpEdge( nYbins );
-
-	h1->GetYaxis()->SetTitleSize(titleSize);
-	drawCut(h1->GetName(), xMin, xMax, yMin, yMax, c1);
-	c1->SetLogz();	
-	c1->SaveAs(outFileName);
-
-	delete c1;
-}
-
-void plotDetector(){
-	TFile * f1 = new TFile( "../histograms/analysis_note/detector_plots_10.6.root" );
-	TIter keyList( f1->GetListOfKeys() );
-	TKey *key;
-	
-	while( (key = (TKey*)keyList()) ){
-		TClass *cl = gROOT->GetClass(key->GetClassName());
-		bool madeHist = false;
-		if( cl->InheritsFrom("TH2")){
-			TH2F * h1 = (TH2F*)key->ReadObj();
-			for( int i = 0; i < 3; i++ ){
-				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pip", i) ){
-					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
-					madeHist = true;
-				}
-				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pip", i) ){
-					madeHist = true;
-				}
-				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pim", i) ){
-					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
-					madeHist = true;
-				}
-				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pim", i) ){
-					madeHist = true;
-				}
-				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pip", i) ){
-					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
-					madeHist = true;
-				}
-				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pip", i) ){
-					madeHist = true;
-				}
-				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pim", i) ){
-					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
-					madeHist = true;
-				}
-				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pim", i) ){
-					madeHist = true;
-				}
+void plotFiducials(){
+	TFile * f1 = new TFile( "../histograms/analysis_note/fiducials.root" );
+	gStyle->SetPalette(kRainBow);
+	TString lstring[5] = {"All", "5 < #theta < 12", "12 < #theta < 18", "18 < #theta < 24", "24 < #theta < 40"};
+	for( int lay = 0; lay < 3; lay++ ){
+		for( int sec = 0; sec < 6; sec++ ){//6
+			TCanvas * c1 = new TCanvas("c1", "c1", 1600, 1000);
+			TLegend * legend = new TLegend(0.67,0.71, .89, .89);
+			legend->SetHeader("Legend", "C");
+			for( int bin = 0; bin < 5; bin++ ){//5
+				TH1F * h1 = (TH1F *)f1->Get(Form("hFid_e_w_reg_%i_%i_%i_pip", lay, bin, sec ) );
+				format(h1);				
+				h1->Draw("same PLC PMC");
+				legend->AddEntry(h1, lstring[bin], "l");
+				//delete h1;
 			}
-
-			if( madeHist ){continue;}
-
-			makeCanvas(h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
-
-		}
-		else{
-			TH1F * h1 = (TH1F *)key->ReadObj();
-			//TH1F * h1 = (TH1F *)f1->Get("hSF_sec_1_pim");
-			makeCanvas(h1, "#chi", (TString)h1->GetName() + ".pdf");
+			legend->Draw();
+			c1->SaveAs( Form("fiducials_reg_%i_sec_%i.pdf", lay, sec ) );
+			delete c1;
 		}
 	}
+	for( int lay = 0; lay < 3; lay++ ){
+		for( int sec = 0; sec < 6; sec++ ){//6
+			TCanvas * c1 = new TCanvas("c1", "c1", 1600, 1000);
+			TLegend * legend = new TLegend(0.67,0.71, .89, .89);
+
+			legend->SetHeader("Legend", "C");
+			
+			for( int bin = 0; bin < 5; bin++ ){//5
+				TH1F * h1 = (TH1F *)f1->Get(Form("hFid_pi_w_reg_%i_%i_%i_pip", lay, bin, sec ) );
+				format(h1);				
+				h1->Draw("same PLC PMC");
+				//delete h1;
+				legend->AddEntry(h1, lstring[bin], "l");
+			}
+			legend->Draw();
+			c1->SaveAs( Form("fiducials_pip_reg_%i_sec_%i.pdf", lay, sec ) );
+			delete c1;
+		}
+	}
+	for( int lay = 0; lay < 3; lay++ ){
+		for( int sec = 0; sec < 6; sec++ ){//6
+			TCanvas * c1 = new TCanvas("c1", "c1", 1600, 1000);
+			TLegend * legend = new TLegend(0.67,0.71, .89, .89);
+
+			legend->SetHeader("Legend", "C");
+			
+			for( int bin = 0; bin < 5; bin++ ){//5
+				TH1F * h1 = (TH1F *)f1->Get(Form("hFid_pi_w_reg_%i_%i_%i_pim", lay, bin, sec ) );
+				format(h1);				
+				h1->Draw("same PLC PMC");
+				//delete h1;
+				legend->AddEntry(h1, lstring[bin], "l");
+			}
+			legend->Draw();
+			c1->SaveAs( Form("fiducials_pim_reg_%i_sec_%i.pdf", lay, sec ) );
+			delete c1;
+		}
+	}
+	
+
 }
