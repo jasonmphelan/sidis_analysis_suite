@@ -81,10 +81,14 @@ int main( int argc, char** argv){
 	for( int i = 0; i < bins_Q2; i++ ){
 		for( int j = 0; j < bins_xB; j++ ){
 			for( int k = 0; k < 2; k++ ){
-		
-				hZ[i][j][k] = new TH1F("hRatio" + charge_str[k] + Form("_%i_%i",  i+1, j+1) ,"hRatio_" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , bins_Z, .3, 1);
-				hZ_r[i][j][k] = new TH1F("hRatio_r" + charge_str[k] + Form("_%i_%i",  i+1, j+1) ,"hRatio_" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , bins_Z, .3, 1);
-				hZ_r_bac[i][j][k] = new TH1F("hRatio_r_bac" + charge_str[k] + Form("_%i_%i",  i+1, j+1) ,"hRatio_" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , bins_Z, .3, 1);
+			
+				TString title = Form("%.1f < Q^{2} < %.1f [GeV^{2}], %.2f < x_{B} < %.2f", 
+							Q2_min + (double)i*(0.5), Q2_min + (double)(i+1.)*(0.5), 
+							xB_min + (double)j*(0.05), xB_min + (double)(j+1.)*(0.05)); 
+
+				hZ[i][j][k] = new TH1F("hRatio" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+				hZ_r[i][j][k] = new TH1F("hRatio_r" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+				hZ_r_bac[i][j][k] = new TH1F("hRatio_r_bac" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
 						
 			}
 		}
@@ -201,7 +205,7 @@ int main( int argc, char** argv){
 	event_total = reader_r.GetEntries();
 	//double events_in_bin[2][bins_Q2][bins_xB][bins_Z][bins_p] = {0};
 
-	if( applyCorr == 4 ){
+	if( applyCorr == 0 ){
 		while (reader_r.Next()) {
 			int event_count = reader_r.GetCurrentEntry();
 

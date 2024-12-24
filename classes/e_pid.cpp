@@ -175,7 +175,7 @@ void e_pid::drawMom(int sector, TCanvas * myCanvas){
 
 
 	myCanvas->cd();
-	meanFunction->Draw("SAME");
+	//meanFunction->Draw("SAME");
 	maxFunction->Draw("SAME");
 	minFunction->Draw("SAME");
 
