@@ -56,7 +56,7 @@ void drawCut(TString varTit, double yMax, TCanvas * c1){
 		l1->SetLineWidth(2);	
 		l1->Draw("same");
 		
-		TLine * l2 = new TLine( -1, 0, -1, yMax );
+		TLine * l2 = new TLine( 1, 0, 1, yMax );
 		l2->SetLineColor( kRed );
 		l2->SetLineWidth(2);	
 		l2->Draw("same");
@@ -350,7 +350,7 @@ void plotDetector(){
 			for( int i = 0; i < 3; i++ ){
 				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pip", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR", "selection_plots/"+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pip", i) ){
@@ -358,7 +358,7 @@ void plotDetector(){
 				}
 				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pim", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR", "selection_plots/"+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pim", i) ){
@@ -366,7 +366,7 @@ void plotDetector(){
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pip", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR", "selection_plots/"+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pip", i) ){
@@ -374,7 +374,7 @@ void plotDetector(){
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pim", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR", "selection_plots/"+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pim", i) ){
@@ -384,13 +384,13 @@ void plotDetector(){
 
 			if( madeHist ){continue;}
 
-			makeCanvas(h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+			makeCanvas(h1, "VAR", "VAR", "selection_plots/"+(TString)h1->GetName()+".pdf");	
 
 		}
 		else{
 			TH1F * h1 = (TH1F *)key->ReadObj();
 			//TH1F * h1 = (TH1F *)f1->Get("hSF_sec_1_pim");
-			makeCanvas(h1, "#chi", (TString)h1->GetName() + ".pdf");
+			makeCanvas(h1, "#chi", "selection_plots/"+(TString)h1->GetName() + ".pdf");
 		}
 	}
 }
