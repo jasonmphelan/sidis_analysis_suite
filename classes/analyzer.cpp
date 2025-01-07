@@ -67,25 +67,25 @@ bool analyzer::applyElectronDetectorCuts( electron e ){
 	double e_DC_z[3] = {e.getDC_z1(), e.getDC_z2(), e.getDC_z3()};
 
 
-
+/*
 	for (int regionIdx=0; regionIdx<3; regionIdx++) {
 		// DC_e_fid:
 		// sector:  1-6
 		// layer:   1-3
 		// bending: 0(out)/1(in)
 		if( e.getEdge(regionIdx) < e_fid_cuts[regionIdx] ){ return false; }
-		/*
-		int bending  = 1 ? (torusBending==-1) : 0;
-		bool DC_fid  = dcfid.DC_fid_xy_sidis( 11,                 // particle PID,
-						e_DC_x[regionIdx],  // x
-						e_DC_y[regionIdx],  // y
-						e.getDC_sector(),        // sector
-						regionIdx+1,        // layer
-						bending );           // torus bending
-		if (DC_fid == false) { return false; }
-		*/
+		
+		//int bending  = 1 ? (torusBending==-1) : 0;
+		//bool DC_fid  = dcfid.DC_fid_xy_sidis( 11,                 // particle PID,
+		//				e_DC_x[regionIdx],  // x
+		//				e_DC_y[regionIdx],  // y
+		//				e.getDC_sector(),        // sector
+		//				regionIdx+1,        // layer
+		//				bending );           // torus bending
+		//if (DC_fid == false) { return false; }
+		
 	}	
-
+*/
 	// PCAL FIDUCIAL	
 	if( ! (	e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min)) return false;
 
@@ -174,7 +174,7 @@ bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
 	//double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
 	//double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
 	//double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
-	
+/*
 	for (int regionIdx=0; regionIdx<3; regionIdx++) {
 		// DC_e_fid:
 		// sector:  1-6
@@ -182,21 +182,21 @@ bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
 		// bending: 0(out)/1(in)
 	
 		if( pi.getEdge(regionIdx) < pi_fid_cuts[ (int)(pi.getCharge() < 0 ) ][regionIdx] ){ return false; }
-	/*	
-		int bending  = 1 ? (torusBending==-1) : 0;
-		bool DC_fid  = dcfid.DC_fid_th_ph_sidis(pi.getPID(),            // particle PID
-							DC_x[regionIdx],    // x
-							DC_y[regionIdx],    // y
-							DC_z[regionIdx],    // z
-							pi.getDC_sector(),          // sector
-							regionIdx+1,        // layer
-							bending);           // torus bending
 		
-		if (DC_fid == false) { return false; }
-	*/
+		//int bending  = 1 ? (torusBending==-1) : 0;
+		//bool DC_fid  = dcfid.DC_fid_th_ph_sidis(pi.getPID(),            // particle PID
+		//					DC_x[regionIdx],    // x
+		//					DC_y[regionIdx],    // y
+		//					DC_z[regionIdx],    // z
+		//					pi.getDC_sector(),          // sector
+		//					regionIdx+1,        // layer
+		//					bending);           // torus bending
+		//
+		//if (DC_fid == false) { return false; }
+	
 	}
 	
-
+*/
 	
 
 	//PION CHI2 vs P CUT

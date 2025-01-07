@@ -84,7 +84,7 @@ int main( int argc, char** argv){
 			
 				TString title = Form("%.1f < Q^{2} < %.1f [GeV^{2}], %.2f < x_{B} < %.2f", 
 							Q2_min + (double)i*(0.5), Q2_min + (double)(i+1.)*(0.5), 
-							xB_min + (double)j*(0.05), xB_min + (double)(j+1.)*(0.05)); 
+							xB_min + (double)j*(0.04), xB_min + (double)(j+1.)*(0.04)); 
 
 				hZ[i][j][k] = new TH1F("hRatio" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
 				hZ_r[i][j][k] = new TH1F("hRatio_r" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
@@ -106,7 +106,7 @@ int main( int argc, char** argv){
 
 	TTreeReader reader_rec("ePi", inFile);
 
-	TTreeReaderValue<double> eBeam( reader_rec, "eBeam" );
+	TTreeReaderValue<TLorentzVector> beam( reader_rec, "beam" );
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	
@@ -122,9 +122,9 @@ int main( int argc, char** argv){
 			cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
 		}
 
-		if( *eBeam != beam_energy ){
-			corrector.loadNewEnergy( *eBeam );
-			beam_energy = *eBeam;
+		if( beam->E() != beam_energy ){
+			corrector.loadNewEnergy( beam->E() );
+			beam_energy = beam->E();
 		}
 
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
@@ -193,7 +193,7 @@ int main( int argc, char** argv){
 	///////////////////////////////////////
 	
 	TTreeReader reader_r("ePi", rFile);
-	TTreeReaderValue<double> eBeam_r( reader_r, "eBeam" );
+	TTreeReaderValue<TLorentzVector> beam_r( reader_r, "beam" );
 
 	TTreeReaderValue<electron> e_r(reader_r, "e");
 	TTreeReaderArray<pion> r(reader_r, "pi");
@@ -205,16 +205,17 @@ int main( int argc, char** argv){
 	event_total = reader_r.GetEntries();
 	//double events_in_bin[2][bins_Q2][bins_xB][bins_Z][bins_p] = {0};
 
-	if( applyCorr == 0 ){
+	if( applyCorr>-1 ){
 		while (reader_r.Next()) {
 			int event_count = reader_r.GetCurrentEntry();
 
-			if(event_count%100000 == 0){
+			if(event_count%10000 == 0){
 				cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
 			}
-			if( *eBeam_r != beam_energy ){
-				corrector.loadNewEnergy( *eBeam_r );
-				beam_energy = *eBeam_r;
+			if( beam_r->E() != beam_energy ){
+				std::cout<<"Setting correction energy\n";
+				corrector.loadNewEnergy( beam_r->E() );
+				beam_energy = beam_r->E();
 			}
 
 			for( int i = 0; i < (int) ( r.end() - r.begin() ); i++ ){
@@ -262,7 +263,9 @@ int main( int argc, char** argv){
 				
 				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(*rhoError / *rhoWeight, 2) );
 				eventWeightErr += weight*sqrt( pow(mc_err/mc_weight, 2) + pow(*rhoError / *rhoWeight, 2) );
-			
+		
+				if( isnan(eventWeightErr) ){continue;}
+
 				if( *Mx_2pi < 1.15 ){
 					hZ_r[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
 					sumWeights[2][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += weight*weight;	
@@ -307,9 +310,7 @@ int main( int argc, char** argv){
 
 	for( int i = 1; i <= bins_Q2; i++ ){
 		for( int j = 1; j <= bins_xB; j++ ){
-			cout<<"Doing bin : x = "<<j<<" , Q2 = "<<i<<std::endl;
 			for( int k = 1; k <= bins_Z; k++ ){
-				cout<<" and z = "<<k<<std::endl;
 				hZ[i-1][j-1][0]->SetBinError( k, sqrt( sumWeights[0][i-1][j-1][k-1][0] + sumWeightsErr[0][i-1][j-1][k-1][0]) );
 				hZ[i-1][j-1][1]->SetBinError( k, sqrt( sumWeights[0][i-1][j-1][k-1][1] + sumWeightsErr[0][i-1][j-1][k-1][1]) );
 				
@@ -338,7 +339,7 @@ int main( int argc, char** argv){
 					double pim_scale = hNorms_pim->GetBinContent(j, i, k);
 					double pim_scale_err = hNorms_pim->GetBinError(j, i, k);
 					
-					hZ_r_bac[i-1][j-1][0]->SetBinContent( k, pip_cont*pim_scale );
+					hZ_r_bac[i-1][j-1][1]->SetBinContent( k, pim_cont*pim_scale );
 					hZ_r_bac[i-1][j-1][1]->SetBinError( k, pim_cont*pim_scale*sqrt( pow( pim_err/pim_cont, 2) 
 											+ pow( pim_scale_err/pim_scale, 2) ) );
 					
@@ -351,9 +352,6 @@ int main( int argc, char** argv){
 				zeroSuppress(hZ_r[i-1][j-1][0]);
 				zeroSuppress(hZ_r[i-1][j-1][1]);
 
-				//hZ[i-1][j-1][0]->Add( hZ_r[i-1][j-1][0], -1 );
-				//hZ[i-1][j-1][1]->Add( hZ_r[i-1][j-1][1], -1 );
-			
 			}
 
 			hZ[i-1][j-1][0]->Write();
@@ -375,6 +373,9 @@ void zeroSuppress( TH1F * h){
 	for( int i = 1; i <= nBins; i++ ){
 		if( h->GetBinContent(i) < 0 ){
 			h->SetBinContent(i, 0);
+			h->SetBinError(i, 0);
+		}
+		if( isnan(h->GetBinError(i)) ){
 			h->SetBinError(i, 0);
 		}
 	}

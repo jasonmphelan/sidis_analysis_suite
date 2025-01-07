@@ -176,6 +176,11 @@ int main( int argc, char** argv){
 	TCanvas canvas("canvas");
 	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
 	canvas.Clear();
+	
+	double fontSize = 35;
+	double labelSize = 30;
+	double titleSize = 35;	
+	int fontStyle = 43;
 
 	for( int j = 0; j <= nBinsQ2; j++ ){
 		for( int k = 0; k <= nBinsXb; k++ ){
@@ -184,7 +189,7 @@ int main( int argc, char** argv){
 					//hBeta_p[i][j][k][l]->Write();
 					if( j > 0 && k > 0 && l > 0 && hBeta_rich_p[i][j][k][l]->Integral() != 0){
 
-						hBeta_rich_p[i][j][k][l]->SetTitleSize(10);
+						hBeta_rich_p[i][j][k][l]->SetTitleSize(titleSize);
 						hBeta_rich_p[i][j][k][l]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f" , 
 											2 + .5*(j-1), 2 + .5*j,
 										     	.1 + .05*(k-1), .1 + .05*k,
@@ -197,7 +202,7 @@ int main( int argc, char** argv){
 					for( int m = 0; m <= 4; m++ ){//momentum bins
 						if( j > 0 && k > 0 && l > 0 && m > 0 && h_Beta_rich[i][j][k][l][m]->Integral()!= 0){
 
-							h_Beta_rich[i][j][k][l][m]->SetTitleSize(10);
+							h_Beta_rich[i][j][k][l][m]->SetTitleSize(titleSize);
 							h_Beta_rich[i][j][k][l][m]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f & %.2f<p<%.2f" , 
 												2 + .5*(j-1), 2 + .5*j,
 											     	.1 + .05*(k-1), .1 + .05*k,

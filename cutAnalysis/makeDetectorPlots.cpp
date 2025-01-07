@@ -78,7 +78,7 @@ int main( int argc, char** argv){
 	anal.loadCutValues(-1, Ebeam);
 	
 	reader runReader;
-	runReader.setNumFiles( 1 );
+	runReader.setNumFiles( 0 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	

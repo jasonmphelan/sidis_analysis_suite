@@ -91,7 +91,7 @@ void e_pid::setParamsRGB(double Ebeam){
 		sprintf(paramFileNameEpcal,"%s/clas12pid/SFvEpcal_Params_106_RGB.dat",std::string(PID_DIR).c_str());
 		sprintf(paramFileNameMom,"%s/clas12pid/SFvMom_Params_106_RGB.dat",std::string(PID_DIR).c_str());
 	}
-	cout<<"FILLING PARAMETERS\n";
+	cout<<"FILLING PARAMETERS FROM "<<paramFileNameMom<<std::endl;
 	//Load file data
 	fillParams();
 }
@@ -149,7 +149,6 @@ void e_pid::drawEpcal(int sector, TCanvas * myCanvas){
 	minFunction->SetLineColor(color);
 	minFunction->SetParameters(paramsEpcal[sector][0],paramsEpcal[sector][1],paramsEpcal[sector][2],paramsEpcal[sector][3],paramsEpcal[sector][4],paramsEpcal[sector][5]);
 
-
 	myCanvas->cd();
 	meanFunction->Draw("SAME");
 	maxFunction->Draw("SAME");
@@ -161,15 +160,18 @@ void e_pid::drawMom(int sector, TCanvas * myCanvas){
 
 	sector--;
 
-	TF1 * meanFunction = new TF1("Mean",[&](double *x, double *p){ return FF(x[0],p[0],p[1],p[2]); },0.5,9.5,3);
-	meanFunction->SetLineColor(color);
-	meanFunction->SetParameters(paramsMom[sector][0],paramsMom[sector][1],paramsMom[sector][2]);
+	//TF1 * meanFunction = new TF1("Mean",[&](double *x, double *p){ return FF(x[0],p[0],p[1],p[2]); },0.5,9.5,3);
+	//meanFunction->SetLineColor(color);
+	//meanFunction->SetParameters(paramsMom[sector][0],paramsMom[sector][1],paramsMom[sector][2]);
 
-	TF1 * maxFunction = new TF1("Max",[&](double *x, double *p){ return FF(x[0],p[0],p[1],p[2]) + intervalEpcal * FF(x[0],p[3],p[4],p[5]); },0.5,9.5,6);
+	//TF1 * maxFunction = new TF1("Max",[&](double *x, double *p){ return FF(x[0],p[0],p[1],p[2]) + intervalEpcal * FF(x[0],p[3],p[4],p[5]); },0.5,9.5,6);
+	TF1 * maxFunction = new TF1("Max", "[0] + [1]/sqrt(x) + [2]/x + 3.5*([3] + [4]/sqrt(x) + [5]/x)" ,0.5,9.5);
 	maxFunction->SetLineColor(color);
 	maxFunction->SetParameters(paramsMom[sector][0],paramsMom[sector][1],paramsMom[sector][2],paramsMom[sector][3],paramsMom[sector][4],paramsMom[sector][5]);
 
-	TF1 * minFunction = new TF1("Min",[&](double *x, double *p){ return FF(x[0],p[0],p[1],p[2]) - intervalEpcal * FF(x[0],p[3],p[4],p[5]); },0.5,9.5,6);
+
+	//TF1 * minFunction = new TF1("Min",[&](double *x, double *p){ return FF(x[0],p[0],p[1],p[2]) - intervalEpcal * FF(x[0],p[3],p[4],p[5]); },0.5,9.5,6);
+	TF1 * minFunction = new TF1("Min", "[0] + [1]/sqrt(x) + [2]/x - 3.5*([3] + [4]/sqrt(x) + [5]/x)" ,0.5,9.5);
 	minFunction->SetLineColor(color);
 	minFunction->SetParameters(paramsMom[sector][0],paramsMom[sector][1],paramsMom[sector][2],paramsMom[sector][3],paramsMom[sector][4],paramsMom[sector][5]);
 

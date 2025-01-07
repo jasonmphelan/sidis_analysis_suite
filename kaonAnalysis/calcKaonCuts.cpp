@@ -51,8 +51,6 @@ int main( int argc, char** argv){
 	int nBinsQ2 = bins_Q2;
 	int nBinsXb = (int) (10*bins_xB/25.);
 	int nBinsZ = 2*bins_Z;
-
-
 	
 	cout<<"GETTING HISTS\n";
 
@@ -90,12 +88,14 @@ int main( int argc, char** argv){
 	}
 
 	cout<<"BEGIN FITTING\n";
-	TCanvas canvasP("canvasP");
-	canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf[");
-	canvasP.Clear();
-	TCanvas canvasM("canvaMP");
-	canvasM.Print((TString) HIST_PATH + "/" + out_name + "_m.pdf[");
-	canvasM.Clear();
+	//TCanvas canvasP("canvasP");
+	//canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf[");
+	//canvasP.Clear();
+	//TCanvas canvasM("canvaMP");
+	//canvasM.Print((TString) HIST_PATH + "/" + out_name + "_m.pdf[");
+	//canvasM.Clear();
+	
+	outFile->cd();
 	for( int j = 0; j < nBinsQ2; j++ ){
 		for( int k = 0; k < nBinsXb; k++ ){
 			for( int l = 0; l < nBinsZ; l++ ){
@@ -211,9 +211,10 @@ int main( int argc, char** argv){
 					}
 					
 					if( j == 0 && k == 1 && l == 4 && m == 2 ){
-						canvasP.cd();
-						hBeta[0][j+1][k+1][l+1][m+1]->SetStats(0);;
-						hBeta[0][j+1][k+1][l+1][m+1]->SetTitle("");
+						//canvasP.cd();
+						TCanvas * c1 = new TCanvas(Form("c_%i_%i_%i_%i", j, k, l, m), Form("c_%i_%i_%i_%i", j, k, l, m), 1600, 1000);
+						hBeta[0][j+1][k+1][l+1][m+1]->SetStats(0);
+						hBeta[0][j+1][k+1][l+1][m+1]->SetTitle(Form("%.1f < Q^{2} < %.1f, %.2f < x_{B} < %.2f, %.2f < z < %.2f, %.2f < p < %.2f", 1, 2, 3, 4));
 						hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetTitle("#beta");
 						hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetTitleFont(43);
         					hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->SetTitleSize(20);
@@ -225,8 +226,10 @@ int main( int argc, char** argv){
 						hBeta[0][j+1][k+1][l+1][m+1]->Draw("");
 
 						fitPip[j][k][l][m]->Draw("SAME");	
-						canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf");
-						canvasP.Clear();
+						c1->Write();
+						delete c1;
+						//canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf");
+						//canvasP.Clear();
 					}
 						
 					//hBeta[1][j+1][k+1][l+1][m+1]->Draw("");
@@ -239,9 +242,8 @@ int main( int argc, char** argv){
 			}
 		}
 	}	
-	canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf]");
-	canvasM.Print((TString) HIST_PATH + "/" + out_name + "_m.pdf]");
-	outFile->cd();
+	//canvasP.Print((TString) HIST_PATH + "/" + out_name + "_p.pdf]");
+	//canvasM.Print((TString) HIST_PATH + "/" + out_name + "_m.pdf]");
 	
 	for( int i = 0; i < bins_p; i++ ){
 		kaonCorr_full[i] = (TH3F*)kaonCorr_p[i]->Clone(Form("hKaonCorr_%i", i)); 

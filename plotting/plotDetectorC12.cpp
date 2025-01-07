@@ -47,7 +47,8 @@ int main( int argc, char** argv){
 	TFile * f1 = new TFile( "/work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/detector_plots_10.2.root" );
 	TIter keyList( f1->GetListOfKeys() );
 	TKey *key;
-	
+	TString path = "/work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/selection_plots/";
+
 	while( (key = (TKey*)keyList()) ){
 		TClass *cl = gROOT->GetClass(key->GetClassName());
 		bool madeHist = false;
@@ -56,7 +57,7 @@ int main( int argc, char** argv){
 			for( int i = 0; i < 3; i++ ){
 				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pip", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR", path+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pip", i) ){
@@ -64,7 +65,7 @@ int main( int argc, char** argv){
 				}
 				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pim", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR", path+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_pi_aft_reg_%i_pim", i) ){
@@ -72,7 +73,7 @@ int main( int argc, char** argv){
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pip", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR", path+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pip", i) ){
@@ -80,7 +81,7 @@ int main( int argc, char** argv){
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pim", i) ){
 					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
-					makeCanvas(h2, h1, "VAR", "VAR", (TString)h1->GetName()+".pdf");	
+					makeCanvas(h2, h1, "VAR", "VAR",path+ (TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_aft_reg_%i_pim", i) ){
@@ -90,13 +91,13 @@ int main( int argc, char** argv){
 
 			if( madeHist ){continue;}
 
-			makeCanvas(h1, "VAR", "VAR", "plotting/"+(TString)h1->GetName()+".pdf");	
+			makeCanvas(h1, "VAR", "VAR", path+(TString)h1->GetName()+".pdf");	
 
 		}
 		else{
 			TH1F * h1 = (TH1F *)key->ReadObj();
 			//TH1F * h1 = (TH1F *)f1->Get("hSF_sec_1_pim");
-			makeCanvas(h1, "#chi", (TString)h1->GetName() + ".pdf");
+			makeCanvas(h1, "#chi", path+(TString)h1->GetName() + ".pdf");
 		}
 	}
 }
@@ -262,6 +263,7 @@ void drawCut(TString varTit, double xMin, double xMax, double yMin, double yMax,
 	for( int i = 1; i <= 6; i++ ){
 		if( varTit == Form("hSF_sec_%i_pip", i-1) || varTit == Form("hSF_sec_%i_pim", i-1) ){
 			e_pid sfCut;
+			sfCut.setParamsRGB(10.2);
 			sfCut.drawMom(i, c1);
 		}
 	}
