@@ -73,6 +73,10 @@ int main( int argc, char** argv){
 	TH1F * hZ[bins_Q2+1][bins_xB+1][2];
 	TH1F * hZ_r[bins_Q2+1][bins_xB+1][2];
 	TH1F * hZ_r_bac[bins_Q2+1][bins_xB+1][2];
+	
+	TH1F * hQ2[bins_xB+1][2];
+	TH1F * hQ2_r[bins_xB+1][2];
+	TH1F * hQ2_r_bac[bins_xB+1][2];
 
 	TString charge_str[2] = {"_Pip", "_Pim"};
 
@@ -86,11 +90,23 @@ int main( int argc, char** argv){
 							Q2_min + (double)i*(0.5), Q2_min + (double)(i+1.)*(0.5), 
 							xB_min + (double)j*(0.04), xB_min + (double)(j+1.)*(0.04)); 
 
-				hZ[i][j][k] = new TH1F("hRatio" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
-				hZ_r[i][j][k] = new TH1F("hRatio_r" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
-				hZ_r_bac[i][j][k] = new TH1F("hRatio_r_bac" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+				hZ[i][j][k] = new TH1F("hZ" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+				hZ_r[i][j][k] = new TH1F("hZ_r" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+				hZ_r_bac[i][j][k] = new TH1F("hZ_r_bac" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
 						
 			}
+		}
+	}
+	for( int j = 0; j < bins_xB; j++ ){
+		for( int k = 0; k < 2; k++ ){
+		
+			TString title = Form("%.2f < x_{B} < %.2f",  
+						xB_min + (double)j*(0.04), xB_min + (double)(j+1.)*(0.04)); 
+
+			hQ2[i][j][k] = new TH1F("hQ2" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+			hQ2_r[i][j][k] = new TH1F("hQ2_r" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+			hQ2_r_bac[i][j][k] = new TH1F("hQ2_r_bac" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+						
 		}
 	}
 	
@@ -181,6 +197,7 @@ int main( int argc, char** argv){
 			sumWeightsErr[0][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += eventWeightErr;	
 
 			hZ[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( pi[i].getZ(), weight );
+			hQ2[this_bin_xB][chargeIdx]->Fill( e->getQ2(), weight );
 			//events_in_bin[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]++;
 			
 
@@ -268,11 +285,13 @@ int main( int argc, char** argv){
 
 				if( *Mx_2pi < 1.15 ){
 					hZ_r[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
+					hQ2_r[this_bin_xB][chargeIdx]->Fill( e_r->getQ2(), weight );
 					sumWeights[2][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += weight*weight;	
 					sumWeightsErr[2][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += eventWeightErr*eventWeightErr;	
 				}
 				if( *Mx_2pi > 1.15 && *Mx_2pi < 1.45 ){
 					hZ_r_bac[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
+					hQ2_r_bac[this_bin_xB][chargeIdx]->Fill( e_r->getQ2(), weight );
 					sumWeights[3][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += weight*weight;	
 					sumWeightsErr[3][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += eventWeightErr*eventWeightErr;	
 				}
