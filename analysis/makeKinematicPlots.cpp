@@ -199,7 +199,7 @@ int main( int argc, char** argv){
 			double pT_pi = pi[i].getPi_q().Pt();
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta()*rad_to_deg;
-			double phi_pi = pi[i].get3Momentum().Phi()*rad_to_deg;
+			double phi_pi = pi[i].getPi_q().Phi()*rad_to_deg;
 			double Z = pi[i].getZ();
 			double Vz_pi = pi[i].getVt().z() - Vz_e;
 		
