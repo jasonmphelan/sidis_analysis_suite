@@ -24,6 +24,8 @@ using std::cerr;
 using std::isfinite;
 using std::cout;
 using std::ofstream;
+const double pi_fid_cuts[2][3] = { {4, 4, 10}, {4, 4, 10} };
+const double e_fid_cuts[3] = {5, 5, 10};
 
 void drawCut(TString varTit, double yMax, TCanvas * c1);
 void makeCanvas(TH1F * h1, TString varTit, TString outfileName);
@@ -244,15 +246,23 @@ void plotFiducials(){
 			TCanvas * c1 = new TCanvas("c1", "c1", 1600, 1000);
 			TLegend * legend = new TLegend(0.67,0.71, .89, .89);
 			legend->SetHeader("Legend", "C");
+				
+			double maximum = 0;
+
 			for( int bin = 0; bin < 5; bin++ ){//5
 				TH1F * h1 = (TH1F *)f1->Get(Form("hFid_e_w_reg_%i_%i_%i_pip", lay, bin, sec ) );
 				format(h1);				
 				h1->Draw("same PLC PMC");
 				legend->AddEntry(h1, lstring[bin], "l");
+				if( h1->GetMaximum() > maximum ){ maximum = h1->GetMaximum(); }
 				//delete h1;
 			}
+			TLine * l1 = new TLine( e_fid_cuts[lay], 0, e_fid_cuts[lay], maximum );
+			l1->SetLineColor( kRed );
+			l1->SetLineWidth(2);	
+			l1->Draw("same");
 			legend->Draw();
-			c1->SaveAs( Form("fiducials_reg_%i_sec_%i.pdf", lay, sec ) );
+			c1->SaveAs( Form("fiducial_plots/fiducials_reg_%i_sec_%i.pdf", lay, sec ) );
 			delete c1;
 		}
 	}
@@ -262,6 +272,7 @@ void plotFiducials(){
 			TLegend * legend = new TLegend(0.67,0.71, .89, .89);
 
 			legend->SetHeader("Legend", "C");
+			double maximum = 0;			
 			
 			for( int bin = 0; bin < 5; bin++ ){//5
 				TH1F * h1 = (TH1F *)f1->Get(Form("hFid_pi_w_reg_%i_%i_%i_pip", lay, bin, sec ) );
@@ -269,9 +280,16 @@ void plotFiducials(){
 				h1->Draw("same PLC PMC");
 				//delete h1;
 				legend->AddEntry(h1, lstring[bin], "l");
+				if( h1->GetMaximum() > maximum ){ maximum = h1->GetMaximum(); }
 			}
 			legend->Draw();
-			c1->SaveAs( Form("fiducials_pip_reg_%i_sec_%i.pdf", lay, sec ) );
+			
+			TLine * l1 = new TLine( pi_fid_cuts[0][lay], 0, pi_fid_cuts[0][lay], maximum );
+			l1->SetLineColor( kRed );
+			l1->SetLineWidth(2);	
+			l1->Draw("same");
+			
+			c1->SaveAs( Form("fiducial_plots/fiducials_pip_reg_%i_sec_%i.pdf", lay, sec ) );
 			delete c1;
 		}
 	}
@@ -281,16 +299,23 @@ void plotFiducials(){
 			TLegend * legend = new TLegend(0.67,0.71, .89, .89);
 
 			legend->SetHeader("Legend", "C");
-			
+
+			double maximum = 0;			
+
 			for( int bin = 0; bin < 5; bin++ ){//5
 				TH1F * h1 = (TH1F *)f1->Get(Form("hFid_pi_w_reg_%i_%i_%i_pim", lay, bin, sec ) );
 				format(h1);				
 				h1->Draw("same PLC PMC");
 				//delete h1;
 				legend->AddEntry(h1, lstring[bin], "l");
+				if( h1->GetMaximum() > maximum ){ maximum = h1->GetMaximum(); }
 			}
+			TLine * l1 = new TLine( pi_fid_cuts[1][lay], 0, pi_fid_cuts[1][lay], maximum );
+			l1->SetLineColor( kRed );
+			l1->SetLineWidth(2);	
+			l1->Draw("same");
 			legend->Draw();
-			c1->SaveAs( Form("fiducials_pim_reg_%i_sec_%i.pdf", lay, sec ) );
+			c1->SaveAs( Form("fiducial_plots/fiducials_pim_reg_%i_sec_%i.pdf", lay, sec ) );
 			delete c1;
 		}
 	}

@@ -309,6 +309,7 @@ void makeCanvas(TH2F * h1, TH2F * h2, TString xAxis, TString yAxis, TString outF
 
 	TCanvas * c1 = new TCanvas("c1", "c1");
 	//h1->SetMaximum(1);
+	h1->SetMarkerColor(kRed);
 	h1->Draw("SCAT");
 	gStyle->SetPalette(kBird);
 	h2->Draw("COL same");
@@ -338,7 +339,7 @@ void makeCanvas(TH2F * h1, TH2F * h2, TString xAxis, TString yAxis, TString outF
 }
 
 void plotDetector(){
-	TFile * f1 = new TFile( "../histograms/analysis_note/detector_plots_10.6.root" );
+	TFile * f1 = new TFile( "../histograms/analysis_note/detector_plots_10.2.root" );
 	TIter keyList( f1->GetListOfKeys() );
 	TKey *key;
 	
@@ -357,7 +358,7 @@ void plotDetector(){
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_pi_bef_reg_%i_pim", i) ){
-					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pip", i));
+					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_pi_aft_reg_%i_pim", i));
 					makeCanvas(h2, h1, "VAR", "VAR", "selection_plots/"+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}
@@ -373,7 +374,7 @@ void plotDetector(){
 					madeHist = true;
 				}
 				if( (TString)h1->GetName() == Form("hFid_e_bef_reg_%i_pim", i) ){
-					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pip", i));
+					TH2F * h2 = (TH2F*)f1->Get(Form("hFid_e_aft_reg_%i_pim", i));
 					makeCanvas(h2, h1, "VAR", "VAR", "selection_plots/"+(TString)h1->GetName()+".pdf");	
 					madeHist = true;
 				}

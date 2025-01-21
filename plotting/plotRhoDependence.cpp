@@ -45,14 +45,14 @@ void makeComparisonCanvas(TH1F * h1, TH1F * h2, TString varTit, TString tit_1, T
 	TString temp_x = varTit;
 
 	h1->GetYaxis()->SetRangeUser(0, 1.3*maximum);
-	h1->SetTitle("");
+	//h1->SetTitle("");
 	h1->GetXaxis()->SetTitle("");
 	h2->GetYaxis()->SetRangeUser(0, 1.3*maximum);
 
 	h1->SetMarkerStyle(kFullCircle);
-	h1->SetLineColor(kAzure);
-	h1->SetMarkerColor(kAzure);
-	h2->SetLineColor(kRed);
+	//h1->SetLineColor(kAzure);
+	//h1->SetMarkerColor(kAzure);
+	//h2->SetLineColor(kRed);
 	h1->SetStats(0);
 
 	
@@ -64,7 +64,7 @@ void makeComparisonCanvas(TH1F * h1, TH1F * h2, TString varTit, TString tit_1, T
 
 	upper->Draw();
 	upper->cd();
-	h1->Draw("E");
+	h1->Draw("hist");
 	h1->GetXaxis()->SetTitleFont(fontStyle);
 	h1->GetXaxis()->SetTitleSize(titleSize);
 	h1->GetXaxis()->SetTitleOffset(0.9);
@@ -79,7 +79,7 @@ void makeComparisonCanvas(TH1F * h1, TH1F * h2, TString varTit, TString tit_1, T
 	h2->SetLineWidth(1);
 
 	h1->GetYaxis()->SetTitleSize(titleSize);
-	h2->Draw("hist E SAME");
+	h2->Draw("hist SAME");
 	
 	c1->cd();
 	
@@ -137,13 +137,12 @@ void makeComparisonCanvas(TH1F * h1, TH1F * h2, TString varTit, TString tit_1, T
 	c1->SaveAs(outfileName);
 
 	delete c1;
-	delete ratio;
-	delete h1;
-	delete h2;
+//	delete h1;
+//	delete h2;
 //	delete ratio_Z;
 }
 
-void formatHist(TH1F * h){
+void formatHist(TH1F * h1){
 
 	double fontSize = 30;
 	double labelSize = 25;
@@ -153,13 +152,13 @@ void formatHist(TH1F * h){
 	h1->Scale(1./(double)h1->Integral());
 	
 	
-	h1->GetYaxis()->SetRangeUser(0, 1.3*maximum);
-	h1->SetTitle("");
+	h1->GetYaxis()->SetRangeUser(0, 1.3*h1->GetMaximum());
+	//h1->SetTitle("");
 	h1->GetXaxis()->SetTitle("");
 
 	h1->SetMarkerStyle(kFullCircle);
-	h1->SetLineColor(kAzure);
-	h1->SetMarkerColor(kAzure);
+	//h1->SetLineColor(kAzure);
+	//h1->SetMarkerColor(kAzure);
 	h1->SetStats(0);
 
 	
@@ -182,30 +181,52 @@ void formatHist(TH1F * h){
 }
 
 void plotRhoDependence(){
-	TFile * file = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/rho_dependence_10.4.root");
+	TFile * file = new TFile("../histograms/analysis_note/rho_dependence.root");
 
 	
-	for( int x = 1; x <= 10; x++ ){
-		TCanvas * q2_dep = new TCanvas("c1", "c1", 1600, 1000);
+	for( int x = 1; x <= 14; x++ ){
+		TCanvas * q2_dep = new TCanvas("q2", "q2", 1600, 1000);
 		TLegend * legend = new TLegend(0.67,0.71, .89, .89);
 		legend->SetHeader("Legend", "C");
-		
+
+		gStyle->SetPalette(kCubehelix);		
+
 		for( int q2 = 1; q2 <= 12; q2++ ){
+			cout<<"Q2 : "<<q2<<"  && xB : "<<x<<endl;
+			TH1F * z_pip = (TH1F *)file->Get(Form("hRatio_Pip_%i_%i", q2, x));	       
+			TH1F * z_r_pip = (TH1F *)file->Get(Form("hRatio_r_Pip_%i_%i", q2, x));	       
+			TH1F * z_pim = (TH1F *)file->Get(Form("hRatio_Pim_%i_%i", q2, x));	       
+			TH1F * z_r_pim = (TH1F *)file->Get(Form("hRatio_r_Pim_%i_%i", q2, x));	     
 
-			TH1F * z_pip = (TH1F *)file->Get(Form("hZ_pip_%i_%i", q2, x));	       
-			TH1F * z_r_pip = (TH1F *)file->Get(Form("hZ_r_pip_%i_%i", q2, x));	       
-			TH1F * z_pim = (TH1F *)file->Get(Form("hZ_pim_%i_%i", q2, x));	       
-			TH1F * z_r_pim = (TH1F *)file->Get(Form("hZ_r_pim_%i_%i", q2, x));	     
+			if( z_pip->Integral() <= 0 || z_pim->Integral() <= 0 || z_r_pip->Integral() <= 0 || z_r_pim->Integral() <= 0 ){
+				continue;
+			}
 
-			makeComparisonCanvas(z_r_pip, z_r_pim, "z", "#pi^{+}", "#pi^{-}", Form("chargeDep_%i_%i.pdf", q2, xB) ){
-			makeComparisonCanvas(z_pip, z_r_pip, "z", "SIDIS", "Diffractive #rho", Form("rhoEff_pip_%i_%i.pdf", q2, xB) ){
-			makeComparisonCanvas(z_pim, z_r_pim, "z", "SIDIS", "Diffractive #rho", Form("rhoEff_pim_%i_%i.pdf", q2, xB) ){
+			makeComparisonCanvas(z_r_pip, z_r_pim, "z", "#pi^{+}", "#pi^{-}", Form("rho_plots/chargeDep_%i_%i.pdf", q2, x) );
+			makeComparisonCanvas(z_pip, z_r_pip, "z", "SIDIS", "Diffractive #rho", Form("rho_plots/rhoEff_pip_%i_%i.pdf", q2, x) );
+			makeComparisonCanvas(z_pim, z_r_pim, "z", "SIDIS", "Diffractive #rho", Form("rho_plots/rhoEff_pim_%i_%i.pdf", q2, x) );
+			
+			z_pip = (TH1F *)file->Get(Form("hRatio_Pip_%i_%i", q2, x));	       
+			z_r_pip = (TH1F *)file->Get(Form("hRatio_r_Pip_%i_%i", q2, x));	       
+			z_pim = (TH1F *)file->Get(Form("hRatio_Pim_%i_%i", q2, x));	       
+			z_r_pim = (TH1F *)file->Get(Form("hRatio_r_Pim_%i_%i", q2, x));	     
 	       			
 			z_r_pip->Divide(z_pip);
 			z_r_pim->Divide(z_pim);
 			formatHist( z_r_pip );
-			z_r_pip->SetTitle( Form( "%.2f < x_{B} < %.2f", .15 + (x-1)-
+			z_r_pip->SetTitle( Form( "%.2f < x_{B} < %.2f", .16 + .04*(x-1), .16 + .04*x) );
 			formatHist( z_r_pim );
+				
+			q2_dep->cd();
+			z_r_pip->SetLineColor(q2);
+			z_r_pip->GetYaxis()->SetRangeUser(0, 1);
+			z_r_pip->Draw("SAME");
+			legend->AddEntry(z_r_pip, Form("%.1f < Q^{2} < %.1f", 2 + 0.5*(q2-1), 2 + .5*q2  ), "l");
+		}
 
+		legend->Draw();
+		q2_dep->SaveAs(Form("rho_plots/q2_dep_%i.pdf", x) );
+	}
+}
 
 
