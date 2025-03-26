@@ -10,7 +10,7 @@ inFile_R = ROOT.TFile.Open("../data/SF_fits.root", "READ")
 
 obj_base = "hSF_"
 def eval_func(params, xVal):
-	return params[0] + params[1]/xVal + params[2]/xVal**2
+	return params[0] + params[1]*xVal + params[2]*xVal**2
 
 fig, axs = plt.subplots(3, 2, figsize=(14,16), layout='constrained')
 for sec in range(6):
@@ -56,7 +56,7 @@ for sec in range(6):
 	#if ch != 0:
 	#	axs[reg, ch].set_ylabel("")
 	#	axs[reg, ch].set_yticks(color='w')
-	axs[reg, ch].set_title(f"Sector {sec}")
+	axs[reg, ch].set_title(f"Sector {sec + 1}")
 
 #plt.show()
 fig.savefig(f"selection_plots/hSF.pdf")

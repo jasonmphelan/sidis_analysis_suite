@@ -14,10 +14,10 @@ def setTitle2D( ax, key):
 			ax.set_ylabel(r"W$_{PCAL}$ [cm]", fontsize=18)
 		if "Edep" in key:
 			ax.set_xlabel(r"$E_{PCAL}$ [GeV]", fontsize=18)
-			ax.set_ylabel(r"E_{CIN} + E_{COUT} [GeV]", fontsize=18)
+			ax.set_ylabel(r"$E_{CIN} + E_{COUT}$ [GeV]", fontsize=18)
 		if "SF_corr" in key:
 			ax.set_xlabel(r"$\Delta E_{dep}(PCAL)/p_{e}$", fontsize=18)
-			ax.set_ylabel(r"$(E_{PCAL} + E_{CIN} + E_{COUT})/p_e$ [GeV]", fontsize=18)
+			ax.set_ylabel(r"$(E_{PCAL} + E_{CIN} + E_{COUT})/p_e$", fontsize=18)
 		if "SF_sec" in key:
 			ax.set_xlabel(r"$p_{e}$ [GeV]", fontsize=18)
 			ax.set_ylabel(r"$\Delta E_{CIN}/p_e$", fontsize=18)
@@ -30,6 +30,9 @@ def setTitle2D( ax, key):
 		if "Q2_W" in key:
 			ax.set_xlabel(r"$Q^2$ [GeV$^2$]", fontsize=18)
 			ax.set_ylabel(r"$W$ [GeV]", fontsize=18)
+		if "Q2_Z" in key:
+			ax.set_xlabel(r"$Q^2$ [GeV$^2$]", fontsize=18)
+			ax.set_ylabel(r"$z$ [GeV]", fontsize=18)
 def setTitle1D( ax, key):
 	ax.set_ylabel("Counts [a.u.]", fontsize=18)
 	if "Beta" in key or "Min" in key or "Pos" in key:
@@ -73,12 +76,15 @@ def drawCut2D( ax, key ):
 		if "SF_corr" in key:
 			ax.plot([0,.2],[.2,0], 'r-', linewidth=2)
 		if "Chi2" in key:
+			C = .93
+			if "pip" in key:
+				C = .88
 			p1=np.arange(2.44, 4.6, .01)
 			p2=np.arange(4.6, 9, .01)
-			ax.axhline(y = -3, xmin=0, xmax=1, c='red', linewidth=2)
-			ax.axhline(y = 3, xmin=0, xmax=2.44/9, c='red', linewidth=2)
-			ax.plot( p1, 0.00869 + 14.98587*np.exp(-p1/1.18236) + 1.81751*np.exp(-p1/4.86394), 'r-', linewidth=2)
-			ax.plot( p2, -1.14099 + 24.14992*np.exp(-p2/1.3655)+2.66876*np.exp(-p2/6.80552), 'r-', linewidth=2)
+			ax.axhline(y = -3*C, xmin=0, xmax=1, c='red', linewidth=2)
+			ax.axhline(y = 3*C, xmin=0, xmax=2.44/9, c='red', linewidth=2)
+			ax.plot( p1, C*( 0.00869 + 14.98587*np.exp(-p1/1.18236) + 1.81751*np.exp(-p1/4.86394) ), 'r-', linewidth=2)
+			ax.plot( p2, C*(-1.14099 + 24.14992*np.exp(-p2/1.3655)+2.66876*np.exp(-p2/6.80552) ), 'r-', linewidth=2)
 		if "Q2_W" in key:
 			ax.axvline(x=2, ymin = 1/3, ymax = 1, c='r', linewidth=2)
 			ax.axhline(y=2.5, xmin = 2/10, xmax=1, c='r', linewidth=2)
@@ -119,7 +125,7 @@ def drawCut1D( ax, key ):
 
 
 #inFile = uproot.open("../histograms/analysis_note/kinematic_cuts_10.2.root")
-inFile = uproot.open("../histograms/analysis_note/detector_plots_10.2.root")
+inFile = uproot.open("../histograms/analysis_note/detector_plots_10.4.root")
 for key in inFile.keys():
 	if "pim" in key:
 		continue
@@ -161,7 +167,7 @@ for key in inFile.keys():
 		axs[1].pcolormesh(xEdges, yEdges, values_pim.T, cmap='viridis', shading='auto', norm="log")
 		axs[1].set_title(rf"$(e, e'\pi^-)$", fontsize=16)
 		
-		drawCut2D( axs[1], key )		
+		drawCut2D( axs[1], hName.replace("pip","pim") )		
 		setTitle2D( axs[1], key )
 
 		pdfName = hName.replace(";1", "")
@@ -178,7 +184,7 @@ for key in inFile.keys():
 		values_pip = pip.values()
 		errors_pip = pip.errors()
 		values_pim = pim.values()
-		errors_pim = pip.errors()
+		errors_pim = pim.errors()
 
 		xEdges = pip.axis().edges()
 		binCenters = (xEdges[:-1]+xEdges[1:])/2

@@ -64,12 +64,12 @@ def makePlots( corrType, hist, ext):
 		outDir = 'k_to_pi_corrections/'
 		textHeight = .75
 		yMin = 0
-		yMax = 1.5
+		yMax = 1.05
 	if corrType == 'pi2k':
 		outDir = 'pi_to_k_corrections/'
 		textHeight = .75
-		yMin = 0
-		yMax = 1.5
+		yMin = 0.5
+		yMax = 1.05
 
 	fig, axs = plt.subplots( 4, 3,figsize=(18, 10))
 	plt.subplots_adjust( wspace=.1, hspace=.1 )
@@ -108,7 +108,7 @@ def makePlots( corrType, hist, ext):
 		ax.set_ylabel( getTitle(wType), fontsize=16)
 		ax.label_outer()
 
-		ax.set_ylim( [ymin, ymax] )
+		ax.set_ylim( [yMin, yMax] )
 		ax.set_xlim( [0.3, 1] )
 
 
@@ -128,7 +128,7 @@ p_bin = [1.25, 2.00, 2.50, 3.5, 5.00]
 inFile_name = input('File name: \n')
 corrType = input('Correction type (bin, acc, k2pi, pi2k): \n')
 
-inFile = uproot.open('../correctionFiles/'+inFile_name)
+inFile = uproot.open('../data/correctionFiles/'+inFile_name)
 
 keyList = []
 
@@ -150,7 +150,7 @@ else:
 	energy = '.pdf'
 
 for key in keyList:
-	if 'k_To_pi' in inFile_name or 'pi_To_k' in inFile_name:
+	if 'k2pi' in inFile_name or 'pi2k' in inFile_name:
 		for p in range(4):
 			hist = inFile[key+f'_{p};1']
 			makePlots( corrType, hist, energy)

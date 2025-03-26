@@ -3,3 +3,5 @@ histograms
 data/correctionFiles
 plotting/*.pdf
 plotting/*.root
+plotting/*/*.pdf
+plotting/*.cpp
