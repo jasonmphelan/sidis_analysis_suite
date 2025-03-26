@@ -69,7 +69,7 @@ int main( int argc, char** argv){
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
-	anal.setAnalyzerLevel(0);
+	anal.setAnalyzerLevel(2);
 	anal.loadCutValues(-1, Ebeam);
 	
 	reader runReader;

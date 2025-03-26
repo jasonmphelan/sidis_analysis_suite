@@ -49,14 +49,26 @@ int main( int argc, char** argv){
 
 	if( argc < 2 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [out name] [in name]\n";
+		cerr << "./code [out name] [Energy]\n";
 		return -1;
 	}
 
-	TString in_name = argv[2];
 	TString outFileName = argv[1]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
+	double ebeam = atof(argv[2]);
+	TChain *  inFiles = new TChain("ePi");
 
-        TFile * file_rec = new TFile(in_name, "UPDATE");
+	std::cout<<"loading files\n";
+	if( ebeam == 0 ){
+		inFiles->Add( "/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
+		inFiles->Add( "/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
+		inFiles->Add( "/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
+	}
+	else{ 
+		inFiles->Add( Form("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/%.1f/final_skim.root", ebeam ) );
+	}
+
+
+
 	TFile * outFile = new TFile( outFileName, "RECREATE");
 
 	TH1F * hTheta[6][7][2];	
@@ -72,7 +84,7 @@ int main( int argc, char** argv){
 	}
 
 	//Load input tree
-        TTreeReader reader_rec("ePi", file_rec);
+        TTreeReader reader_rec(inFiles);
 
         TTreeReaderValue<electron> e(reader_rec, "e");
 

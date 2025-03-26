@@ -52,7 +52,8 @@ int main( int argc, char** argv){
        	TString out_name = argv[2];
         TFile * inFile = new TFile(in_name);
 
-	TFile * outFile = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/data/acceptanceMap.root", "RECREATE");
+	TFile * outFile = new TFile(out_name, "RECREATE");
+	//TFile * outFile = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/data/acceptanceMap.root", "RECREATE");
 
 	TH2F * hThetaPhi[3][6][10]; //2D distribution
 	TGraph * gThetaPhi[3][6][10]; //Graph of 99percentile

@@ -60,13 +60,13 @@ int main( int argc, char** argv){
 	
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
+	anal.loadMatchingFunctions();
 
 	//Load input tree
         //TTreeReader reader_rec("ePi", file_rec);
         TTreeReader reader_rec( chain );
 
 	TTreeReaderValue<electron> e(reader_rec, "e");
-
         TTreeReaderArray<pion> pi(reader_rec, "pi");
 
 	//Define good event list and additional variables for output branches
@@ -108,11 +108,12 @@ int main( int argc, char** argv){
 
 		if( !anal.applyElectronKinematicCuts( *e ) ){ continue; }
 
+
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			isGoodPion_event.push_back(false);
 			isGoodPion_no_acc_event.push_back(false);;
 			//isGoodPion_3d_event.push_back(false);;
-               
+
                 	if(!anal.applyPionKinematicCuts(pi[i])){ continue; }
 
 			if( pi[i].getZ() > lead_Z_no_acc_temp ){
@@ -121,9 +122,11 @@ int main( int argc, char** argv){
 			}	
         		
 
-			isGoodPion_no_acc_event[i] = true;;
-
+			isGoodPion_no_acc_event[i] = true;
+	
+			
 			if ( anal.applyAcceptanceMatching(pi[i], 2) ){
+				
 				if( pi[i].getZ() > lead_Z_temp ){
 					lead_Z_temp = pi[i].getZ();
 					lead_idx_temp = i;
@@ -131,6 +134,7 @@ int main( int argc, char** argv){
 		
 				isGoodPion_event[i] = true;
 			}
+			
 			/*
 			if( acceptance_match_3d_cont( phi, theta, p, match3d ) ){
 				if( Z[i] > lead_Z_3d_temp ){
@@ -143,7 +147,6 @@ int main( int argc, char** argv){
 			*/
 
 		}
-		
 		if(lead_idx_no_acc_temp > -1){
 			good_events->Enter(event_count);
 

@@ -167,7 +167,7 @@ int main( int argc, char** argv){
 			
 			counts[idx][0]++;
 			h_W[idx]->Fill( sqrt( e->getW2() ) );
-			if( sqrt(e->getW2() < 2.5 ) ){continue;}
+			if( sqrt(e->getW2()) < 2.5  ){continue;}
 			
 			counts[idx][1]++;
 			h_Q2[idx]->Fill( e->getQ2() );
@@ -179,7 +179,7 @@ int main( int argc, char** argv){
 
 			counts[idx][3]++;
 			h_Mx[idx]->Fill( pi[i].getMx() );
-			if( pi[i].getMx() < 0.7 ){ continue; }
+			if( pi[i].getMx() < 1.7 ){ continue; }
 
 			counts[idx][4]++;
 			h_p_pi[idx]->Fill( pi[i].get3Momentum().Mag() );

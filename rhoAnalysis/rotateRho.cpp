@@ -41,24 +41,25 @@ TVector3 rotate_to_beam_frame( TLorentzVector q, TLorentzVector p_e, TLorentzVec
 
 int main( int argc, char** argv){
 
-	if( argc <4 ){
+	if( argc < 5 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [Output File] [Rel Uncertainty Level (%)] \n";
+		cerr << "./code [Input File] [Output File] [beam energy] [Rel Uncertainty Level (%)] \n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2] <<"\n";
 
 	TString in_name = argv[1];
        	TString out_name = argv[2];
-	double err_level = atof( argv[3] );
+	double energy = atof( argv[3] );
+	double err_level = atof( argv[4] );
 
         TFile * file_rec = new TFile(in_name);
 	TFile * outFile = new TFile(out_name, "RECREATE");
 	TRandom3 gen;
 
 	analyzer anal(0, -1);
-	anal.loadAcceptanceMap( (TString)_DATA + "/acceptanceMap.root");
-
+	anal.loadAcceptanceMap( (TString)_DATA + Form("/acceptance_map/acceptanceMap_%.1f.root", energy));
+	anal.loadMatchingFunctions();
 	//Load input tree
         TTreeReader reader_rec("ePi", file_rec);
 
@@ -89,8 +90,8 @@ int main( int argc, char** argv){
 	outTree->Branch("Mx_2pi", &Mx_2pi_out);
 	outTree->Branch("M_rho", &M_rho_out);
 
-	outTree->Branch("rhoWeight", rhoWeight);
-	outTree->Branch("rhoErr", &corr_err);
+	outTree->Branch("rhoWeight", rhoWeight, "rhoWeight[2]/d");
+	outTree->Branch("rhoErr", &corr_err, "rhoErr[2]/d");
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();

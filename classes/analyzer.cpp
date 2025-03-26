@@ -1,14 +1,128 @@
 #include "analyzer.h"
 #include "TFile.h"
 #include "TF1.h"
+#include <random>
 #define CUT_PATH _DATA
 
 
 analyzer::analyzer(int _fdebug_, int _torusBending_){
-    SetTorusBending (_torusBending_);
+	setAnalyzerLevel(mode);
+	SetTorusBending (_torusBending_);
+	std::fill_n( mod_pi_fid[0], 3, 1 );
+	std::fill_n( mod_pi_fid[1], 3, 1 );
+	//loadSamplingFractionParams();
 }
 
 analyzer::~analyzer(){}
+
+void analyzer::printCuts(){
+	std::cout<<"**************** Electron Selection Cuts ******************\n";
+	for( int i = 0; i < 3; i++ ){
+		std::cout<<"Electron Fiducial Region "<<i<<" : "<<mod_el_fid[i]*e_fid_cuts[i]<<std::endl;
+	}
+	std::cout<<"PCAL W : "<<mod_el_PCAL[0]*e_PCAL_W_min<<std::endl;
+	std::cout<<"PCAL V : "<<mod_el_PCAL[1]*e_PCAL_V_min<<std::endl;
+	std::cout<<"Electron Min Vertex : "<<mod_el_vtz[0]*Vz_e_min_inbending<<std::endl;
+	std::cout<<"Electron Max Vertex : "<<mod_el_vtz[1]*Vz_e_max_inbending<<std::endl;
+	std::cout<<"Minimum Edep : "<<mod_el_Edep*e_E_PCAL_min<<std::endl;
+	std::cout<<"SF Sigma : "<<mod_SF_sigma*3.5<<std::endl;	
+	std::cout<<"SF Correlation : "<<mod_el_corr*PCAL_ECIN_SF_min<<std::endl;
+
+	std::cout<<"**************** Pion Selection Cuts ******************\n";
+	for( int i = 0; i < 3; i++ ){
+		std::cout<<"Pip Fiducial Region "<<i<<" : "<<mod_pi_fid[0][i]*pi_fid_cuts[0][i]<<std::endl;
+		std::cout<<"Pim Fiducial Region "<<i<<" : "<<mod_pi_fid[1][i]*pi_fid_cuts[1][i]<<std::endl;
+	}
+	std::cout<<"Pip-e Min Vertex : "<<mod_pi_vtz[0][0]*Vz_pi_min_inbending[mode][0]<<std::endl;
+	std::cout<<"Pip-e Max Vertex : "<<mod_pi_vtz[1][0]*Vz_pi_max_inbending[mode][0]<<std::endl;
+
+	std::cout<<"Pim-e Min Vertex : "<<mod_pi_vtz[0][1]*Vz_pi_min_inbending[mode][1]<<std::endl;
+	std::cout<<"Pim-e Max Vertex : "<<mod_pi_vtz[1][1]*Vz_pi_max_inbending[mode][1]<<std::endl;
+	
+	std::cout<<"**************** Kinematical Cuts ******************\n";
+	std::cout<<"Minimum pe : "<<mod_pe[0]*P_e_min<<std::endl;
+	std::cout<<"Maximum pe : "<<mod_pe[1]*P_e_max<<std::endl;
+	std::cout<<"Minimum p_pi : "<<mod_ppi[0]*P_pi_min<<std::endl;
+	std::cout<<"Maximum p_pi : "<<mod_ppi[1]*P_pi_max<<std::endl;
+	std::cout<<"Minimum W : "<<mod_W*W_min<<std::endl;
+	std::cout<<"Maximum y : "<<mod_y*y_max<<std::endl;
+	std::cout<<"Minimum Mx : "<<mod_Mx*Mx_min<<std::endl;
+
+}
+void analyzer::randomizeCuts(){
+	std::mt19937 gen(rd());
+	
+	std::vector<double> cut_vals;
+	std::vector<double*> cut_mods;
+
+	for( int i = 0; i < 3; i++ ){
+		cut_mods.push_back( &mod_el_fid[i] );
+		cut_vals.push_back( e_fid_cuts[i] );
+	}
+
+	for( int i = 0; i < 2; i++ ){
+		cut_mods.push_back( &mod_el_PCAL[i]);
+		cut_mods.push_back( &mod_el_vtz[i]);
+
+		cut_mods.push_back( &mod_pe[i]);
+		cut_mods.push_back( &mod_ppi[i]);
+
+		for( int j = 0; j < 3; j++ ){
+			cut_mods.push_back( &mod_pi_fid[i][j]);
+			if( j > 2 ){ continue; }
+			cut_mods.push_back( &mod_pi_vtz[i][j] );
+		}
+	}
+	
+	cut_vals.push_back(e_PCAL_W_min);
+	cut_vals.push_back(Vz_e_min_inbending);
+	cut_vals.push_back(P_e_min);
+	cut_vals.push_back(P_pi_min);
+	for( int j = 0; j < 3; j++ ){
+		cut_vals.push_back( pi_fid_cuts[0][j]);
+		if( j > 2 ){ continue; }
+		cut_vals.push_back( Vz_pi_min_inbending[mode][j] );
+	}
+
+
+	cut_vals.push_back(e_PCAL_V_min);
+	cut_vals.push_back(Vz_e_max_inbending);
+	cut_vals.push_back(P_pi_max);
+	cut_vals.push_back(P_e_max);;
+	for( int j = 0; j < 3; j++ ){
+		cut_vals.push_back( pi_fid_cuts[1][j]);
+		if( j > 2 ){ continue; }
+		cut_vals.push_back( Vz_pi_max_inbending[mode][j] );
+	}
+	
+	cut_mods.push_back( &mod_el_Edep);
+	cut_vals.push_back(e_E_PCAL_min);
+	
+	cut_mods.push_back( &mod_SF_sigma);
+	cut_vals.push_back( 3.5 );
+	
+	cut_mods.push_back( &mod_el_corr);
+	cut_vals.push_back(PCAL_ECIN_SF_min);
+
+	cut_mods.push_back( &mod_W);
+	cut_vals.push_back(W_min);
+	
+	cut_mods.push_back( &mod_y);
+	cut_vals.push_back(y_max);
+	
+	cut_mods.push_back( &mod_Mx);
+	cut_vals.push_back(Mx_min);
+
+
+	for( int i = 0; i < cut_mods.end() - cut_mods.begin(); i++ ){
+		
+		double std = cut_vals[i]*0.05;
+
+		std::normal_distribution<double> distribution(cut_vals[i], std);
+
+		*cut_mods[i] = distribution(gen)/(cut_vals[i]);
+	}
+}
 
 // Oo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.oOo.
 double analyzer::Chi2PID_pion_lowerBound( Double_t p, Double_t C){
@@ -58,55 +172,6 @@ void analyzer::loadCutValues(int torusBending, double EBeam){
 }
 
 
-bool analyzer::applyElectronDetectorCuts( electron e ){
-	if (e.getDC_sector() == 0) return false;
-
-
-	double e_DC_x[3] = {e.getDC_x1(), e.getDC_x2(), e.getDC_x3()};
-	double e_DC_y[3] = {e.getDC_y1(), e.getDC_y2(), e.getDC_y3()};
-	double e_DC_z[3] = {e.getDC_z1(), e.getDC_z2(), e.getDC_z3()};
-
-
-/*
-	for (int regionIdx=0; regionIdx<3; regionIdx++) {
-		// DC_e_fid:
-		// sector:  1-6
-		// layer:   1-3
-		// bending: 0(out)/1(in)
-		if( e.getEdge(regionIdx) < e_fid_cuts[regionIdx] ){ return false; }
-		
-		//int bending  = 1 ? (torusBending==-1) : 0;
-		//bool DC_fid  = dcfid.DC_fid_xy_sidis( 11,                 // particle PID,
-		//				e_DC_x[regionIdx],  // x
-		//				e_DC_y[regionIdx],  // y
-		//				e.getDC_sector(),        // sector
-		//				regionIdx+1,        // layer
-		//				bending );           // torus bending
-		//if (DC_fid == false) { return false; }
-		
-	}	
-*/
-	// PCAL FIDUCIAL	
-	if( ! (	e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min)) return false;
-
-
-	//PCAL MIN EDEP CUT
-	if( ! ( e.getEpcal() > e_E_PCAL_min) ) return false;
-		
-	//Electron SF cut
-	if(  !(epid.isElectron(&e)) ) return false;
-
-	//if( ! (( (e.getEpcal() + e.getEecin() + e.getEecout())/e.get3Momentum().Mag()) > SamplingFraction_min ) ) return false;
-	
-	//SF CORRELATION CUT
-	if( !( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() )) return false;
-	
-	//ELECTRON VERTEX CUT
-	if( ! ((e.getVt().Z() > Vz_e_min_inbending) && (e.getVt().Z() < Vz_e_max_inbending))) return false;
-	
-	
-	return true;
-}
 bool analyzer::applyElectronFiducials( electron e ){
 	if (e.getDC_sector() == 0) return false;
 
@@ -120,93 +185,90 @@ bool analyzer::applyElectronFiducials( electron e ){
 		// sector:  1-6
 		// layer:   1-3
 		// bending: 0(out)/1(in)
-		if( e.getEdge(regionIdx) < e_fid_cuts[regionIdx] ){ return false; }
+		if( e.getEdge(regionIdx) < mod_el_fid[regionIdx]*e_fid_cuts[regionIdx] ){ return false; }
 	}	
 	return true;
 }
 
 bool analyzer::applyElectronPCAL( electron e ){
-	return ( e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min);
+	return ( e.getW() > mod_el_PCAL[0]*e_PCAL_W_min	
+			&&  e.getV() > mod_el_PCAL[1]*e_PCAL_V_min);
 }
 
 bool analyzer::applyElectronEDep( electron e ){
 
 	//PCAL MIN EDEP CUT
-	return  ( e.getEpcal() > e_E_PCAL_min) ;
+	return  ( e.getEpcal() > mod_el_Edep*e_E_PCAL_min) ;
 }
+
+void analyzer::loadSamplingFractionParams(TString sfFile_name){
+	TFile f(sfFile_name);
+	for( int sec = 0; sec < 6; sec++ ){
+		TF1 * sf_mean = (TF1*)f.Get( Form("fMean_SF_%i", sec) );
+		TF1 * sf_sig = (TF1*)f.Get( Form("fSigma_SF_%i", sec) );
+		
+		for( int par = 0; par < 3; par++ ){
+			SF_p_mean[sec][par] = sf_mean->GetParameter(par);
+			SF_p_sigma[sec][par] = sf_sig->GetParameter(par);
+		}
+	}
+}
+
+void analyzer::loadSamplingFractionParams(){
+	loadSamplingFractionParams( (TString) CUT_PATH + "/SF_fits.root");
+}
+
+
 bool analyzer::applyElectronSF( electron e ){
 	//Electron SF cut
-	return (epid.isElectron(&e)) ;
+	double p = e.get3Momentum().Mag();
+	double sf = (e.getEecin() + e.getEpcal() + e.getEecout())/e.get3Momentum().Mag();
+	int sec = e.getDC_sector() - 1;
+	double mean = SF_p_mean[sec][0] + p*SF_p_mean[sec][1] + p*p*SF_p_mean[sec][2];
+	double sigma = SF_p_sigma[sec][0] + p*SF_p_sigma[sec][1] + p*p*SF_p_sigma[sec][2];
+
+	double nSigma = 3.5*mod_SF_sigma;
+
+	bool pass_max = (bool)(sf < ( mean + nSigma*sigma ) );
+	bool pass_min = (bool)(sf > ( mean - nSigma*sigma ) );
+
+	return (pass_max && pass_min);
+	//return (epid.isElectron(&e)) ;
 }
 	
 bool analyzer::applyElectronCorrelation( electron e ){
 	//SF CORRELATION CUT
-	return(  e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() );
+	if( e.get3Momentum().Mag() < 4.5 )	return true;
+
+	return(  e.getEecin()/e.get3Momentum().Mag() > mod_el_corr*PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() );
 }
 
 
 bool analyzer::applyElectronVertex( electron e ){
 	//ELECTRON VERTEX CUT
-	return ((e.getVt().Z() > -5) && (e.getVt().Z() < -1));
+	return ((e.getVt().Z() > mod_el_vtz[0]*Vz_e_min_inbending) && (e.getVt().Z() < mod_el_vtz[1]*Vz_e_max_inbending));
 }
 
-bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
-	// decide if pion (pi+ or pi-) passed event selection cuts
-	//
-	// input:
-	// --------
-	// DC_x, DC_y   pi drift-chamber coordinates
-	// chi2PID      pi chi2PID     (pips_chi2PID)
-	// p            pi momentum    (pi.P())
-	//
+bool analyzer::applyElectronDetectorCuts( electron e ){
+	if (e.getDC_sector() == 0) return false;
+	if(!applyElectronFiducials( e ) ) return false;
 
-	if (pi.getDC_sector() == 0) { return false;}
+	// PCAL FIDUCIAL	
+	if(!applyElectronPCAL( e ) ) return false;
 
-	double    C;
-	
-	if (pi.getCharge() > 0){ C = 0.88;} 
-	else if (pi.getCharge() < 0) {C = 0.93; } 
-	else {
-		std::cout << "π charge ill-defined, returning false" << std::endl;
-		return false;
-	}
-
-	//double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
-	//double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
-	//double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
-/*
-	for (int regionIdx=0; regionIdx<3; regionIdx++) {
-		// DC_e_fid:
-		// sector:  1-6
-		// layer:   1-3
-		// bending: 0(out)/1(in)
-	
-		if( pi.getEdge(regionIdx) < pi_fid_cuts[ (int)(pi.getCharge() < 0 ) ][regionIdx] ){ return false; }
+	//PCAL MIN EDEP CUT
+	if(!applyElectronEDep( e ) ) return false;
 		
-		//int bending  = 1 ? (torusBending==-1) : 0;
-		//bool DC_fid  = dcfid.DC_fid_th_ph_sidis(pi.getPID(),            // particle PID
-		//					DC_x[regionIdx],    // x
-		//					DC_y[regionIdx],    // y
-		//					DC_z[regionIdx],    // z
-		//					pi.getDC_sector(),          // sector
-		//					regionIdx+1,        // layer
-		//					bending);           // torus bending
-		//
-		//if (DC_fid == false) { return false; }
-	
-	}
-	
-*/
-	
+	//Electron SF cut
+	if(!applyElectronSF( e ) ) return false;
 
-	//PION CHI2 vs P CUT
-	if(! (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
-         	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) ))) 
-		{return false; }
-       
-	//DELTA VERTEX CUT
-	if( !( (pi.getVt() - e.getVt()).Z() > -7 && (pi.getVt() - e.getVt()).Z() < 5 ) ) { return false; }
-	//if( ! ( abs( (pi.getVt() - e.getVt()).Z() ) < 20 ) ) { return false; }
+	//SF CORRELATION CUT
+	if(!applyElectronCorrelation( e ) ) return false;
+	
+	//ELECTRON VERTEX CUT
+	if(!applyElectronVertex( e ) ) return false;
+	
+	
 	return true;
 }
 
@@ -222,16 +284,19 @@ bool analyzer::applyPionDetectorFiducials( pion pi ){
 
 	
 
-	double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
-	double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
-	double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
+	//double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
+	//double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
+	//double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
+
+	int piCharge = (int)( pi.getCharge() < 0 );
 
 	for (int regionIdx=0; regionIdx<3; regionIdx++) {
 		// DC_e_fid:
 		// sector:  1-6
 		// layer:   1-3
 		// bending: 0(out)/1(in)
-		if( pi.getEdge(regionIdx) < pi_fid_cuts[ (int)(pi.getCharge() < 0 ) ][regionIdx] ){ 
+
+		if( pi.getEdge(regionIdx) < mod_pi_fid[piCharge][regionIdx]*pi_fid_cuts[piCharge][regionIdx] ){ 
 			return false; 
 		}
 	}
@@ -253,22 +318,38 @@ bool analyzer::applyPionDetectorChi2( pion pi ){
 
 bool analyzer::applyPionDetectorVertex( pion pi, electron e ){
        
+	int chargeIdx = (int) ( pi.getCharge() < 0 );
 	//DELTA VERTEX CUT
-	if( !( (pi.getVt() - e.getVt()).Z() > -7 && (pi.getVt() - e.getVt()).Z() < 5 ) ) { return false; }
+	if( !( (pi.getVt() - e.getVt()).Z() >mod_pi_vtz[chargeIdx][0]*Vz_pi_min_inbending[mode][chargeIdx] && 
+				(pi.getVt() - e.getVt()).Z() < mod_pi_vtz[chargeIdx][1]*Vz_pi_max_inbending[mode][chargeIdx] ) ) { 
+		return false; 
+	}
 	
 	return true;
 }
 
+bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
+	
+	if (pi.getDC_sector() == 0) return false;
+	//Pion DC fiducials
+	if(!applyPionDetectorFiducials( pi )) return false;
+	//Pion PID Chi2
+	if(!applyPionDetectorChi2( pi )) return false;
+	//Delta vertex cut
+	if(!applyPionDetectorVertex( pi, e )) return false;
+       
+	return true;
+}
 
-
+//electron kinematical cuts for data and generator
 bool analyzer::applyElectronKinematicCuts( electron e ){
-		if( sqrt(e.getW2()) < W_min ) { return false; }
-		if( e.getQ2() < Q2_min || e.getQ2() > Q2_max ) { return false; }
+		if( sqrt(e.getW2()) < mod_W*W_min ) { return false; }
+		if( e.getQ2() < mod_Q2[0]* Q2_min || e.getQ2() > mod_Q2[1]*Q2_max ) { return false; }
                 if( e.getXb() < xB_min || e.getXb() > xB_max ) { return false; }
-                if( e.getY() > y_max ) { return false; }
+                if( e.getY() > mod_y*y_max ) { return false; }
                 
 		double p = e.get3Momentum().Mag();
-		if( p < P_e_min || p > P_e_max ) { return false; }
+		if( p < mod_pe[0]*P_e_min || p > mod_pe[1]*P_e_max ) { return false; }
                 
 		double theta = e.get3Momentum().Theta()*rad_to_deg;
 		if( theta < theta_min || theta > theta_max ){ return false; }
@@ -276,13 +357,13 @@ bool analyzer::applyElectronKinematicCuts( electron e ){
 		return true;
 }
 bool analyzer::applyElectronKinematicCuts( genElectron e ){
-		if( sqrt(e.getW2()) < W_min ) { return false; }
-		if( e.getQ2() < Q2_min || e.getQ2() > Q2_max ) { return false; }
-                if( e.getXb() < xB_min || e.getXb() > xB_max ) { return false; }
-                if( e.getY() > y_max ) { return false; }
+		if( sqrt(e.getW2()) < mod_W*W_min ) { return false; }
+		if( e.getQ2() < mod_Q2[0]*Q2_min || e.getQ2() > mod_Q2[1]*Q2_max ) { return false; }
+                if( e.getXb() < mod_xB[0]*xB_min || e.getXb() > mod_xB[1]*xB_max ) { return false; }
+                if( e.getY() > mod_y*y_max ) { return false; }
                 
 		double p = e.get3Momentum().Mag();
-		if( p < P_e_min || p > P_e_max ) { return false; }
+		if( p < mod_pe[0]*P_e_min || p > mod_pe[1]*P_e_max ) { return false; }
                 
 		double theta = e.get3Momentum().Theta()*rad_to_deg;
 		if( theta < theta_min || theta > theta_max ){ return false; }
@@ -290,13 +371,13 @@ bool analyzer::applyElectronKinematicCuts( genElectron e ){
 		return true;
 }
 
-
+//Pion kinematical cuts for data and generator
 bool analyzer::applyPionKinematicCuts( pion pi ){
 
 
-	if ( ( pi.getMx() < Mx_min || pi.getMx() > Mx_max) ) { return false; }
+	if ( ( pi.getMx() < mod_Mx*Mx_min || pi.getMx() > Mx_max) ) { return false; }
 	double p = pi.get3Momentum().Mag();
-	if ( p < P_pi_min || p > P_pi_max ) { return false; }
+	if ( p < mod_ppi[0]*P_pi_min || p > mod_ppi[1]*P_pi_max ) { return false; }
 	if ( pi.getZ() < Z_min  ||  pi.getZ() > Z_max ) { return false; }
 	double theta = pi.get3Momentum().Theta()*rad_to_deg;
 	if ( theta < theta_min || theta > theta_max ){ return false; }
@@ -547,4 +628,113 @@ int analyzer::checkAcceptance( double p, double phi, double theta, int particle 
 
 	return -1;
 }
+//Legacy cut function
+/*
+bool analyzer::applyElectronDetectorCuts( electron e ){
+	if (e.getDC_sector() == 0) return false;
 
+
+	double e_DC_x[3] = {e.getDC_x1(), e.getDC_x2(), e.getDC_x3()};
+	double e_DC_y[3] = {e.getDC_y1(), e.getDC_y2(), e.getDC_y3()};
+	double e_DC_z[3] = {e.getDC_z1(), e.getDC_z2(), e.getDC_z3()};
+
+
+	for (int regionIdx=0; regionIdx<3; regionIdx++) {
+		// DC_e_fid:
+		// sector:  1-6
+		// layer:   1-3
+		// bending: 0(out)/1(in)
+		if( e.getEdge(regionIdx) < e_fid_cuts[regionIdx] ){ return false; }
+		
+		//int bending  = 1 ? (torusBending==-1) : 0;
+		//bool DC_fid  = dcfid.DC_fid_xy_sidis( 11,                 // particle PID,
+		//				e_DC_x[regionIdx],  // x
+		//				e_DC_y[regionIdx],  // y
+		//				e.getDC_sector(),        // sector
+		//				regionIdx+1,        // layer
+		//				bending );           // torus bending
+		//if (DC_fid == false) { return false; }
+		
+	}	
+
+	// PCAL FIDUCIAL	
+	if( ! (	e.getW() > e_PCAL_W_min	&&  e.getV() > e_PCAL_V_min)) return false;
+
+
+	//PCAL MIN EDEP CUT
+	if( ! ( e.getEpcal() > e_E_PCAL_min) ) return false;
+		
+	//Electron SF cut
+	if(  !(epid.isElectron(&e)) ) return false;
+
+	//if( ! (( (e.getEpcal() + e.getEecin() + e.getEecout())/e.get3Momentum().Mag()) > SamplingFraction_min ) ) return false;
+	
+	//SF CORRELATION CUT
+	if( !( e.getEecin()/e.get3Momentum().Mag() > PCAL_ECIN_SF_min - e.getEpcal()/e.get3Momentum().Mag() )) return false;
+	
+	//ELECTRON VERTEX CUT
+	if( ! ((e.getVt().Z() > Vz_e_min_inbending) && (e.getVt().Z() < Vz_e_max_inbending))) return false;
+	
+	
+	return true;
+}
+
+
+bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
+	// decide if pion (pi+ or pi-) passed event selection cuts
+	//
+	// input:
+	// --------
+	// DC_x, DC_y   pi drift-chamber coordinates
+	// chi2PID      pi chi2PID     (pips_chi2PID)
+	// p            pi momentum    (pi.P())
+	//
+
+	if (pi.getDC_sector() == 0) { return false;}
+
+	double    C;
+	
+	if (pi.getCharge() > 0){ C = 0.88;} 
+	else if (pi.getCharge() < 0) {C = 0.93; } 
+	else {
+		std::cout << "π charge ill-defined, returning false" << std::endl;
+		return false;
+	}
+
+	//double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
+	//double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
+	//double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
+	for (int regionIdx=0; regionIdx<3; regionIdx++) {
+		// DC_e_fid:
+		// sector:  1-6
+		// layer:   1-3
+		// bending: 0(out)/1(in)
+	
+		if( pi.getEdge(regionIdx) < pi_fid_cuts[ (int)(pi.getCharge() < 0 ) ][regionIdx] ){ return false; }
+		
+		//int bending  = 1 ? (torusBending==-1) : 0;
+		//bool DC_fid  = dcfid.DC_fid_th_ph_sidis(pi.getPID(),            // particle PID
+		//					DC_x[regionIdx],    // x
+		//					DC_y[regionIdx],    // y
+		//					DC_z[regionIdx],    // z
+		//					pi.getDC_sector(),          // sector
+		//					regionIdx+1,        // layer
+		//					bending);           // torus bending
+		//
+		//if (DC_fid == false) { return false; }
+	
+	}
+	
+	
+
+	//PION CHI2 vs P CUT
+	if(! (	( Chi2PID_pion_lowerBound( pi.get3Momentum().Mag(), C ) < pi.getChi2()
+         	&& pi.getChi2() < Chi2PID_pion_upperBound( pi.get3Momentum().Mag() , C ) ))) 
+		{return false; }
+       
+	//DELTA VERTEX CUT
+	if( !( (pi.getVt() - e.getVt()).Z() > -7 && (pi.getVt() - e.getVt()).Z() < 5 ) ) { return false; }
+	//if( ! ( abs( (pi.getVt() - e.getVt()).Z() ) < 20 ) ) { return false; }
+	return true;
+}
+*/

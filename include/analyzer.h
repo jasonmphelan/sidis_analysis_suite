@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <random>
 #include "TLorentzVector.h"
 #include "TString.h"
 #include "cut_values.h"
@@ -40,6 +41,12 @@ public:
 	bool 	applyPionKinematicCuts( genPion pi );
 	bool 	applyPionDetectorCuts( pion pi, electron e );
 
+	void printCuts();
+
+	void loadSamplingFractionParams( TString sfFile_name );
+	void loadSamplingFractionParams( );
+
+	void randomizeCuts();
 	void	loadCutValues (int torusBending, double EBeam); //  -1 for In-bending, +1 for Out-bending
 	bool	applyAcceptanceMatching( pion pi, int dim );
 
@@ -70,7 +77,7 @@ public:
 	bool applyPionDetectorVertex( pion pi, electron e );
 	
 	int checkAcceptance( double p, double phi, double theta, int particle );
-
+	
 private:
 	int	fdebug;
 	int	torusBending; // -1 for In-bending, +1 for Out-bending
@@ -90,9 +97,32 @@ private:
 	electron * e;
 	pion * pi;
 
+	double SF_p_mean[6][3];
+	double SF_p_sigma[6][3];
+
 	double acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
 	double fitBounds[6][10][3][3];	
 
+	//parameter modifiers for cut sensitivity
+	double mod_el_fid[3] = {1, 1, 1};
+	double mod_el_PCAL[2] = {1, 1};
+	double mod_el_Edep = 1;
+	double mod_SF_sigma = 1;
+	double mod_el_corr = 1;
+	double mod_el_vtz[2] = {1, 1};
+
+	double mod_pi_fid[2][3] = {0};
+	double mod_pi_vtz[2][2] =  {{1,1},{1,1}};
+
+	double mod_W = 1;
+	double mod_Q2[2] = {1,1};
+	double mod_xB[2] = {1, 1};
+	double mod_y = 1;
+	double mod_pe[2] = {1, 1};
+
+	double mod_Mx = 1;
+	double mod_ppi[2] = {1, 1};
+	std::random_device rd;
 };
 
 #endif

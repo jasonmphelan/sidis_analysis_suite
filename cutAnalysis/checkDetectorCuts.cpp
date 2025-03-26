@@ -76,9 +76,11 @@ int main( int argc, char** argv){
 	analyzer anal(0, torusBending);
 	anal.setAnalyzerLevel(0);
 	anal.loadCutValues(-1, Ebeam);
-	
+	anal.loadSamplingFractionParams();
+
+
 	reader runReader;
-	runReader.setNumFiles( 0 );
+	runReader.setNumFiles( 5 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	
@@ -251,72 +253,43 @@ int main( int argc, char** argv){
 	
 			
 				int chargeIdx = (int)(pi_dummy.getCharge() < 0);
-
-				hBeta_p_e[0]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[0]->Fill(  e.getBeta() );
-				hBeta_p_pi[0][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[0][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron DC Fiducials
+				if( !anal.applyElectronFiducials( e ) ){ continue; }
 				hFid_e[chargeIdx][0][0]->Fill( e.getDC_x1(), e.getDC_y1() ); 
 				hFid_e[chargeIdx][1][0]->Fill( e.getDC_x2(), e.getDC_y2() ); 
 				hFid_e[chargeIdx][2][0]->Fill( e.getDC_x3(), e.getDC_y3() ); 
 				
 				counts[chargeIdx][8]++;
-				if( !anal.applyElectronFiducials( e ) ){ continue; }
-				hBeta_p_e[1]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[1]->Fill( e.getBeta() );
-				hBeta_p_pi[1][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[1][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				hFid_e[chargeIdx][0][1]->Fill( e.getDC_x1(), e.getDC_y1() ); 
 				hFid_e[chargeIdx][1][1]->Fill( e.getDC_x2(), e.getDC_y2() ); 	
 				hFid_e[chargeIdx][2][1]->Fill( e.getDC_x3(), e.getDC_y3() ); 
 				
 				//PCAL Fiducials
+				if( !anal.applyElectronPCAL( e ) ){continue;}
 				counts[chargeIdx][1]++;
 				hPCAL_WV[chargeIdx]->Fill( e.getV(), e.getW() );
-				if( !anal.applyElectronPCAL( e ) ){continue;}
-				hBeta_p_e[2]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[2]->Fill( e.getBeta() );
-				hBeta_p_pi[2][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[2][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron Min Edep
+				if( !anal.applyElectronEDep( e )){continue;}
 				counts[chargeIdx][2]++;
 				hEdep[chargeIdx]->Fill( e.getEpcal(),  e.getEecin() + e.getEecout() );
-				if( !anal.applyElectronEDep( e )){continue;}
-				hBeta_p_e[3]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[3]->Fill( e.getBeta() );
-				hBeta_p_pi[3][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[3][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron SF Cut
+				if( !anal.applyElectronSF( e )){continue;}
 				counts[chargeIdx][3]++;
 				hSF[chargeIdx][e.getDC_sector()-1]->Fill( e.get3Momentum().Mag(), (e.getEpcal() + e.getEecin() + e.getEecout())/e.get3Momentum().Mag() );
-				if( !anal.applyElectronSF( e )){continue;}
-				hBeta_p_e[4]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[4]->Fill( e.getBeta() );
-				hBeta_p_pi[4][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[4][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron SF Correcleation
+				if( !anal.applyElectronCorrelation( e )){continue;}
 				counts[chargeIdx][4]++;
 				hSF_corr[chargeIdx]->Fill( e.getEpcal()/e.get3Momentum().Mag(), (e.getEecin())/e.get3Momentum().Mag() );
-				if( !anal.applyElectronCorrelation( e )){continue;}
-				hBeta_p_e[5]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[5]->Fill( e.getBeta() );
-				hBeta_p_pi[5][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[5][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron Vertex
+				if( !anal.applyElectronVertex( e )){continue;}
 				counts[chargeIdx][5]++;
 				hVz_e[chargeIdx]->Fill( e.getVt().Z() );
-				if( !anal.applyElectronVertex( e )){continue;}
-				hBeta_p_e[6]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[6]->Fill( e.getBeta() );
-				hBeta_p_pi[6][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[6][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				////All Cuts (Check)
 				//if( !anal.applyElectronDetectorCuts( e )){continue;}
@@ -340,10 +313,6 @@ int main( int argc, char** argv){
 				}
 				*/				
 				if( !anal.applyPionDetectorFiducials( pi_dummy )){ continue ; }
-				hBeta_p_e[8]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[8]->Fill( e.getBeta() );
-				hBeta_p_pi[8][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[8][chargeIdx]->Fill( pi_dummy.getBeta() );
 					
 				hFid_pi[chargeIdx][0][1]->Fill( pi_dummy.getDC_x1(), pi_dummy.getDC_y1() );
 				hFid_pi[chargeIdx][1][1]->Fill( pi_dummy.getDC_x2(), pi_dummy.getDC_y2() );
@@ -351,21 +320,13 @@ int main( int argc, char** argv){
 				
 				//Pion Vertex
 				counts[chargeIdx][6]++;
-				hVz_pi[chargeIdx]->Fill( pi_dummy.getVt().Z() - e.getVt().Z() );
 				if( !anal.applyPionDetectorVertex( pi_dummy, e ) ){ continue; }
-				hBeta_p_e[10]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[10]->Fill( e.getBeta() );
-				hBeta_p_pi[10][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[10][chargeIdx]->Fill( pi_dummy.getBeta() );
+				hVz_pi[chargeIdx]->Fill( pi_dummy.getVt().Z() - e.getVt().Z() );
 
 				//Pion Chi2
 				counts[chargeIdx][7]++;
-				hChi2[chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getChi2() );
 				if( !anal.applyPionDetectorChi2( pi_dummy ) ){ continue; }
-				hBeta_p_e[9]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[9]->Fill( e.getBeta() );
-				hBeta_p_pi[9][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[9][chargeIdx]->Fill( pi_dummy.getBeta() );
+				hChi2[chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getChi2() );
 				/*
 				//Electron Fiducials
 				hFid_e[chargeIdx][0][0]->Fill( e.getDC_x1(), e.getDC_y1() ); 
@@ -438,36 +399,8 @@ int main( int argc, char** argv){
 		}
 	}
 
-	for( int i = 0; i < 11; i++ ){
-		hBeta_p_e[i]->Write();
-		hBeta_p_pi[i][0]->Write();
-		hBeta_p_pi[i][1]->Write();
-	
-		hBeta_e[i]->Write();
-		hBeta_pi[i][0]->Write();
-		hBeta_pi[i][1]->Write();
-	}
 	outputFile->Close();
 
-	cout<<"Writing Text File\n";
-
-	std::ofstream txtFile;
-	txtFile.open(outFile_name + ".txt");
-	txtFile<< "\t(e,e'pi+)\t#(e,e'pi-)\n";
-	txtFile<< "All tracks\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
-	txtFile<< "Event Builder\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
-	txtFile<< "Electron DC Fiducials\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
-	txtFile<< "PCAL WV\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
-	txtFile<< "PCAL Edep\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
-	txtFile<< "SF Cuts\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
-	txtFile<< "SF Correlation\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
-	txtFile<< "Electron Vertex\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
-	txtFile<< "Pion DC Fiducials\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
-	txtFile<< "Pion Vertex\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
-	txtFile<< "Chi2\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
-	txtFile.close();
-
-	std::cout<<"Done!\n";
 
 	auto finish = std::chrono::high_resolution_clock::now();
     	std::chrono::duration<double> elapsed = finish - start;

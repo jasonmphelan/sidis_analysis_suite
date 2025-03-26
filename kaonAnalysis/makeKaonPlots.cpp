@@ -26,7 +26,9 @@
 #include "pion.h"
 #include "constants.h"
 #include "cut_values.h"
-
+#include "analyzer.h"
+#include "e_pid.h"
+#include "DCfid_SIDIS.h"
 #define HIST_PATH _HIST
 
 using std::cerr;
@@ -41,14 +43,14 @@ int main( int argc, char** argv){
 
 	if( argc <3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Output File (no extension)]\n";
+		cerr << "./code [Output File]\n";
 		cerr << "[Type (0 - pi2k, 1 - k2pi)] [Theta Cut (optional)]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
 	int nBinsQ2 = bins_Q2;
-	int nBinsXb =(int) (10* (bins_xB/25.));
+	int nBinsXb = bins_xB;//(int) (10* (bins_xB/25.));
 	int nBinsZ = 2*bins_Z;
 
 	//TString in_name = argv[1];
@@ -56,10 +58,10 @@ int main( int argc, char** argv){
 		
 	int type = atoi(argv[2]);
 
-       	double max_theta_cut = 999;
-	if( argc > 3 ){ max_theta_cut = atoi(argv[4]); }
+       	double theta_cut = 0;
+	if( argc > 2 ){ theta_cut = atoi(argv[3]); }
 
-       	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
+       	TFile * outFile = new TFile(out_name, "RECREATE");//(TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
 	
 	// Declare histograms
 
@@ -115,7 +117,14 @@ int main( int argc, char** argv){
 	//TTreeReaderArray<bool> isGoodPion_3d_vec(reader, "isGoodPion_3d");
         //TTreeReaderArray<bool> isGoodPion_no_acc_vec(reader, "isGoodPion_no_acc");
 
-
+	analyzer anal( 0, -1 );
+	anal.setAnalyzerLevel(0);
+	if( type == 0 ){
+		anal.loadMatchingFunctions("matchCutPi2K.root");
+	}
+	if( type == 1 ){
+		anal.loadMatchingFunctions("matchCutK2Pi.root");
+	}
 	int event_count = 0;
 	while (reader.Next()) {
                 if(event_count%100000 == 0){cout<<"Events Analyzed: "<<event_count<<std::endl;}
@@ -126,20 +135,19 @@ int main( int argc, char** argv){
 
 		int chargeIdx = 0;
 	
-		//if( e->getW() < 19 || e->getV() < 19 ){continue;}
-
-
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			//if(accMatchType < 2 && !isGoodPion_no_acc_vec[i]) {continue;}
 			if( !isGoodPion_vec[i]) {continue;}
 			//if(accMatchType == 3 && !isGoodPion_3d_vec[i]) {continue;}
 			if(pi[i].getBeta_rich() < .0001){continue;}
-			if( pi[i].get3Momentum().Theta()*rad_to_deg > max_theta_cut ){ continue; }
+			//if( pi[i].get3Momentum().Theta()*rad_to_deg > max_theta_cut ){ continue; }
+			
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta();
 			double Z = pi[i].getZ();
-
+			
+			if( theta_cut > 0 && !anal.acceptance_match_2d(theta_pi*rad_to_deg, p_pi, 1) ){continue;}
 			int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nBinsQ2) + 1;
 			int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nBinsXb) + 1;
 			int this_bin_Z = (int)( ( (Z - Z_min)/(Z_max - Z_min) )*nBinsZ) + 1;
@@ -151,36 +159,27 @@ int main( int argc, char** argv){
 				}
 			}
 		
-			double m_TOF = p_pi*sqrt( 1 + pi[i].getBeta()*pi[i].getBeta() )/(pi[i].getBeta());
-			double m_RICH = p_pi*sqrt( 1 + pi[i].getBeta()*pi[i].getBeta() )/(pi[i].getBeta());
+			double m2_TOF = p_pi*p_pi*( 1 - pi[i].getBeta()*pi[i].getBeta() )/(pi[i].getBeta()*pi[i].getBeta());
+			double m2_RICH = p_pi*p_pi*( 1 - pi[i].getBeta_rich()*pi[i].getBeta_rich() )/(pi[i].getBeta_rich()*pi[i].getBeta_rich());
 
-			h_Beta[chargeIdx][0][0][0][0]->Fill(m_TOF);
-			h_Beta_rich[chargeIdx][0][0][0][0]->Fill(m_RICH);
-			hBeta_p[chargeIdx][0][0][0]->Fill(p_pi, m_TOF);
-			hBeta_rich_p[chargeIdx][0][0][0]->Fill(p_pi, m_RICH);
+
+			h_Beta[chargeIdx][0][0][0][0]->Fill(m2_TOF);
+			h_Beta_rich[chargeIdx][0][0][0][0]->Fill(m2_RICH);
+			hBeta_p[chargeIdx][0][0][0]->Fill(p_pi, pi[i].getBeta());
+			hBeta_rich_p[chargeIdx][0][0][0]->Fill(p_pi, pi[i].getBeta_rich());
 			
-			h_Beta[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m_TOF);
-			h_Beta_rich[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m_RICH);
-			hBeta_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, m_TOF);
-			hBeta_rich_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, m_RICH);
+			h_Beta[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m2_TOF);
+			h_Beta_rich[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m2_RICH);
+			hBeta_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, pi[i].getBeta());
+			hBeta_rich_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, pi[i].getBeta_rich());
 			
 		}
 	}
 	
-	//file->Close();
 
 	outFile->cd();
 	
 	cout<<"BEGIN WRITING HISTOGRAMS\n";
-
-	TCanvas canvas("canvas");
-	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
-	canvas.Clear();
-	
-	double fontSize = 35;
-	double labelSize = 30;
-	double titleSize = 35;	
-	int fontStyle = 43;
 
 	for( int j = 0; j <= nBinsQ2; j++ ){
 		for( int k = 0; k <= nBinsXb; k++ ){
@@ -188,33 +187,11 @@ int main( int argc, char** argv){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					//hBeta_p[i][j][k][l]->Write();
 					if( j > 0 && k > 0 && l > 0 && hBeta_rich_p[i][j][k][l]->Integral() != 0){
-
-						hBeta_rich_p[i][j][k][l]->SetTitleSize(titleSize);
-						hBeta_rich_p[i][j][k][l]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f" , 
-											2 + .5*(j-1), 2 + .5*j,
-										     	.1 + .05*(k-1), .1 + .05*k,
-											.3 + .05*(l - 1), .3 + .05*l));
 						hBeta_rich_p[i][j][k][l]->Write();
-						hBeta_rich_p[i][j][k][l]->Draw();
-						//canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");
-						//canvas.Clear();
 					}
 					for( int m = 0; m <= 4; m++ ){//momentum bins
 						if( j > 0 && k > 0 && l > 0 && m > 0 && h_Beta_rich[i][j][k][l][m]->Integral()!= 0){
-
-							h_Beta_rich[i][j][k][l][m]->SetTitleSize(titleSize);
-							h_Beta_rich[i][j][k][l][m]->SetTitle( Form( "%.1f<Q^{2}<%.1f & %.2f<x_{B}<%.2f & %.2f<Z<%.2f & %.2f<p<%.2f" , 
-												2 + .5*(j-1), 2 + .5*j,
-											     	.1 + .05*(k-1), .1 + .05*k,
-												.3 + .05*(l - 1), .3 + .05*l,
-												p_bin_edges[m-1], p_bin_edges[m]));
-						h_Beta_rich[i][j][k][l][m]->Write();
-						h_Beta_rich[i][j][k][l][m]->Draw();
-						h_Beta[i][j][k][l][m]->SetLineColor(kRed);
-					//	h_Beta[i][j][k][l][m]->Scale( (double)h_Beta_rich[i][j][k][l][m]->Integral()/(double)h_Beta[i][j][k][l][m]->Integral());
-						h_Beta[i][j][k][l][m]->Draw("same");
-						canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");
-						canvas.Clear();
+							h_Beta_rich[i][j][k][l][m]->Write();
 						}
 			
 					}
@@ -223,7 +200,6 @@ int main( int argc, char** argv){
 		}
 	
 	}
-	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf]");
 	cout<<"FINISHED WRITING\n";
 	outFile->Close();
 }

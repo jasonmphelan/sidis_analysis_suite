@@ -62,7 +62,7 @@ void reader::setDataPaths(){
 	}
 	
 
-	else{ //runType == 0 is data
+	else if (runType == 0){//, ==4 is outbending
 		TString path_temp;
 	
 		if(EBeam == 10.6){ 
@@ -79,22 +79,30 @@ void reader::setDataPaths(){
     		
 		dataPath = "/cache/clas12/rg-b/production/recon/"+path_temp;	
     	}
+	else if( runType == 4 ){
+		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_0";
+	}
 }
 
 void reader::getRunList(){
-	if(EBeam == 10.6){ 
-		runList = (TString) RUN_PATH + "/runLists/good_runs_10-6.txt";
-	}
-	
-	else if(EBeam == 10.4){ 
-		runList = (TString) RUN_PATH+"/runLists/good_runs_10-4.txt";
-	}
-	
-	else{
-		runList = (TString) RUN_PATH + "/runLists/good_runs_10-2.txt";
-    	}
+	if( runType == 0 ){
+		if(EBeam == 10.6){ 
+			runList = (TString) RUN_PATH + "/runLists/good_runs_10-6.txt";
+		}
+		
+		else if(EBeam == 10.4){ 
+			runList = (TString) RUN_PATH+"/runLists/good_runs_10-4.txt";
+		}
+		
+		else{
+			runList = (TString) RUN_PATH + "/runLists/good_runs_10-2.txt";
+		}
 
-	cout<<"Run List : "<<runList<<endl;
+		cout<<"Run List : "<<runList<<endl;
+	}
+	else if( runType == 4 ){
+		runList = (TString) RUN_PATH+"/runLists/good_runs_10-4_pos.txt";
+	}	
 }
 
 
@@ -107,7 +115,7 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 	TString inFile;
 	int beamType =	(int) ( (EBeam - 10.2)/.2 );
 	if(!stream ){ cout<<"fAILE TO open runlist\n";}
-	if(runType == 0){
+	if(runType == 0 || runType == 4){
 		int i = 0;
 		while(std::getline(stream, runNum)){
 			if(nFiles != 0 && i >= nFiles ) break;
@@ -151,7 +159,7 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 	TString inFile;
 	int beamType =	(int) ( (EBeam - 10.2)/.2 );
 	if(!stream ){ cout<<"fAILE TO open runlist\n";}
-	if(runType == 0){
+	if(runType == 0 ){
 		int i = 0;
 		while(std::getline(stream, runNum)){
 			if(nFiles != 0 && i >= nFiles ) break;
@@ -173,6 +181,18 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 				chain->Add(inFile);
 			}
 		//}
+	}
+	else if(runType == 4){
+		int i = 0;
+		while(std::getline(stream, runNum)){
+			if(nFiles != 0 && i >= nFiles ) break;
+			TString run(runNum);
+			inFile = name + Form("_%i", i) + ".root";
+			cout<<"Adding : "<<inFile<<endl;
+			if( gSystem->AccessPathName(inFile) ) continue;
+			chain->Add(inFile);		
+			i++;
+		}
 	}
 	else{ cout<<"(Currently) invalid run type... no files added\n"; }
 //	else {
@@ -198,9 +218,9 @@ void reader::getRunSkimsByName( TChain * chain, TString name ){
 }
 void reader::getRunSkimsAllEnergy( TChain * chain, TString name ){
 	setEnergy(10.2);
-	getRunSkimsByName(chain, name + Form("%i", 10.2) + "run_skim");
+	getRunSkimsByName(chain, name + Form("/%.1f/", 10.2) + "run_skim");
 	setEnergy(10.4);
-	getRunSkimsByName(chain, name+ Form("%i", 10.2) + "run_skim");
+	getRunSkimsByName(chain, name+ Form("/%.1f/", 10.4) + "run_skim");
 	setEnergy(10.6);
-	getRunSkimsByName(chain, name+ Form("%i", 10.2) + "run_skim");
+	getRunSkimsByName(chain, name+ Form("/%.1f/", 10.6) + "run_skim");
 }

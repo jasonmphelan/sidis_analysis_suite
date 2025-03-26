@@ -80,9 +80,9 @@ int main( int argc, char** argv){
 		}
 	}
 	TChain * file_rec = new TChain("ePi");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/data_rotated_10.2.root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/data_rotated_10.4.root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/data_rotated_10.6.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/rotated_10.2.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/rotated_10.4.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/rotated_10.6.root");
 	TTreeReader reader( file_rec);
 
 

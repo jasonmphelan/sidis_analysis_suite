@@ -47,8 +47,7 @@ int main( int argc, char** argv){
 
 	if( argc < 5 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input File] [input k file] [input r file] [Output File]\n";
-		cerr << "[Apply Corrections? (1 - MC, 2 - MC + pi2k, 3 - MC + pi2k + k2pi)]\n";
+		cerr << "./code [Input File] [input r file] [Output File]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
@@ -103,9 +102,9 @@ int main( int argc, char** argv){
 			TString title = Form("%.2f < x_{B} < %.2f",  
 						xB_min + (double)j*(0.04), xB_min + (double)(j+1.)*(0.04)); 
 
-			hQ2[i][j][k] = new TH1F("hQ2" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
-			hQ2_r[i][j][k] = new TH1F("hQ2_r" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
-			hQ2_r_bac[i][j][k] = new TH1F("hQ2_r_bac" + charge_str[k] + Form("_%i_%i",  i+1, j+1) , title , bins_Z, .3, 1);
+			hQ2[j][k] = new TH1F("hQ2" + charge_str[k] + Form("_%i", j+1) , title , bins_Z, .3, 1);
+			hQ2_r[j][k] = new TH1F("hQ2_r" + charge_str[k] + Form("_%i", j+1) , title , bins_Z, .3, 1);
+			hQ2_r_bac[j][k] = new TH1F("hQ2_r_bac" + charge_str[k] + Form("_%i",  j+1) , title , bins_Z, .3, 1);
 						
 		}
 	}

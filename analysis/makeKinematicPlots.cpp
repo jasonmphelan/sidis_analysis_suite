@@ -27,6 +27,9 @@
 #include "constants.h"
 #include "cut_values.h"
 #include "correctionTools.h"
+#include "analyzer.h"
+#include "e_pid.h"
+#include "DCfid_SIDIS.h"
 #define CORR_PATH _DATA
 #define HIST_PATH _HIST
 
@@ -42,20 +45,29 @@ using namespace constants;
 
 int main( int argc, char** argv){
 
-	if( argc < 3 ){
+	if( argc < 4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Output File] [Input File]\n";
+		cerr << "./code [Output File] [Use RICH?]  [p cut?] [Input File]\n";
 		return -1;
 	}
-	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
 	TString out_name = argv[1];
 	
 	TChain * file_rec = new TChain("ePi");
 	
-	for( int i = 2; i <= argc; i++ ){	
-		file_rec->Add(argv[i]);
-	}
+
+
+	double beta_cut = atoi(argv[2]);
+	double p_cut = atoi(argv[3]);
+	cerr << "Files used: \n";
+	//for( int i = 4; i <= argc; i++ ){	
+	//	file_rec->Add(argv[i]);
+	//	cout<<argv[i]<<std::endl;
+	//}
+
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
 
         TFile * outFile = new TFile(out_name, "RECREATE");
 	//TFile * radWeightFile = new TFile("/work/clas12/users/tkutz/radgen/build/RC_graph_radgen_deuterium.root");
@@ -103,6 +115,9 @@ int main( int argc, char** argv){
 	TH2F * hQ2_omega[2][bins_Q2+1][bins_xB+1];
 	TH2F * hQ2_W[2][bins_Q2+1][bins_xB+1];
 	TH2F * hQ2_Z[2][bins_Q2+1][bins_xB+1];
+	
+	TH2F * hBeta_p[2][bins_Q2+1][bins_xB+1];
+	TH2F * hTheta_p[2][bins_Q2+1][bins_xB+1];
 
 	TString data_type[2] = {"pip", "pim"};
 
@@ -131,6 +146,9 @@ int main( int argc, char** argv){
 				hQ2_omega[i][j][k]		= new TH2F("hQ2_omega_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 2 ,5 );
 				hQ2_W[i][j][k]		= new TH2F("hQ2_W_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 1.5 ,3.7 );
 				hQ2_Z[i][j][k]		= new TH2F("hQ2_Z_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, .3 ,1 );
+				
+				hBeta_p[i][j][k]		= new TH2F("hBeta_p_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 0, 5, 100, .99 ,1.01 );
+				hTheta_p[i][j][k]		= new TH2F("hTheta_p_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 0, 5, 100, 0 , 40 );
 			}
 		}
 	}
@@ -143,6 +161,10 @@ int main( int argc, char** argv){
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	TTreeReaderArray<bool> isGoodPion_vec(reader_rec, "isGoodPion");
+	
+	analyzer anal( 0, -1 );
+	anal.setAnalyzerLevel(0);
+	anal.loadMatchingFunctions("matchCutKaons.root");
 
 
 	int event_count = 0;
@@ -193,7 +215,10 @@ int main( int argc, char** argv){
                 h_phi_e[chargeIdx][this_bin_Q2]->Fill(phi_e*rad_to_deg, radWeight);
 		*/
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
-			if(!isGoodPion_vec[i]) {continue;}
+			if( !isGoodPion_vec[i] ) {continue;}
+
+			if( beta_cut > 0 && pi[i].getBeta_rich() < .0001 ){continue;}
+
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double M_x = pi[i].getMx();
 			double pT_pi = pi[i].getPi_q().Pt();
@@ -202,7 +227,13 @@ int main( int argc, char** argv){
 			double phi_pi = pi[i].getPi_q().Phi()*rad_to_deg;
 			double Z = pi[i].getZ();
 			double Vz_pi = pi[i].getVt().z() - Vz_e;
-		
+
+			double beta = 0;
+			if( p_cut > 0 && p_pi < 2.5 ){ continue;}
+			if( beta_cut >0 && !anal.acceptance_match_2d(theta_pi*rad_to_deg, p_pi, 0) ){continue;}
+			if( beta_cut > 0 ){ beta = pi[i].getBeta_rich(); }
+			else{ beta = pi[i].getBeta(); }
+
 			//if( pT_pi < .5 || pT_pi > .75 ){continue;}
 
 			int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*bins_Q2) + 1;
@@ -215,25 +246,25 @@ int main( int argc, char** argv){
 			h_Q2[chargeIdx][0][0]->Fill(Q2, radWeight);
 			h_y[chargeIdx][0][0]->Fill(y, radWeight);
 			h_omega[chargeIdx][0][0]->Fill(omega, radWeight);
-			h_theta_e[chargeIdx][0][0]->Fill(theta_e*rad_to_deg, radWeight);
+			h_theta_e[chargeIdx][0][0]->Fill(theta_e, radWeight);
 			h_Vz_e[chargeIdx][0][0]->Fill(Vz_e, radWeight);
 			h_p_e[chargeIdx][0][0]->Fill(p_e, radWeight);
-			h_phi_e[chargeIdx][0][0]->Fill(phi_e*rad_to_deg, radWeight);
+			h_phi_e[chargeIdx][0][0]->Fill(phi_e, radWeight);
 
 			h_W[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(W, radWeight);
 			h_Xb[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(xB, radWeight);
 			h_Q2[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(Q2, radWeight);
 			h_y[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(y, radWeight);
 			h_omega[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(omega, radWeight);
-			h_theta_e[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(theta_e*rad_to_deg, radWeight);
+			h_theta_e[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(theta_e, radWeight);
 			h_Vz_e[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(Vz_e, radWeight);
-			h_phi_e[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(phi_e*rad_to_deg, radWeight);
+			h_phi_e[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(phi_e, radWeight);
 
 			h_Z[chargeIdx][0][0]->Fill(Z, radWeight);
 			h_Mx[chargeIdx][0][0]->Fill(M_x, radWeight);
 			h_Pt_pi[chargeIdx][0][0]->Fill(pT_pi, radWeight);
-			h_theta_pi[chargeIdx][0][0]->Fill(theta_pi*rad_to_deg, radWeight);
-			h_phi_pi[chargeIdx][0][0]->Fill(phi_pi*rad_to_deg, radWeight);
+			h_theta_pi[chargeIdx][0][0]->Fill(theta_pi, radWeight);
+			h_phi_pi[chargeIdx][0][0]->Fill(phi_pi, radWeight);
 			h_Vz_pi[chargeIdx][0][0]->Fill(Vz_pi - Vz_e, radWeight);
 			h_p_pi[chargeIdx][0][0]->Fill(p_pi, radWeight);
 	
@@ -244,8 +275,8 @@ int main( int argc, char** argv){
 			h_Z[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(Z, radWeight);
 			h_Mx[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(M_x, radWeight);
 			h_Pt_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(pT_pi, radWeight);
-			h_theta_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(theta_pi*rad_to_deg, radWeight);
-			h_phi_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(phi_pi*rad_to_deg, radWeight);
+			h_theta_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(theta_pi, radWeight);
+			h_phi_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(phi_pi, radWeight);
 			h_Vz_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(Vz_pi, radWeight);
 			h_p_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(p_pi, radWeight);
 
@@ -253,6 +284,9 @@ int main( int argc, char** argv){
 			hQ2_omega[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, omega);
 			hQ2_Z[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, Z);
 			hQ2_W[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( xB, W);
+			
+			hBeta_p[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( p_pi, beta);
+			hTheta_p[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( p_pi, theta_pi);
 			
 		}
 	}
@@ -303,6 +337,9 @@ int main( int argc, char** argv){
 				hQ2_omega[i][j][k]->Write();
 				hQ2_Z[i][j][k]->Write();
 				hQ2_W[i][j][k]->Write();
+			
+				hBeta_p[i][j][k]->Write();
+				hTheta_p[i][j][k]->Write();
 
 			}
 		}

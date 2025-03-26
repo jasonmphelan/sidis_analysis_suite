@@ -70,9 +70,14 @@ int main( int argc, char** argv){
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
-	anal.setAnalyzerLevel(0);
+	if( RunType == 4 ){
+		anal.setAnalyzerLevel(0);
+	}	
+	else{ anal.setAnalyzerLevel(RunType); }
 	anal.loadCutValues(-1, Ebeam);
-	
+	anal.loadSamplingFractionParams();
+	anal.printCuts();
+
 	reader runReader;
 	runReader.setNumFiles( nFiles);
 	runReader.setRunType( RunType );
@@ -87,7 +92,8 @@ int main( int argc, char** argv){
 	int Ne,Npi, Npips, Npims, runnum, evnum;
 	double torus_setting;
 	TLorentzVector beam( 0, 0, Ebeam, Ebeam );
-
+	double accCharge = 0;
+	double beamCurr = 0;
 	// Electron Variables
 	electron e;
 	genElectron e_gen;
@@ -116,7 +122,9 @@ int main( int argc, char** argv){
 		outTree->Branch("evnum", &evnum);
 		outTree->Branch("Ebeam", &Ebeam);
 		outTree->Branch("beam", &beam);
-		
+	
+		outTree->Branch("accCharge", &accCharge);
+
 		outTree->Branch("Ne", &Ne);
 		outTree->Branch("e", &e);
 			
@@ -131,7 +139,6 @@ int main( int argc, char** argv){
 		}
 	}
 	
-	double accCharge = 0;
 	int goodElectron = 0;
 
 
@@ -154,6 +161,7 @@ int main( int argc, char** argv){
 			outTree->Branch("evnum", &evnum);
 			outTree->Branch("Ebeam", &Ebeam);
 			outTree->Branch("beam", &beam);
+			outTree->Branch("accCharge", &accCharge);
 		
 			outTree->Branch("Ne", &Ne);
 			outTree->Branch("e", &e);
@@ -172,16 +180,20 @@ int main( int argc, char** argv){
 		//create the event reader
 		clas12reader c12(files.GetFileName(i).Data());
 		auto mcparts = c12.mcparts();		
+		
+		c12.scalerReader();
+		accCharge = c12.getRunBeamCharge();
+		
 		int NeventsTotal = c12.getReader().getEntries();       
     	   	int event = 0;	
 
     	    	// process the events...
     	    	while((c12.next()==true)){
-           		if( RunType > 0 && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
-           		if( RunType == 0 && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			event++;
 			evnum  = c12.runconfig()->getEvent();
 			runnum = c12.runconfig()->getRun();
+           		if( RunType == 1 && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
+           		if( ( RunType == 0 || RunType == 4) && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
 			
 			///////////////////////////Initialize variables//////////////////////////////////////////////	
 			electrons.clear();
@@ -202,7 +214,12 @@ int main( int argc, char** argv){
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
 			
 			// Get Particles By PID
-			electrons   = c12.getByID( 11   );
+			if( RunType == 4){
+				electrons   = c12.getByID( -11   );
+			}
+			else{
+				electrons   = c12.getByID( 11   );
+			}
 			pipluses    = c12.getByID( 211  );
 			piminuses   = c12.getByID(-211  );
 
@@ -221,7 +238,7 @@ int main( int argc, char** argv){
 			Ne      = electrons.size();
 			Npi 	= pions.size();
 			
-			if(RunType == 1){	
+			if(RunType == 1 && inclusive != 1){	
 				int nMcPart = c12.mcevent()->getNpart();	
 				int mcId;
 				std::vector<int> pipsMC;

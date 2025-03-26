@@ -34,8 +34,11 @@ namespace cutVals{
 	const double Mx_min = 1.7;
 	const double Mx_max = 5.0;
 	
-	const double Vz_e_min_inbending = -5.0;	
-	const double Vz_e_max_inbending = 1.0;
+	const double Vz_e_min_inbending = -4.0;
+	const double Vz_e_max_inbending = -1.0;
+	
+	const double Vz_pi_min_inbending[2][2] = {{-7.0, -5}, {-2.5, -2.5}};//[RunType][charge]
+	const double Vz_pi_max_inbending[2][2] = {{4.0, 4.0}, {-2.5, -2.5}}; //[RunType][charge]
 
 	//Legacy cuts ("loose")
 	const double SamplingFraction_min=0.17;
@@ -81,7 +84,7 @@ namespace cutVals{
 	const double p_bin_edges_3d[5] = { 1.25, 2.00, 2.50, 3.5, 5.00};
 
 	const double e_fid_cuts[3] = {5, 5, 10};//[region]
-	const double pi_fid_cuts[2][3] = { {3, 3, 10}, {3, 5, 9} };//[charge][region]
+	const double pi_fid_cuts[2][3] = { {4, 4, 10}, {4, 4, 10} };//[charge][region]
 
 }
 

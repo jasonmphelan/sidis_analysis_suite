@@ -44,6 +44,8 @@ void zeroSuppress( TH1F * h);
 double getVarVal( TString var, electron e, pion pi ); 
 double getVarMin( TString bin_var ); 
 double getVarMax( TString bin_var ); 
+int getNBins(TString var);
+
 
 int main( int argc, char** argv){
 
@@ -52,7 +54,7 @@ int main( int argc, char** argv){
 		cerr << "./code [Input File] [input k file] [input r file] [Output File]\n";
 		cerr << "[Acceptance Matching Type (2,3 etc)] \n";
 		cerr << "[Apply Corrections? (1 - MC, 2 - MC + pi2k, 3 - MC + pi2k + k2pi)]\n";
-		cerr << "[Bin Variable] [N Bins]\n";
+		cerr << "[Bin Variable]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
@@ -64,11 +66,10 @@ int main( int argc, char** argv){
 	int matchType = atoi(argv[5]);
 	int applyCorr = atoi(argv[6]);
        	TString bin_var = argv[7];
-	int nBins = atoi(argv[8]);
+	int nBins = getNBins(bin_var);
 
 	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
 
-	//TFile * outFile = new TFile( outName, "RECREATE");
 	TFile * inFile = new TFile( in_name );
 	TFile * kFile = new TFile( k_name );
 	TFile * rFile = new TFile( r_name );
@@ -398,7 +399,7 @@ int main( int argc, char** argv){
 						cout<<"pip err = "<<pip_err<<std::endl;
 						double pip_scale = hNorms_pip->GetBinContent(j, i, k);
 						cout<<"pip_scale = "<<pip_scale<<std::endl;
-						double pip_scale_err = 0; //hNorms_pip->GetBinError(j, i, k);
+						double pip_scale_err = hNorms_pip->GetBinError(j, i, k);
 						cout<<"pip_scale_err = "<<pip_scale_err<<std::endl;
 
 						hZ_r_bac[i-1][j-1][l-1][0]->SetBinContent( k, pip_cont*pip_scale );
@@ -439,7 +440,6 @@ int main( int argc, char** argv){
 
 				hZ[i-1][j-1][l-1][0]->Divide(helper_3);
 				
-				//hZ[i-1][j-1][0]->Print("ALL");
 				hZ[i-1][j-1][l-1][0]->Write();
 				hZ[i-1][j-1][l-1][1]->Write();
 		
@@ -491,6 +491,7 @@ double getVarMin(TString var){
 
 
 	if( var == "p_pi" ) return 1.25;
+	if( var == "pT" ) return 0;
 	if( var == "theta_pi" ) return 10;
 	if( var == "phi_pi" ) return -180;
 	if( var == "phi_q" ) return -180;
@@ -506,9 +507,27 @@ double getVarMax(TString var){
 
 
 	if( var == "p_pi" ) return 5;
+	if( var == "pT" ) return 1.2;
 	if( var == "theta_pi" ) return 40;
 	if( var == "phi_pi" ) return 180;
 	if( var == "phi_q" ) return 180;
 	if( var == "Mx" || var == "M_x" ) return 5; 
 	return 0;
 }
+
+int getNBins(TString var){
+	if( var == "sector" ) return 6;
+	if( var == "pT" ) return 4;
+}
+
+int getBin( TString var, double val ){
+	if( var == "sector" ) return val - 1;
+	else{
+		double min = getVarMin(var);
+		double max = getVarMax(var);
+	       	return (int) ( (( val - min )/(max - min))*getNBins(var) );
+	}
+
+	return 0;
+}
+
