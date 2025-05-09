@@ -3,7 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
-inFile = uproot.open("../histograms/analysis_note/detector_plots_10.4.root")
+import sys 
+
+in_name = sys.argv[1]
+out_dir = sys.argv[2]
+#inFile = uproot.open("../histograms/analysis_note/detector_plots_10.4.root")
+inFile = uproot.open(in_name)
 
 parList = ["e", "pi"]
 chList = ["pip", "pim"]
@@ -45,4 +50,4 @@ for par in parList:
 			axs[reg, ch].set_title(rf"$(e, e'{stList[ch]})$, Region {reg+1}")
 
 	#plt.show()
-	fig.savefig(f"selection_plots/hFid_{par}.pdf")
+	fig.savefig(f"{out_dir}/hFid_{par}.pdf")

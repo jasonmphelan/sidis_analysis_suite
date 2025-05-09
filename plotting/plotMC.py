@@ -54,9 +54,10 @@ def setTitle1D( ax, key):
 	if "Omega" in key:
 		ax.set_xlabel(r"$\omega$ [GeV]", fontsize=16)
 
-
-inFile = uproot.open("../histograms/analysis_note/kinematics_data_10.4.root")
-inFile_MC = uproot.open("../histograms/analysis_note/kinematics_gemc_10.4.root")
+in_names = int(sys.argv[1])
+out_dir = int(sys.argv[2])
+inFile = uproot.open(in_names[0])#"../histograms/analysis_note/kinematics_data_10.4.root")
+inFile_MC = uproot.open(in_names[1])#"../histograms/analysis_note/kinematics_gemc_10.4.root")
 for key in inFile.keys():
 	if "pim" in key:
 		continue
@@ -139,5 +140,5 @@ for key in inFile.keys():
 
 		pdfName = hName.replace("_pip", "")
 		fig.legend(fontsize=16)
-		fig.savefig(f"mc_plots/{pdfName}.pdf")
+		fig.savefig(f"{out_dir}/{pdfName}.pdf")
 		plt.close(fig)

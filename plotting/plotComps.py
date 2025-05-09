@@ -67,9 +67,12 @@ def setTitle1D( ax, key):
 	if "Omega" in key:
 		ax.set_xlabel(r"$\omega$ [GeV]", fontsize=16)
 
-inFile_names = ['../histograms/analysis_note/kinematics_data_10.4_p_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_p_cut.root', '../histograms/analysis_note/kinematics_data_10.4_beta_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_beta_cut.root']
+#inFile_names = ['../histograms/analysis_note/kinematics_data_10.4_p_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_p_cut.root', '../histograms/analysis_note/kinematics_data_10.4_beta_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_beta_cut.root']
 
-comp_files = {1, 3}
+inFile_names = sys.argv[1]
+out_names = sys.argv[1]
+
+comp_files = {0,1}
 #inFile_names = ['../histograms/analysis_note/kinematics_data_10.4_p_cut.root', '../histograms/analysis_note/kinematics_data_10.4_beta_cut.root']
 labels = [r'$Y_{\pi}^{EB}$', r'$Y_{k}^{EB}$',r'$Y_{\pi}^{EB}$, Hit in RICH', r'$Y_{k}^{EB}$, Hit in RICH']
 
@@ -154,7 +157,7 @@ for key in inFile[0].keys():
 
 		pdfName = hName.replace("_pip", "")
 		fig.legend(fontsize=16)
-		fig.savefig(f"comp_plots/{pdfName}.pdf")
+		fig.savefig(f"{out_names}/{pdfName}.pdf")
 		plt.close(fig)
 
 	if isinstance( inFile[0][key], uproot.models.TH.Model_TH2F_v4): 
@@ -204,5 +207,5 @@ for key in inFile[0].keys():
 			k = k+1
 		#fig.legend(fontsize=16)
 
-		fig.savefig(f'comp_plots/{hName}.pdf')
+		fig.savefig(f'{out_names}/{hName}.pdf')
 			

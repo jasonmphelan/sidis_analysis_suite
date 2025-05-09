@@ -5,11 +5,14 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
-
+import sys
 
 def eval_func(params, xVal):
 	return params[0] + params[1]/xVal
-inName = '../data/acceptance_matching/matchCut2D.root'
+
+inName = sys.argv[1]
+#inName = '../data/acceptance_matching/matchCut2D.root'
+out_dir =sys.argv[2]
 inFile = uproot.open(inName)
 inFile_R = ROOT.TFile.Open(inName, "READ")
 
@@ -94,6 +97,6 @@ for sec in range(nSec):
 	fig.legend(fontsize=16)
 
 	if nSec == 1:
-		fig.savefig(f'acceptance_matching/hMatch_kaons.pdf')
+		fig.savefig(f'{out_dir}/hMatch_kaons.pdf')
 	else:
-		fig.savefig(f'acceptance_matching/hMatch_{sec+1}.pdf')
+		fig.savefig(f'{out_dir}/hMatch_{sec+1}.pdf')

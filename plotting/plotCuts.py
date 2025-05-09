@@ -3,6 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
+import sys 
+
+in_name = (sys.argv[1])
+out_dir = (sys.argv[2])
 
 def setTitle2D( ax, key):
 	if "Beta" in key or "Min" in key or "Pos" in key:
@@ -125,7 +129,8 @@ def drawCut1D( ax, key ):
 
 
 #inFile = uproot.open("../histograms/analysis_note/kinematic_cuts_10.2.root")
-inFile = uproot.open("../histograms/analysis_note/detector_plots_10.4.root")
+#inFile = uproot.open("../histograms/analysis_note/detector_plots_10.4.root")
+inFile = uproot.open(in_name)
 for key in inFile.keys():
 	if "pim" in key:
 		continue
@@ -172,7 +177,7 @@ for key in inFile.keys():
 
 		pdfName = hName.replace(";1", "")
 		pdfName = pdfName.replace("_pip", "")
-		fig.savefig(f"selection_plots/{pdfName}.pdf")
+		fig.savefig(f"{out_dir}/{pdfName}.pdf")
 		plt.close(fig)
 
 	if isinstance( hist, uproot.models.TH.Model_TH1F_v3): 
@@ -217,5 +222,5 @@ for key in inFile.keys():
 
 		pdfName = hName.replace("_pip", "")
 		pdfName = pdfName.replace(";1", "")
-		fig.savefig(f"selection_plots/{pdfName}.pdf")
+		fig.savefig(f"{out_dir}/{pdfName}.pdf")
 		plt.close(fig)

@@ -4,9 +4,13 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
-inFile = uproot.open("../histograms/analysis_note/fiducials.root.root")
+import sys 
+in_name = int(sys.argv[1])
+inFile = uproot.open(in_name)
+out_dir = int(sys.argv[2])
+#inFile = uproot.open("../histograms/analysis_note/fiducials.root.root")
 
-fid_cuts = [[5, 5, 10], [4, 4, 10], [4, 4, 10] ];
+fid_cuts = [[5, 5, 10], [4, 4, 10], [4, 4, 10] ]
 
 parList = ["e", "pi", "pi"]
 stList = ["_pip", "_pip", "_pim"]
@@ -55,4 +59,4 @@ for par in range(3):
 
 		#plt.show()
 		plt.legend()
-		fig.savefig(f"fiducial_plots/hFid_{par}{stList[par]}_reg_{reg}.pdf")
+		fig.savefig(f"{out_dir}/hFid_{par}{stList[par]}_reg_{reg}.pdf")

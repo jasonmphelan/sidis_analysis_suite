@@ -5,8 +5,11 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
-inFile = uproot.open("../data/SF_fits.root")
-inFile_R = ROOT.TFile.Open("../data/SF_fits.root", "READ")
+import sys 
+in_name = sys.argv[1]
+inFile = uproot.open(in_name)
+inFile_R = ROOT.TFile.Open(in_name, "READ")
+out_dir = sys.argv[2]
 
 obj_base = "hSF_"
 def eval_func(params, xVal):
@@ -59,4 +62,4 @@ for sec in range(6):
 	axs[reg, ch].set_title(f"Sector {sec + 1}")
 
 #plt.show()
-fig.savefig(f"selection_plots/hSF.pdf")
+fig.savefig(f"{out_dir}/hSF.pdf")

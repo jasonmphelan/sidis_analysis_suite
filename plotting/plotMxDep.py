@@ -4,8 +4,13 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
+import sys 
 plt.rcParams["font.family"] = "sans-serif"
 colorList = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080']
+
+in_name = sys.argv[1]
+out_dir = sys.argv[2]
+inFile = uproot.open(in_name)
 
 def setTitle2D( ax, key):
 	if "Beta" in key:
@@ -54,7 +59,7 @@ def setTitle1D( ax, key):
 		ax.set_xlabel(r"$\omega$ [GeV]", fontsize=16)
 
 
-inFile = uproot.open("../histograms/analysis_note/Mx_dep.root")
+#inFile = uproot.open("../histograms/analysis_note/Mx_dep.root")
 
 for key in inFile.keys():
 	if "pim" in key:
@@ -164,5 +169,5 @@ for key in inFile.keys():
 
 	pdfName = hName.replace("_pip", "")
 	pdfName = pdfName.replace(";1", "")
-	fig.savefig(f"mx_plots/{pdfName}.pdf")
+	fig.savefig(f"{out_dir}/{pdfName}.pdf")
 	plt.close(fig)

@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
+
+in_name = sys.argv[1]
+out_dir = sys.argv[2]
+inFile = uproot.open(in_name)
+ 
 def setTitle2D( ax, key):
 	if "Beta" in key:
 		ax.set_xlabel(r"$p_{\pi}$ [GeV]")
@@ -52,7 +57,7 @@ def setTitle1D( ax, key):
 		plt.xlabel(r"$\omega$ [GeV]", fontsize=18)
 
 
-inFile = uproot.open("../histograms/analysis_note/kinematics_data_10.4.root")
+#inFile = uproot.open("../histograms/analysis_note/kinematics_data_10.4.root")
 for key in inFile.keys():
 	if "pim" in key:
 		continue
@@ -111,5 +116,5 @@ for key in inFile.keys():
 
 		pdfName = hName.replace("_pip", "")
 		fig.legend(fontsize=16)
-		fig.savefig(f"charge_dep_plots/{pdfName}.pdf")
+		fig.savefig(f"{out_dir}/{pdfName}.pdf")
 		plt.close(fig)
