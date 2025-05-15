@@ -41,17 +41,17 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 3 ){
+	if( argc < 4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [# of Files] [Beam energy]\n";
-		cerr << "	[Run Type] [Single File?] [Inclusive (0, 1)] [Output File Name (no extension)]\n";
+		cerr << "	[Run Type] [Output File Name (no extension)]\n";
 		return -1;
 	}
 	
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
-       	double Ebeam = atof(argv[2]); // [GeV]
+    double Ebeam = atof(argv[2]); // [GeV]
 	int RunType = atoi(argv[3]);
-
+	TString outFile_name = argv[4];
 	
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 ){
@@ -77,7 +77,7 @@ int main( int argc, char** argv){
 	runReader.setEnergy( Ebeam );
 	
 	clas12root::HipoChain files;
-       	runReader.readRunFiles(files);
+    runReader.readRunFiles(files);
 
 	cout<<"Set output files"<<endl;
 	
@@ -85,27 +85,43 @@ int main( int argc, char** argv){
 	
 	double accCharge = 0;
 
+	std::ofstream txtFile;
+	std::cout<<"outfile : "<<outFile_name+".txt"<<std::endl;
+	txtFile.open(outFile_name + ".txt");
+	txtFile<<"Run\tCharge\n";
 	////////////////////////////////////Begin file loop////////////////////////////////////////////////////
-    	for(Int_t i=0;i< files.GetNFiles();i++){//files->GetEntries();i++){
-    	    	std::cout << "reading file " << i+1 <<" of "<<files.GetNFiles()<<"\n ---------------------------------------------------"<< std::endl;   	
+    for(Int_t i=0;i< files.GetNFiles();i++){//files->GetEntries();i++){
+    	std::cout << "reading file " << i+1 <<" of "<<files.GetNFiles()<<"\n ---------------------------------------------------"<< std::endl;   	
 		//Only skim desired number of files
 		if(nFiles != 0 && i > nFiles){break;}	
 	
 			
 		//create the event reader
 		clas12reader c12(files.GetFileName(i).Data());
+
 		c12.scalerReader();
-		accCharge += c12.getRunBeamCharge();
+		double charge = c12.getRunBeamCharge();
+		double runnum;
+		while((c12.next()==true)){
+			//evnum  = c12.runconfig()->getEvent();
+			runnum = c12.runconfig()->getRun();
+			break;
+		}
+		txtFile<<c12.runconfig()->getRun()<<"\t"<<charge<<std::endl;
+		accCharge += charge;
 		
 	}
 
-	
+	txtFile<<"0\t"<<accCharge<<std::endl;
+
+	txtFile.close();
+
 	std::cout<<"Done!\n";
 	std::cout<<"Accumulated Charge : "<<accCharge<<std::endl;
 	auto finish = std::chrono::high_resolution_clock::now();
-    	std::chrono::duration<double> elapsed = finish - start;
+    std::chrono::duration<double> elapsed = finish - start;
 
-    	std::cout << "Done. Elapsed time: " << elapsed.count() << std::endl;
+    std::cout << "Done. Elapsed time: " << elapsed.count() << std::endl;
 }
 
 
