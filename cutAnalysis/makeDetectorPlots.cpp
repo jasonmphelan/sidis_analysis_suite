@@ -54,15 +54,20 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 3 ){
+	if( argc < 4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [outFile name (no extension)] [Beam energy (0 for all energies)]\n";
+		cerr << "./code [nfiles] [(optional) run number]\n";
 		return -1;
 	}
 	
-       	double Ebeam = atof(argv[2]); // [GeV]
+    double Ebeam = atof(argv[2]); // [GeV]
 	TString outFile_name = argv[1]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
-
+	int nFiles = atoi(argv[3]);
+	int runNum;
+	if( argc == 5 ){
+		runNum = atoi(argv[4]);
+	}
 	
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 && Ebeam != 0 ){
@@ -76,14 +81,20 @@ int main( int argc, char** argv){
 	analyzer anal(0, torusBending);
 	anal.setAnalyzerLevel(0);
 	anal.loadCutValues(-1, Ebeam);
+	anal.loadSamplingFractionParams();
 	
 	reader runReader;
-	runReader.setNumFiles( 0 );
+	runReader.setNumFiles( nFiles );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	
 	clas12root::HipoChain files;
-       	runReader.readRunFiles(files);
+	if( nFiles == 1 ){
+		runReader.readRunFiles(files, runNum);
+	}
+	else{
+    	runReader.readRunFiles(files);
+	}
 
 	cout<<"Set output files"<<endl;
 
@@ -165,7 +176,7 @@ int main( int argc, char** argv){
 	
 	// Set Output file and tree
 	TFile * outputFile = new TFile(outFile_name + ".root", "RECREATE");
-	int nFiles = 0;
+	
 	int RunType = 0;
 	int inclusive = 0;
 
@@ -302,7 +313,9 @@ int main( int argc, char** argv){
 				
 				//Electron SF Correcleation
 				counts[chargeIdx][4]++;
-				hSF_corr[chargeIdx]->Fill( e.getEpcal()/e.get3Momentum().Mag(), (e.getEecin())/e.get3Momentum().Mag() );
+				if(e.get3Momentum().Mag() > 4.5 ){
+					hSF_corr[chargeIdx]->Fill( e.getEpcal()/e.get3Momentum().Mag(), (e.getEecin())/e.get3Momentum().Mag() );
+				}
 				if( !anal.applyElectronCorrelation( e )){continue;}
 				hBeta_p_e[5]->Fill( e.get3Momentum().Mag(), e.getBeta() );
 				hBeta_e[5]->Fill( e.getBeta() );
@@ -456,15 +469,16 @@ int main( int argc, char** argv){
 	txtFile<< "\t(e,e'pi+)\t#(e,e'pi-)\n";
 	txtFile<< "All tracks\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
 	txtFile<< "Event Builder\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
-	txtFile<< "Electron DC Fiducials\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
-	txtFile<< "PCAL WV\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
-	txtFile<< "PCAL Edep\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
-	txtFile<< "SF Cuts\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
-	txtFile<< "SF Correlation\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
-	txtFile<< "Electron Vertex\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
-	txtFile<< "Pion DC Fiducials\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
-	txtFile<< "Pion Vertex\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
-	txtFile<< "Chi2\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
+	txtFile<< "Electron DC Fiducials\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
+	txtFile<< "PCAL WV\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
+	txtFile<< "PCAL Edep\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
+	txtFile<< "SF Cuts\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
+	txtFile<< "SF Correlation\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
+	txtFile<< "Electron Vertex\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
+	txtFile<< "Pion DC Fiducials\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
+	txtFile<< "Pion Vertex\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
+	txtFile<< "Chi2\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
+	txtFile<< "All cuts\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
 	txtFile.close();
 
 	std::cout<<"Done!\n";

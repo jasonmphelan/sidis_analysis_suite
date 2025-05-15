@@ -164,7 +164,7 @@ int main( int argc, char** argv){
 	
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
-	anal.loadMatchingFunctions("matchCutKaons.root");
+	anal.loadMatchingFunctions("matchCutPi2K.root");
 
 
 	int event_count = 0;

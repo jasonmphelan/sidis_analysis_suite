@@ -99,8 +99,8 @@ int main( int argc, char** argv){
 	genElectron e_gen;
 
 	// Pion Variables
-	std::vector<pion> pi ;
-	std::vector<genPion> pi_gen ;
+	std::vector<pion> pi;
+	std::vector<genPion> pi_gen;
 	
 	std::vector<region_part_ptr> electrons, pions, pipluses, piminuses; //For reading from hipo file... not outputted
 	std::vector<int> electronsMC;
@@ -291,7 +291,8 @@ int main( int argc, char** argv){
 					int chargeIdx = (int) (pi_dummy.getCharge() < 0);
 					int pi_match = anal.FindMatch(pi_dummy.get3Momentum(), mcparts, pionsMC[chargeIdx] );
 					mcparts->setEntry(pi_match);
-					if( pi_match > -1  && abs( mcparts->getPid() )!=321  ){ 
+					if( pi_match > -1  ){ //&& abs( mcparts->getPid() )!=321  ){ 
+						pi_dummy.setPID( abs(mcparts->getPid() ) );
 						genPi_dummy.Clear();
 						genPi_dummy.setKinematicInformation(e_gen.getQ(), e_gen.get4Momentum(), mcparts);
 						pi_gen.push_back(genPi_dummy); 

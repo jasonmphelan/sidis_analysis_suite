@@ -21,11 +21,12 @@ public:
 	void getRunSkimsByName( TChain * chain, TString name );
 	void getRunSkimsAllEnergy( TChain * chain, TString name );
 	void readRunFilesAllE(clas12root::HipoChain &fileList);
+	void readRunFiles( clas12root::HipoChain &files, int num);
 
 private:
-
+	void getSingleRun( TChain * chain, TString name);
 	void getSkimsByName( TChain * chain, TString name );
-	
+	void getSingleRunFile( clas12root::HipoChain &files, int num);
 	void setDataPaths();
 
 	TString dataPath;

@@ -80,11 +80,11 @@ int main( int argc, char** argv){
 			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					for( int m = 0; m <= bins_p; m++ ){//momentum bins
-						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 500, .0, 1.25);
-						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 500, .0, 1.25);
+						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 500, -.1, 1.25);
+						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 500, -.1, 1.25);
 					}
-					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, 0 ,1.25 );
-					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, 0 ,1.25 );
+					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, .9 ,1.05 );
+					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, 0.9 ,1.05 );
 			
 				}
 			}
@@ -186,8 +186,9 @@ int main( int argc, char** argv){
 			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					//hBeta_p[i][j][k][l]->Write();
-					if( j > 0 && k > 0 && l > 0 && hBeta_rich_p[i][j][k][l]->Integral() != 0){
+					if(  hBeta_rich_p[i][j][k][l]->Integral() != 0){
 						hBeta_rich_p[i][j][k][l]->Write();
+						hBeta_p[i][j][k][l]->Write();
 					}
 					for( int m = 0; m <= 4; m++ ){//momentum bins
 						if( j > 0 && k > 0 && l > 0 && m > 0 && h_Beta_rich[i][j][k][l][m]->Integral()!= 0){

@@ -54,9 +54,9 @@ int main( int argc, char** argv){
 	cerr << "Files used: " << argv[2] << "\nnFiles " << atoi(argv[3]) << "\n";
 
 	TString in_name = argv[1];
-       	TString out_name = argv[2];
-       	int nFiles = atoi(argv[3]);
-       	double EBeam = atof(argv[4]);
+    TString out_name = argv[2];
+    int nFiles = atoi(argv[3]);
+    double EBeam = atof(argv[4]);
         
 	TFile * outFile = new TFile(out_name, "RECREATE");
 
@@ -140,9 +140,9 @@ int main( int argc, char** argv){
 
 	//Load input tree
         //TTreeReader reader_rec("ePi", file_rec);
-        TTreeReader reader_rec( chain );
+    TTreeReader reader_rec( chain );
 	TTreeReaderValue<electron> e(reader_rec, "e");
-        TTreeReaderArray<pion> pi(reader_rec, "pi");
+    TTreeReaderArray<pion> pi(reader_rec, "pi");
 
 	int event_total = reader_rec.GetEntries();
 

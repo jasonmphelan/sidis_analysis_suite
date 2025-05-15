@@ -76,12 +76,12 @@ int main( int argc, char** argv){
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
 	std::cout<<"Loaded cut values\n";
-	anal.setAnalyzerLevel(0);
+	anal.setAnalyzerLevel(1);
 	anal.loadCutValues(-1, Ebeam);
 	
 	reader runReader;
-	runReader.setNumFiles( 20 );
-	runReader.setRunType( 4 );
+	runReader.setNumFiles( 5000 );
+	runReader.setRunType( 1 );
 	runReader.setEnergy( Ebeam );
 	
 	clas12root::HipoChain files;
@@ -118,7 +118,7 @@ int main( int argc, char** argv){
 	// Set Output file and tree
 	//TFile * outputFile = new TFile(outFile_name + ".root", "RECREATE");
 	int nFiles = 0;
-	int RunType = 0;
+	int RunType = 1;
 	int inclusive = 0;
 
 	//Set event count array
@@ -139,7 +139,7 @@ int main( int argc, char** argv){
 
     	    	// process the events...
     	    	while((c12.next()==true)){
-           		if( event%1000000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
+           		if( event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			event++;
 			evnum  = c12.runconfig()->getEvent();
 			runnum = c12.runconfig()->getRun();
@@ -187,13 +187,12 @@ int main( int argc, char** argv){
 			if( Npi == 0 && inclusive != 1 ){ continue; }	
 			pion pi_dummy;
 
-			
 			for(int i = 0; i < Npi; i++){
 
 				pi_dummy.Clear();
+				pi_dummy.setMCPion( (bool)RunType );
 				pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
 	
-			
 				int chargeIdx = (int)(pi_dummy.getCharge() < 0);
 
 				//if( !anal.applyPionDetectorFiducials( pi_dummy )){ continue ; }
@@ -231,7 +230,7 @@ int main( int argc, char** argv){
 		
 		while( !aboveMax ){
 			double ev = h->GetBinContent(i);
-			if( ev > 0.1*maxi ){
+			if( ev > 0.90*maxi ){
 				cutMin = h->GetBinCenter(i);
 				belowMax = false;
 				aboveMax = true;
@@ -240,7 +239,7 @@ int main( int argc, char** argv){
 		}
 		while( !belowMax ){
 			double ev = h->GetBinContent(i);
-			if( ev < 0.1*maxi ){
+			if( ev < 0.90*maxi ){
 				cutMax = h->GetBinCenter(i);
 				belowMax = true;
 				aboveMax = false;

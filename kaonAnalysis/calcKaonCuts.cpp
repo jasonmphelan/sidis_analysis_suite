@@ -130,7 +130,7 @@ int main( int argc, char** argv){
 					int pip_bin_min = 1;//hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->FindBin( pip_fit_mean - 2*pip_fit_std );
 					int pip_bin_max = 1;
 					
-				 	if( pip_fit_mean < -0.05 || pip_fit_mean > 0.075 || fitProb_pip <= 0 || fitProb_pip >= 1 || hBeta[0][j+1][k+1][l+1][m+1]->Integral() <= 20 ){	
+				 	if( pip_fit_mean < -0.05 || pip_fit_mean > 0.075 || fitProb_pip <= 0 || fitProb_pip >= 1 || hBeta[0][j+1][k+1][l+1][m+1]->Integral() <= 30 ){	
 						pip_bin_max= hBeta[0][j+1][k+1][l+1][m+1]->FindBin( 0.1 );
 					}
 					else{

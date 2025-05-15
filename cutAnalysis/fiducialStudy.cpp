@@ -59,11 +59,11 @@ int main( int argc, char** argv){
 
 	if( argc < 3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [outFile name (no extension)] [Beam energy (0 for all energies)]\n";
+		cerr << "./code [outFile name] [Beam energy (0 for all energies)]\n";
 		return -1;
 	}
 	
-       	double Ebeam = atof(argv[2]); // [GeV]
+    double Ebeam = atof(argv[2]); // [GeV]
 	TString outFile_name = argv[1]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
 
 	
@@ -81,7 +81,7 @@ int main( int argc, char** argv){
 	anal.loadCutValues(-1, Ebeam);
 	
 	reader runReader;
-	runReader.setNumFiles( 10 );
+	runReader.setNumFiles( 0 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	

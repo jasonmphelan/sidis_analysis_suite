@@ -11,7 +11,7 @@ using namespace constants;
 
 void pion::Clear(){
 	Sector		= -1;
-	PID		= 0;
+	PID		= 211;
 	Charge		= 0;
 	Status		= 0;
 
@@ -248,6 +248,7 @@ void pion::setPion( TLorentzVector q, TLorentzVector pe,  clas12::region_part_pt
 	setDetectorInformation(rp);
 	return;
 }
+
 
 double pion::getVariableByName(TString name){
 	double var = 0;
