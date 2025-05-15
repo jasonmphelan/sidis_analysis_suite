@@ -90,8 +90,8 @@ int main( int argc, char** argv){
 	outTree->Branch("Mx_2pi", &Mx_2pi_out);
 	outTree->Branch("M_rho", &M_rho_out);
 
-	outTree->Branch("rhoWeight", rhoWeight, "rhoWeight[2]/d");
-	outTree->Branch("rhoErr", &corr_err, "rhoErr[2]/d");
+	outTree->Branch("rhoWeight", rhoWeight, "rhoWeight[2]/D");
+	outTree->Branch("rhoErr", corr_err, "rhoErr[2]/D");
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
@@ -139,19 +139,20 @@ int main( int argc, char** argv){
 			goodPion[0] = false;
 			goodPion[1] = false;
 
+			//initialize rotation angles
 			double deltaPhi_lab = 2*TMath::Pi()*(gen.Rndm());
 			double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm()); 
 			
 			TVector3 e_mom = e->get3Momentum();
 			TVector3 pi_mom[2];
 		
+			//rotate electron about beam axis and check acceptance
 			e_mom.RotateZ(deltaPhi_lab);
-	
-
 			bool e_acc = anal.checkAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) ;
 			if( !e_acc ){continue;}
+
 			for( int i = 0; i < 2; i++ ){
-				//rotate pion
+				//rotate pion about q and z
 				TVector3 pi_q_mom = pi[i].getPi_q().Vect();
 				pi_q_mom.RotateZ( deltaPhi_q );
 			

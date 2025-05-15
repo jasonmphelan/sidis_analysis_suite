@@ -80,9 +80,9 @@ int main( int argc, char** argv){
 		}
 	}
 	TChain * file_rec = new TChain("ePi");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/rotated_10.2.root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/rotated_10.4.root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_rotations/rotated_10.6.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.2.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.4.root");
+	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.6.root");
 	TTreeReader reader( file_rec);
 
 
@@ -111,7 +111,8 @@ int main( int argc, char** argv){
 			int this_bin_Q2 = (int)( ( (e->getQ2() - Q2_min)/(Q2_max-Q2_min) )*nBinsQ2);
 			int this_bin_xB = (int)( ( (e->getXb() - xB_min)/(xB_max-xB_min) )*nBinsXb);
 			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*nBinsZ);
-		
+	
+
 			if( rhoWeight[i] <= 1 || rhoWeight[i] > 10 ){ continue; }
 
 			hMx_2pi[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( *Mx_2pi, rhoWeight[i] );
