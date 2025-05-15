@@ -104,10 +104,11 @@ int main( int argc, char** argv){
 		double runnum;
 		while((c12.next()==true)){
 			//evnum  = c12.runconfig()->getEvent();
-			runnum = c12.runconfig()->getRun();
+			runnum = runReader.getRunNum(i);
+			std::cout<<"Run num "<<runnum<<std::endl;
 			break;
 		}
-		txtFile<<c12.runconfig()->getRun()<<"\t"<<charge<<std::endl;
+		txtFile<<runnum<<"\t"<<charge<<std::endl;
 		accCharge += charge;
 		
 	}

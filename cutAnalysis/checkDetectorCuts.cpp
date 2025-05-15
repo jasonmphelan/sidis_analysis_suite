@@ -80,7 +80,7 @@ int main( int argc, char** argv){
 
 
 	reader runReader;
-	runReader.setNumFiles( 5 );
+	runReader.setNumFiles( 1 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	

@@ -35,3 +35,7 @@ add_executable(studyRuns studyRuns.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp 
 							${CMAKE_SOURCE_DIR}/classes/genPion.cpp ${CMAKE_SOURCE_DIR}/classes/genElectron.cpp)
 
 target_link_libraries(studyRuns ${ROOT_LIBRARIES} -lEG PkgConfig::hipo4 -L${CLAS12ROOT}/lib -lClas12Banks -lClas12Root clashit_tree genhit_tree)
+
+add_executable(mergeEnergy mergeEnergy.cpp)
+
+target_link_libraries(mergeEnergy ${ROOT_LIBRARIES})

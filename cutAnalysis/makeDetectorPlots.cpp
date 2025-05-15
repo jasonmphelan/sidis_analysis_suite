@@ -273,7 +273,7 @@ int main( int argc, char** argv){
 				hFid_e[chargeIdx][1][0]->Fill( e.getDC_x2(), e.getDC_y2() ); 
 				hFid_e[chargeIdx][2][0]->Fill( e.getDC_x3(), e.getDC_y3() ); 
 				
-				counts[chargeIdx][8]++;
+				counts[chargeIdx][1]++;
 				if( !anal.applyElectronFiducials( e ) ){ continue; }
 				hBeta_p_e[1]->Fill( e.get3Momentum().Mag(), e.getBeta() );
 				hBeta_e[1]->Fill( e.getBeta() );
@@ -285,7 +285,7 @@ int main( int argc, char** argv){
 				hFid_e[chargeIdx][2][1]->Fill( e.getDC_x3(), e.getDC_y3() ); 
 				
 				//PCAL Fiducials
-				counts[chargeIdx][1]++;
+				counts[chargeIdx][2]++;
 				hPCAL_WV[chargeIdx]->Fill( e.getV(), e.getW() );
 				if( !anal.applyElectronPCAL( e ) ){continue;}
 				hBeta_p_e[2]->Fill( e.get3Momentum().Mag(), e.getBeta() );
@@ -294,7 +294,7 @@ int main( int argc, char** argv){
 				hBeta_pi[2][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron Min Edep
-				counts[chargeIdx][2]++;
+				counts[chargeIdx][3]++;
 				hEdep[chargeIdx]->Fill( e.getEpcal(),  e.getEecin() + e.getEecout() );
 				if( !anal.applyElectronEDep( e )){continue;}
 				hBeta_p_e[3]->Fill( e.get3Momentum().Mag(), e.getBeta() );
@@ -303,7 +303,7 @@ int main( int argc, char** argv){
 				hBeta_pi[3][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron SF Cut
-				counts[chargeIdx][3]++;
+				counts[chargeIdx][4]++;
 				hSF[chargeIdx][e.getDC_sector()-1]->Fill( e.get3Momentum().Mag(), (e.getEpcal() + e.getEecin() + e.getEecout())/e.get3Momentum().Mag() );
 				if( !anal.applyElectronSF( e )){continue;}
 				hBeta_p_e[4]->Fill( e.get3Momentum().Mag(), e.getBeta() );
@@ -312,7 +312,7 @@ int main( int argc, char** argv){
 				hBeta_pi[4][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron SF Correcleation
-				counts[chargeIdx][4]++;
+				counts[chargeIdx][5]++;
 				if(e.get3Momentum().Mag() > 4.5 ){
 					hSF_corr[chargeIdx]->Fill( e.getEpcal()/e.get3Momentum().Mag(), (e.getEecin())/e.get3Momentum().Mag() );
 				}
@@ -323,7 +323,7 @@ int main( int argc, char** argv){
 				hBeta_pi[5][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Electron Vertex
-				counts[chargeIdx][5]++;
+				counts[chargeIdx][6]++;
 				hVz_e[chargeIdx]->Fill( e.getVt().Z() );
 				if( !anal.applyElectronVertex( e )){continue;}
 				hBeta_p_e[6]->Fill( e.get3Momentum().Mag(), e.getBeta() );
@@ -339,7 +339,7 @@ int main( int argc, char** argv){
 				//hBeta_pi[7][chargeIdx]->Fill( pi_dummy.getBeta() );
 				
 				//Pion Fiducials
-				counts[chargeIdx][9]++;
+				counts[chargeIdx][7]++;
 				hFid_pi[chargeIdx][0][0]->Fill( pi_dummy.getDC_x1(), pi_dummy.getDC_y1() );
 				hFid_pi[chargeIdx][1][0]->Fill( pi_dummy.getDC_x2(), pi_dummy.getDC_y2() );
 				hFid_pi[chargeIdx][2][0]->Fill( pi_dummy.getDC_x3(), pi_dummy.getDC_y3() );
@@ -363,7 +363,7 @@ int main( int argc, char** argv){
 				hFid_pi[chargeIdx][2][1]->Fill( pi_dummy.getDC_x3(), pi_dummy.getDC_y3() );
 				
 				//Pion Vertex
-				counts[chargeIdx][6]++;
+				counts[chargeIdx][8]++;
 				hVz_pi[chargeIdx]->Fill( pi_dummy.getVt().Z() - e.getVt().Z() );
 				if( !anal.applyPionDetectorVertex( pi_dummy, e ) ){ continue; }
 				hBeta_p_e[10]->Fill( e.get3Momentum().Mag(), e.getBeta() );
@@ -372,7 +372,7 @@ int main( int argc, char** argv){
 				hBeta_pi[10][chargeIdx]->Fill( pi_dummy.getBeta() );
 
 				//Pion Chi2
-				counts[chargeIdx][7]++;
+				counts[chargeIdx][9]++;
 				hChi2[chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getChi2() );
 				if( !anal.applyPionDetectorChi2( pi_dummy ) ){ continue; }
 				hBeta_p_e[9]->Fill( e.get3Momentum().Mag(), e.getBeta() );
@@ -469,16 +469,15 @@ int main( int argc, char** argv){
 	txtFile<< "\t(e,e'pi+)\t#(e,e'pi-)\n";
 	txtFile<< "All tracks\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
 	txtFile<< "Event Builder\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
-	txtFile<< "Electron DC Fiducials\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
-	txtFile<< "PCAL WV\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
-	txtFile<< "PCAL Edep\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
-	txtFile<< "SF Cuts\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
-	txtFile<< "SF Correlation\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
-	txtFile<< "Electron Vertex\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
-	txtFile<< "Pion DC Fiducials\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
-	txtFile<< "Pion Vertex\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
-	txtFile<< "Chi2\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
-	txtFile<< "All cuts\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
+	txtFile<< "Electron DC Fiducials\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
+	txtFile<< "PCAL WV\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
+	txtFile<< "PCAL Edep\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
+	txtFile<< "SF Cuts\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
+	txtFile<< "SF Correlation\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
+	txtFile<< "Electron Vertex\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
+	txtFile<< "Pion DC Fiducials\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
+	txtFile<< "Pion Vertex\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
+	txtFile<< "Chi2\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
 	txtFile.close();
 
 	std::cout<<"Done!\n";
