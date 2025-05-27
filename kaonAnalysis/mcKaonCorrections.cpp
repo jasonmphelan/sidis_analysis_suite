@@ -93,8 +93,8 @@ int main( int argc, char** argv){
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderValue<genElectron> e_MC(reader_rec, "e_gen");
-        TTreeReaderArray<pion> pi_vec(reader_rec, "pi");
-        TTreeReaderArray<genPion> pi_match(reader_rec, "pi_gen");
+    TTreeReaderArray<pion> pi_vec(reader_rec, "pi");
+    TTreeReaderArray<genPion> pi_match(reader_rec, "pi_gen");
 
 	//Define good event list and additional variables for output branches
 
@@ -116,11 +116,9 @@ int main( int argc, char** argv){
 		int pi_count = -1;
 		for( auto pi : pi_vec ){
 			pi_count++;
-			bool matching = true;
+			bool matching = false;
 
-			if( matchType == 2 ){ matching = !isGoodPion[pi_count]; }
-			//else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
-			else{ matching = false; }
+			if( !anal.applyAcceptanceMatching)
 
 			if( matching ){ continue; }
 
@@ -138,7 +136,7 @@ int main( int argc, char** argv){
 			
 
 			//Fill matched pions
-			if( pi.getPID() == 211 ){
+			if( abs(pi.getPID()) == 211 ){
 				matchHists[this_bin_p][this_bin_xB_MC][this_bin_Q2_MC][chargeIdx]->Fill( pi_match[pi_count].getZ() );
 			}
 		}

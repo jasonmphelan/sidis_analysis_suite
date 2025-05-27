@@ -292,9 +292,9 @@ int main( int argc, char** argv){
 					int pi_match = anal.FindMatch(pi_dummy.get3Momentum(), mcparts, pionsMC[chargeIdx] );
 					mcparts->setEntry(pi_match);
 					if( pi_match > -1  ){ //&& abs( mcparts->getPid() )!=321  ){ 
-						pi_dummy.setPID( abs(mcparts->getPid() ) );
 						genPi_dummy.Clear();
 						genPi_dummy.setKinematicInformation(e_gen.getQ(), e_gen.get4Momentum(), mcparts);
+						pi_dummy.setPID( abs(mcparts->getPid() ) );
 						pi_gen.push_back(genPi_dummy); 
 					}
 					else { continue; }

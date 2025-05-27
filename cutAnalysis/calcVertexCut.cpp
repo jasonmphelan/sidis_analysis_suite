@@ -80,8 +80,8 @@ int main( int argc, char** argv){
 	anal.loadCutValues(-1, Ebeam);
 	
 	reader runReader;
-	runReader.setNumFiles( 5000 );
-	runReader.setRunType( 1 );
+	runReader.setNumFiles( 1 );
+	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	
 	clas12root::HipoChain files;
@@ -118,7 +118,7 @@ int main( int argc, char** argv){
 	// Set Output file and tree
 	//TFile * outputFile = new TFile(outFile_name + ".root", "RECREATE");
 	int nFiles = 0;
-	int RunType = 1;
+	int RunType = 0;
 	int inclusive = 0;
 
 	//Set event count array
@@ -139,7 +139,7 @@ int main( int argc, char** argv){
 
     	    	// process the events...
     	    	while((c12.next()==true)){
-           		if( event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
+           		if( event%1000000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<endl; }
 			event++;
 			evnum  = c12.runconfig()->getEvent();
 			runnum = c12.runconfig()->getRun();
@@ -230,7 +230,7 @@ int main( int argc, char** argv){
 		
 		while( !aboveMax ){
 			double ev = h->GetBinContent(i);
-			if( ev > 0.90*maxi ){
+			if( ev > 0.25*maxi ){
 				cutMin = h->GetBinCenter(i);
 				belowMax = false;
 				aboveMax = true;
@@ -239,7 +239,7 @@ int main( int argc, char** argv){
 		}
 		while( !belowMax ){
 			double ev = h->GetBinContent(i);
-			if( ev < 0.90*maxi ){
+			if( ev < 0.25*maxi ){
 				cutMax = h->GetBinCenter(i);
 				belowMax = true;
 				aboveMax = false;

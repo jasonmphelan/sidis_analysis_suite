@@ -258,11 +258,12 @@ int main( int argc, char** argv){
 			for(int i = 0; i < Npi; i++){
 
 				pi_dummy.Clear();
+				pi_dummy.setMCPion( 1 );
 				pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
 	
-			
+				
 				int chargeIdx = (int)(pi_dummy.getCharge() < 0);
-
+				
 				hBeta_p_e[0]->Fill( e.get3Momentum().Mag(), e.getBeta() );
 				hBeta_e[0]->Fill(  e.getBeta() );
 				hBeta_p_pi[0][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
@@ -330,6 +331,7 @@ int main( int argc, char** argv){
 				hBeta_e[6]->Fill( e.getBeta() );
 				hBeta_p_pi[6][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
 				hBeta_pi[6][chargeIdx]->Fill( pi_dummy.getBeta() );
+				
 				
 				////All Cuts (Check)
 				//if( !anal.applyElectronDetectorCuts( e )){continue;}

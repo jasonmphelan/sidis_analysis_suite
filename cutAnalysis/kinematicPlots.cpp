@@ -195,6 +195,7 @@ int main( int argc, char** argv){
 			
 			counts[idx][7]++;
 			h_Z[idx]->Fill( pi[i].getZ() );
+			counts[idx][8]++;
 		}
 	}
 	
@@ -232,6 +233,7 @@ int main( int argc, char** argv){
         txtFile<< "p_pi\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
         txtFile<< "theta_e\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
         txtFile<< "theta_pi\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
+		txtFile<< "z\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
         txtFile.close();
 	
 

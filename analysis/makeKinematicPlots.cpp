@@ -60,16 +60,16 @@ int main( int argc, char** argv){
 	double beta_cut = atoi(argv[2]);
 	double p_cut = atoi(argv[3]);
 	cerr << "Files used: \n";
-	//for( int i = 4; i <= argc; i++ ){	
-	//	file_rec->Add(argv[i]);
-	//	cout<<argv[i]<<std::endl;
-	//}
+	for( int i = 4; i < argc; i++ ){	
+		file_rec->Add((TString) argv[i]);
+		cout<<argv[i]<<std::endl;
+	}
 
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
+	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
+	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
+	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
 
-        TFile * outFile = new TFile(out_name, "RECREATE");
+    TFile * outFile = new TFile(out_name, "RECREATE");
 	//TFile * radWeightFile = new TFile("/work/clas12/users/tkutz/radgen/build/RC_graph_radgen_deuterium.root");
 	//TGraph2D * rad_gen = (TGraph2D *)radWeightFile->Get("rcgr");
         
@@ -164,12 +164,11 @@ int main( int argc, char** argv){
 	
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
-	anal.loadMatchingFunctions("matchCutPi2K.root");
 
 
 	int event_count = 0;
 	while (reader_rec.Next()) {
-                if(event_count%100000 == 0){cout<<"Events Analyzed: "<<event_count<<endl;}
+                if(event_count%10000 == 0){cout<<"Events Analyzed: "<<event_count<<endl;}
                 event_count++;
 
                 double Q2 = e->getQ2();
@@ -215,7 +214,7 @@ int main( int argc, char** argv){
                 h_phi_e[chargeIdx][this_bin_Q2]->Fill(phi_e*rad_to_deg, radWeight);
 		*/
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
-			if( !isGoodPion_vec[i] ) {continue;}
+			if( !isGoodPion_vec[i] || !(abs(pi[i].getPID()) == 211) ) {continue;}
 
 			if( beta_cut > 0 && pi[i].getBeta_rich() < .0001 ){continue;}
 
@@ -229,10 +228,10 @@ int main( int argc, char** argv){
 			double Vz_pi = pi[i].getVt().z() - Vz_e;
 
 			double beta = 0;
-			if( p_cut > 0 && p_pi < 2.5 ){ continue;}
-			if( beta_cut >0 && !anal.acceptance_match_2d(theta_pi*rad_to_deg, p_pi, 0) ){continue;}
-			if( beta_cut > 0 ){ beta = pi[i].getBeta_rich(); }
-			else{ beta = pi[i].getBeta(); }
+			//if( p_cut > 0 && p_pi < 2.5 ){ continue;}
+			//if( beta_cut >0 && !anal.acceptance_match_2d(theta_pi*rad_to_deg, p_pi, 0) ){continue;}
+			//if( beta_cut > 0 ){ beta = pi[i].getBeta_rich(); }
+			//else{ beta = pi[i].getBeta(); }
 
 			//if( pT_pi < .5 || pT_pi > .75 ){continue;}
 

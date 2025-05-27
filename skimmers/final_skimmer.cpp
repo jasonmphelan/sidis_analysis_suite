@@ -94,7 +94,7 @@ int main( int argc, char** argv){
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
 
-		if(event_count%1 == 0){
+		if(event_count%10000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
 		}
 
@@ -118,13 +118,11 @@ int main( int argc, char** argv){
 			isGoodPion_no_acc_event.push_back(false);;
 			isGoodPion_3d_event.push_back(false);;
 		     	
-                	if(!anal.applyPionKinematicCuts(pi[i])){ continue; }
-
+            if(!anal.applyPionKinematicCuts(pi[i])){ continue; }
 			if( pi[i].getZ() > lead_Z_no_acc_temp ){
 				lead_Z_no_acc_temp = pi[i].getZ();
 				lead_idx_no_acc_temp = i;
 			}	
-        		
 			isGoodPion_no_acc_event[i] = true;
 
 			if ( anal.applyAcceptanceMatching(pi[i], 2) ){
@@ -132,7 +130,7 @@ int main( int argc, char** argv){
 					lead_Z_temp = pi[i].getZ();
 					lead_idx_temp = i;
 				}	
-		
+			
 				isGoodPion_event[i] = true;
 			}
 			if ( anal.applyAcceptanceMatching(pi[i], 3) ){

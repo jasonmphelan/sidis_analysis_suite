@@ -54,15 +54,15 @@ int main( int argc, char** argv){
 	cerr << "Files used: " << argv[2] << "\nnFiles " << atoi(argv[3]) << "\n";
 
 	TString in_name = argv[1];
-    TString out_name = argv[2];
-    int nFiles = atoi(argv[3]);
-    double EBeam = atof(argv[4]);
+    	TString out_name = argv[2];
+    	int nFiles = atoi(argv[3]);
+    	double EBeam = atof(argv[4]);
         
-	TFile * outFile = new TFile(out_name, "RECREATE");
+	TFile * outFile = new TFile(out_name +".root", "RECREATE");
 
 	reader skimReader;
 	skimReader.setNumFiles( nFiles);
-	skimReader.setRunType( 0 );
+	skimReader.setRunType( 1 );
 	skimReader.setEnergy( EBeam );
 
 	TChain * chain = new TChain("ePi");
@@ -140,11 +140,12 @@ int main( int argc, char** argv){
 
 	//Load input tree
         //TTreeReader reader_rec("ePi", file_rec);
-    TTreeReader reader_rec( chain );
+    	TTreeReader reader_rec( chain );
 	TTreeReaderValue<electron> e(reader_rec, "e");
-    TTreeReaderArray<pion> pi(reader_rec, "pi");
-
+	TTreeReaderArray<pion> pi(reader_rec, "pi");
+	
 	int event_total = reader_rec.GetEntries();
+	double counts[2][20] = {0}; //[charge][cut level]
 
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
@@ -239,6 +240,23 @@ int main( int argc, char** argv){
 		}
 	
 	}
+	
+	std::ofstream txtFile;
+	txtFile.open(out_name + ".txt");
+	txtFile<< "\t(e,e'pi+)\t#(e,e'pi-)\n";
+	txtFile<< "All tracks\t"<<counts[0][0]<<"\t"<<counts[1][0]<<std::endl;
+	txtFile<< "Event Builder\t"<<counts[0][1]<<"\t"<<counts[1][1]<<std::endl;
+	txtFile<< "Electron DC Fiducials\t"<<counts[0][2]<<"\t"<<counts[1][2]<<std::endl;
+	txtFile<< "PCAL WV\t"<<counts[0][3]<<"\t"<<counts[1][3]<<std::endl;
+	txtFile<< "PCAL Edep\t"<<counts[0][4]<<"\t"<<counts[1][4]<<std::endl;
+	txtFile<< "SF Cuts\t"<<counts[0][5]<<"\t"<<counts[1][5]<<std::endl;
+	txtFile<< "SF Correlation\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
+	txtFile<< "Electron Vertex\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
+	txtFile<< "Pion DC Fiducials\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
+	txtFile<< "Pion Vertex\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
+	txtFile<< "Chi2\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
+	txtFile.close();
+
 
 	outFile->cd();
 	

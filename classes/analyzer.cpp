@@ -423,7 +423,7 @@ bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
 bool analyzer::acceptance_match_2d( double theta, double p, int sector_i){
 		//double acc_map_pip_min = pips_parameters[sector_i-1][0] + pips_parameters[sector_i-1][1]/p;                      
                 //double acc_map_pim_min = pims_parameters[sector_i-1][0] + pims_parameters[sector_i-1][1]/p;
-
+		
 		bool max_pip = (bool) ( theta < match2d[sector_i - 1][0][0]->Eval(p) );
 		bool max_pim = (bool) ( theta < match2d[sector_i - 1][0][1]->Eval(p) );
 		
@@ -506,6 +506,7 @@ void analyzer::loadMatchingFunctions( TString fileName ){
 		for( int j = 0; j < 2; j++ ){
 			for( int k = 0; k < 2; k++ ){
 				match2d[i][j][k] = (TF1 *)matchFile2D.Get(boundType[j] + Form("_%i_", i) + chargeType[k]);
+				match2d[i][j][k]->Print("V");
 			}
 		}
 	}
@@ -528,7 +529,7 @@ void analyzer::loadMatchingFunctions(){
 	loadMatchingFunctions("matchCut2D.root");
 }
 void analyzer::loadMatchingFunctions3D(){
-	loadMatchingFunctions("matchCut3D.root");
+	loadMatchingFunctions3D("matchCut3D.root");
 }
 
 

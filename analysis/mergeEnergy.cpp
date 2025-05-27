@@ -65,8 +65,8 @@ int main( int argc, char** argv){
 	TFile * outFile = new TFile( out_base + "_allE.root", "RECREATE" );
 		
 	TFile * inFile_1 = new TFile( out_base + "_10.2.root" );
-	TFile * inFile_2 = new TFile( out_base + "10.4.root" );
-	TFile * inFile_3 = new TFile( out_base + "10.6.root" );
+	TFile * inFile_2 = new TFile( out_base + "_10.4.root" );
+	TFile * inFile_3 = new TFile( out_base + "_10.6.root" );
 
 	TIter keyList(inFile_1->GetListOfKeys());
 	TKey *key;

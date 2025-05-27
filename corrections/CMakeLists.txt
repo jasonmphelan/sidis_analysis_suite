@@ -1,8 +1,8 @@
 #include_directories(${INCLUDES} ${LIBRARIES})
 include_directories(${CLAS12ROOT}/Clas12Banks ${CLAS12ROOT}/Clas12Root ${INCLUDES} ${LIBRARIES})
 
-add_executable(fitCorrection smoothCorrections.cpp  )
-target_link_libraries(fitCorrection ${ROOT_LIBRARIES} ) 
+add_executable(smoothCorrections smoothCorrections.cpp  )
+target_link_libraries(smoothCorrections ${ROOT_LIBRARIES} ) 
 
 #add_executable(fitWeight fitWeight.cpp  )
 #target_link_libraries(fitWeight ${ROOT_LIBRARIES} ) 

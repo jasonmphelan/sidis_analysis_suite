@@ -42,11 +42,11 @@ int main( int argc, char** argv){
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
 	TString in_name = argv[1];
-       	TString out_name = argv[2];
+    TString out_name = argv[2];
 	int corrType = atoi(argv[3]);
 
-       	TFile * outFile = new TFile((TString) CORR_PATH + "/correctionFiles/" + out_name + ".root", "RECREATE");
-       	TFile * inFile = new TFile((TString) CORR_PATH + "/correctionFiles/" + in_name + ".root");
+    TFile * outFile = new TFile((TString) CORR_PATH + "/correctionFiles/" + out_name + ".root", "RECREATE");
+    TFile * inFile = new TFile((TString) CORR_PATH + "/correctionFiles/" + in_name + ".root");
 	
 	TString histName;
 	if( corrType  == 0 ){
@@ -65,120 +65,58 @@ int main( int argc, char** argv){
 
 	cout<<"GETTING HISTS\n";
 
-	TH3F * kaonCorr_p = (TH3F *)inFile->Get( histName + "P" );
-	TH3F * kaonCorr_m = (TH3F *)inFile->Get( histName + "M" );
+	TH3F * hCorr[2];
+	hCorr[0] = (TH3F *)inFile->Get( histName + "P" );
+	hCorr[1] = (TH3F *)inFile->Get( histName + "M" );
 	
-	//Project to 1D histograms
-	TH1F * kaonCorr_p_1d[bins_Q2][bins_xB];
-	TH1F * kaonCorr_m_1d[bins_Q2][bins_xB];
-	TF1 *fitPim[bins_Q2][bins_xB];
-	TF1 *fitPip[bins_Q2][bins_xB];
-
-
-	outFile->cd();
-
-	TCanvas canvas("canvas");
-	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf[");
-	canvas.Clear();
-
-	for( int x = 0; x < bins_xB; x++ ){
-		for( int q = 0; q <  bins_Q2; q++ ){
-			kaonCorr_p_1d[q][x] = new TH1F( histName + Form("_p_1d_%i_%i", q, x), ";z;w+", bins_Z, Z_min, Z_max );
-			kaonCorr_m_1d[q][x] = new TH1F( histName + Form("_m_1d_%i_%i", q, x), ";z;w-", bins_Z, Z_min, Z_max );
-
-			double p_fit_min = 0;
-			double p_fit_max = 1;
-			double m_fit_min = 0;
-			double m_fit_max = 1;
-
-			for( int z = 0; z < bins_Z; z++ ){
-				if( !isnan(kaonCorr_p->GetBinError( x+1, q+1, z+1) )  ){
-					kaonCorr_p_1d[q][x]->SetBinContent( z+1, kaonCorr_p->GetBinContent( x+1, q+1, z+1 ));
-					kaonCorr_p_1d[q][x]->SetBinError( z+1, kaonCorr_p->GetBinError( x+1, q+1, z+1 ));
-				
-				}
-				else{
-					kaonCorr_p_1d[q][x]->SetBinContent( z+1, 0);
-					kaonCorr_p_1d[q][x]->SetBinError( z+1, 0);
-				}
-				if( !isnan(kaonCorr_m->GetBinError( x+1, q+1, z+1) )   ){
-					kaonCorr_m_1d[q][x]->SetBinContent( z+1, kaonCorr_m->GetBinContent( x+1, q+1, z+1 ));
-					kaonCorr_m_1d[q][x]->SetBinError( z+1, kaonCorr_m->GetBinError( x+1, q+1, z+1 ));
-				
-				}
-				else{
-					kaonCorr_m_1d[q][x]->SetBinContent( z+1, 0);
-					kaonCorr_m_1d[q][x]->SetBinError( z+1, 0);
-				}
-			}
-
-			kaonCorr_p_1d[q][x]->Write();
-			for( int z = 0; z < bins_Z; z++ ){
-				if( p_fit_min == 0 &&  kaonCorr_p->GetBinContent( x+1, q+1, z+1 ) > 0 ){
-					p_fit_min = kaonCorr_p_1d[q][x]->GetBinCenter(z+1) - .025;
-				}
-				if( p_fit_max == 1 && p_fit_min > 0 &&  isnan(kaonCorr_p->GetBinError(x+1, q+1, z+1) ) ){//kaonCorr_p->GetBinContent( x+1, q+1, z+1 ) <= 0.001){
-					p_fit_max = kaonCorr_p_1d[q][x]->GetBinCenter(z+1) - .025;
-				}
-				if( m_fit_min == 0 &&  kaonCorr_m->GetBinContent( x+1, q+1, z+1 ) > 0 ){
-					m_fit_min = kaonCorr_m_1d[q][x]->GetBinCenter(z+1) - .025;
-				}
-				
-				if( m_fit_max == 1 && m_fit_min > 0 &&  isnan(kaonCorr_m->GetBinError( x+1, q+1, z+1 ) )){
-					m_fit_max = kaonCorr_m_1d[q][x]->GetBinCenter(z+1) - .025;
-				}
-			}
-			kaonCorr_m_1d[q][x]->Write();
-			
-			
-			fitPip[q][x] = new TF1( Form("fitPip_%i_%i", q, x), "[0]+ [1]*x + [2]*x*x", p_fit_min, p_fit_max );
-			fitPip[q][x]->SetParameters( 1, 1, 1 );
-			
-			fitPim[q][x] = new TF1( Form("fitPim_%i_%i", q, x), "[0]+ [1]*x + [2]*x*x", m_fit_min, m_fit_max );
-			fitPim[q][x]->SetParameters( 1, 1, 1);
-			
-			if( kaonCorr_p_1d[q][x]->GetEntries() == 0 ){
-				fitPip[q][x]->SetParameters( 0, 0, 0 );
-			}
-			else{
-				kaonCorr_p_1d[q][x]->GetXaxis()->SetRangeUser( p_fit_min, p_fit_max);
-				kaonCorr_p_1d[q][x]->Smooth(1, "R");
-				kaonCorr_p_1d[q][x]->Fit( Form("fitPip_%i_%i", q, x) );
-			}
-			if( kaonCorr_m_1d[q][x]->GetEntries() == 0 ){
-				fitPim[q][x]->SetParameters( 0, 0, 0);
-			}
-			else{
-				kaonCorr_m_1d[q][x]->GetXaxis()->SetRangeUser( m_fit_min, m_fit_max);
-				kaonCorr_m_1d[q][x]->Smooth(1, "R");
-				kaonCorr_m_1d[q][x]->Fit( Form("fitPim_%i_%i", q, x) );
-			}
-			kaonCorr_p_1d[q][x]->GetXaxis()->SetRangeUser(.3, .8);
-			kaonCorr_p_1d[q][x]->SetLineColor(kAzure);
-			kaonCorr_p_1d[q][x]->Draw("SAME");
-			kaonCorr_p_1d[q][x]->Write(histName + Form("_p_1d_%i_%i", q, x)+ "_smooth");
-			fitPip[q][x]->Draw("SAME E3");
-			fitPip[q][x]->Write();
-			canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-			canvas.Clear();
-			kaonCorr_m_1d[q][x]->GetXaxis()->SetRangeUser(.3, .8);
-			kaonCorr_m_1d[q][x]->SetLineColor(kAzure);
-			kaonCorr_m_1d[q][x]->Draw("SAME");
-			kaonCorr_m_1d[q][x]->Write(histName + Form("_m_1d_%i_%i", q, x)+ "_smooth");
-			fitPim[q][x]->Draw("same E3");
-			canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-			fitPim[q][x]->Write();
-			canvas.Clear();
-			
-		}
-		canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf");	
-		canvas.Clear();
-		cout<<"FINISHED FITS\n";
-		
-
+	TH3F * hSmooth[2];
+	for( int i = 0; i < 2; i++ ){
+		hSmooth[i] = (TH3F *)hCorr[i]->Clone();
 	}
 	
-	canvas.Print((TString) HIST_PATH + "/" + out_name + ".pdf]");
+
+	//Project to 1D histograms
+
+	outFile->cd();
+	for( int ch = 0; ch < 2; ch++){
+		for( int x = 0; x < bins_xB; x++ ){
+			for( int q = 0; q <  bins_Q2; q++ ){
+			
+				TH1F * hCorr_1d = new TH1F( histName + Form("_p_1d_%i_%i", q, x), ";z;w+", bins_Z, Z_min, Z_max );
+
+				//Fill 1d histogram
+
+				for( int z = 0; z < bins_Z; z++ ){
+					if( !isnan(hCorr[ch]->GetBinError( x+1, q+1, z+1) )  ){
+						hCorr_1d->SetBinContent( z+1, hCorr[ch]->GetBinContent( x+1, q+1, z+1 ));
+						hCorr_1d->SetBinError( z+1, hCorr[ch]->GetBinError( x+1, q+1, z+1 ));
+					}
+					else{
+						hCorr_1d->SetBinContent( z+1, 0);
+						hCorr_1d->SetBinError( z+1, 0);
+					}
+				}
+
+				double min = hCorr_1d->GetBinLowEdge( hCorr_1d->FindFirstBinAbove(0) );
+				double max = hCorr_1d->GetBinLowEdge( hCorr_1d->FindLastBinAbove(0) + 1 );
+				
+				if( hCorr_1d->Integral()>0){
+					hCorr_1d->GetXaxis()->SetRangeUser( min, max);
+					hCorr_1d->Smooth(1, "R");
+				}
+
+				for( int z = 0; z < bins_Z; z++){
+					hSmooth[ch]->SetBinContent( x+1, q+1, z+1, hCorr_1d->GetBinContent( z + 1 ) );
+				}
+			}
+			
+		}
+	
+		hSmooth[ch]->Write();
+	}
+	
 
 	outFile->Close();
 }
+
+

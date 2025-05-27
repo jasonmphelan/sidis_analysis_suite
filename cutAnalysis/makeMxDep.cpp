@@ -63,7 +63,7 @@ int main( int argc, char** argv){
 
 	reader skimReader;
 	skimReader.setNumFiles( nFiles);
-	skimReader.setRunType( runType );
+	skimReader.setRunType( 0 );
 	skimReader.setEnergy( EBeam );
 
 	cout<<"Set Reader\n";
@@ -100,6 +100,7 @@ int main( int argc, char** argv){
 	double q2_bin_edge[5] = {2, 3, 4, 6, 8};
 	double z_bin_edge[5] = {.3, .4, .5, .6, .8};
 
+	
 	for( int i = 0; i < 2; i++ ){
 		int j = 0;
 		int k = 0;
@@ -117,9 +118,9 @@ int main( int argc, char** argv){
 	anal.setAnalyzerLevel(0);
 
 	//Load input tree
-        TTreeReader reader_rec( chain );
+    TTreeReader reader_rec( chain );
 	TTreeReaderValue<electron> e(reader_rec, "e");
-        TTreeReaderArray<pion> pi(reader_rec, "pi");
+    TTreeReaderArray<pion> pi(reader_rec, "pi");
 
 	cout<<"BEGIN EVENT LOOP\n";
 	int event_total = reader_rec.GetEntries();
@@ -135,17 +136,13 @@ int main( int argc, char** argv){
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			int idx = (int)( pi[i].getCharge() < 0 );
 	
-
-
-			if( sqrt(e->getW2()) < 2.5  ){continue;}
-			
+			//if( sqrt(e->getW2()) < 2.5  ){continue;}
 			if( e->getQ2() < 2 ){ continue; }
+			//if( e->getY() > 0.75 ){continue;}
+			//if( e->get3Momentum().Theta()*rad_to_deg < 5 || e->get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
 
-			if( e->getY() > 0.75 ){continue;}
-
-			if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum().Mag() > 5 ){continue;}
-			if( e->get3Momentum().Theta()*rad_to_deg < 5 || e->get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
-		//	if( pi[i].get3Momentum().Theta()*rad_to_deg < 5 || pi[i].get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
+			//if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum().Mag() > 5 ){continue;}
+			//if( pi[i].get3Momentum().Theta()*rad_to_deg < 5 || pi[i].get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
 			if( pi[i].getZ() < 0.3 ){ continue; }	
 			
 			int q2 = -1;
@@ -155,6 +152,7 @@ int main( int argc, char** argv){
 				if( e->getQ2() > q2_bin_edge[bin] && e->getQ2() < q2_bin_edge[bin+1] ) q2 = bin;
 				if( pi[i].getZ() > z_bin_edge[bin] && pi[i].getZ() < z_bin_edge[bin+1] ) z = bin;
 			}
+			
 			if( q2 < 0 || z < 0 ){ continue; }
 
 			h_Mx_Q2[idx][q2]->Fill( pi[i].getMx() );

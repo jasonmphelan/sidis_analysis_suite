@@ -65,7 +65,7 @@ int main( int argc, char** argv){
 	TString out_name = argv[4];
 	int matchType = atoi(argv[5]);
 	int applyCorr = atoi(argv[6]);
-       	TString bin_var = argv[7];
+    TString bin_var = argv[7];
 	int nBins = getNBins(bin_var);
 
 	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
@@ -525,7 +525,7 @@ int getBin( TString var, double val ){
 	else{
 		double min = getVarMin(var);
 		double max = getVarMax(var);
-	       	return (int) ( (( val - min )/(max - min))*getNBins(var) );
+	    return (int) ( (( val - min )/(max - min))*getNBins(var) );
 	}
 
 	return 0;

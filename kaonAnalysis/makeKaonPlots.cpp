@@ -59,7 +59,7 @@ int main( int argc, char** argv){
 	int type = atoi(argv[2]);
 
        	double theta_cut = 0;
-	if( argc > 2 ){ theta_cut = atoi(argv[3]); }
+	if( argc > 3 ){ theta_cut = atoi(argv[3]); }
 
        	TFile * outFile = new TFile(out_name, "RECREATE");//(TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
 	

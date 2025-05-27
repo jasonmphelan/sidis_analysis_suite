@@ -100,14 +100,15 @@ int main( int argc, char** argv){
 		}
 	}
 
-        TTreeReader reader_rec(recChain);
+    TTreeReader reader_rec(recChain);
 
         
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
+	TTreeReaderArray<bool> isGoodPion3d(reader_rec, "isGoodPion_3d");
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderValue<genElectron> e_MC(reader_rec, "e_gen");
-        TTreeReaderArray<pion> pi_vec(reader_rec, "pi");
-        TTreeReaderArray<genPion> pi_match(reader_rec, "pi_gen");
+    TTreeReaderArray<pion> pi_vec(reader_rec, "pi");
+	TTreeReaderArray<genPion> pi_match(reader_rec, "pi_gen");
 
 	//Define good event list and additional variables for output branches
 
@@ -138,11 +139,11 @@ int main( int argc, char** argv){
 			bool matching = true;
 
 			if( matchType == 2 ){ matching = !isGoodPion[pi_count]; }
-			//else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
+			else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
 			else{ matching = false; }
 
 			if( matching ){ continue; }
-
+			if( abs( pi.getPID() ) != 211 ){continue;}
 			int chargeIdx = (int)( pi.getCharge() < 1 );
 		
 			//Fill reco pions
@@ -163,10 +164,11 @@ int main( int argc, char** argv){
 	anal.setAnalyzerLevel(0);
 	anal.loadCutValues(-1, 10.2);
 	anal.loadMatchingFunctions();
+	anal.loadMatchingFunctions3D();
 	
-        TTreeReader reader_gen(genChain);
+    TTreeReader reader_gen(genChain);
 	TTreeReaderValue<genElectron> e_gen(reader_gen, "e_gen");
-        TTreeReaderArray<genPion> pi_gen(reader_gen, "pi_gen");
+    TTreeReaderArray<genPion> pi_gen(reader_gen, "pi_gen");
 
 
 	event_total = genChain->GetEntries();
@@ -182,7 +184,7 @@ int main( int argc, char** argv){
                 double xB = e_gen->getXb();
 		
 		int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nQ2Bins);
-                int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nXbBins);
+        int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nXbBins);
 
 
 		int pi_count = -1;
@@ -190,7 +192,7 @@ int main( int argc, char** argv){
 			pi_count++;
 
 			double phi = pi.get3Momentum().Phi();
-			double theta = pi.get3Momentum().Theta();
+			double theta = pi.get3Momentum().Theta()*rad_to_deg;
 			double p = pi.get3Momentum().Mag();
 			double charge = pi.getCharge();
 			bool matching = true;
@@ -216,7 +218,21 @@ int main( int argc, char** argv){
 			//else if( matchType == 3 ){ matching = !isGoodPion3d_MC[pi_count]; }
 			//else{ matching = false; }
 
-			if( !anal.acceptance_match_2d( theta*rad_to_deg, p, sector_i )  ){ continue; }
+			if( matchType == 2 ){
+				matching = anal.acceptance_match_2d( theta, p, sector_i );	
+			}
+			else if( matchType == 3 ){
+				phi = pi.get3Momentum().Phi()*rad_to_deg;
+				//if( acceptance_match_3d( phi, theta, p, 0 ) && acceptance_match_3d( phi, theta, p, 1) ){
+				if( anal.acceptance_match_3d_cont( phi, theta, p, 0 ) > -1
+					&& anal.acceptance_match_3d_cont( phi, theta, p, 1 ) > -1   ){ matching = true; }
+				else{ matching = false; }
+			
+			}
+			else{ matching = true ;}
+			
+			if( !matching ){ continue; }
+			
 			int chargeIdx = (int)( pi.getCharge() < 1 );
 			
 			//Fill reco pions

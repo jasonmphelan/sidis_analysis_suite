@@ -34,8 +34,8 @@ namespace cutVals{
 	const double Mx_min = 1.7;
 	const double Mx_max = 5.0;
 	
-	const double Vz_e_min_inbending = -4.0;
-	const double Vz_e_max_inbending = -1.0;
+	const double Vz_e_min_inbending = -7;//-4.0;
+	const double Vz_e_max_inbending = 2;//-1.0;
 	
 	const double Vz_pi_min_inbending[2][2] = {{-7.0, -5}, {-4, -4}};//[RunType][charge]
 	const double Vz_pi_max_inbending[2][2] = {{4.0, 4.0}, {5, 5}}; //[RunType][charge]
