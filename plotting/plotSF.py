@@ -8,8 +8,10 @@ import math
 import sys 
 in_name = sys.argv[1]
 inFile = uproot.open(in_name)
-inFile_R = ROOT.TFile.Open(in_name, "READ")
+inFile_R = ROOT.TFile.Open('/work/clas12/users/jphelan/sidis_analysis_suite/data/SF_fits.root', "READ")
 out_dir = sys.argv[2]
+ch_type = sys.argv[3]
+
 
 obj_base = "hSF_"
 def eval_func(params, xVal):
@@ -22,7 +24,7 @@ for sec in range(6):
 	
 	axs[reg,ch].set_ylim( [0.1, .35] )
 	#plt.subplots_adjust( wspace = 0.25, hspace=.25)
-	hSF = inFile[f"hSF_sec_{sec}"]
+	hSF = inFile[f"hSF_sec_{sec}_{ch_type}"]
 	hMean = inFile_R.Get(f"fMean_SF_{sec}")
 	hSig = inFile_R.Get(f"fSigma_SF_{sec}")
 	
@@ -49,7 +51,7 @@ for sec in range(6):
 	axs[reg, ch].tick_params(which='major', length=7)
 	axs[reg, ch].tick_params(which='minor', length=4)
 	
-	axs[reg, ch].pcolormesh(xEdges, yEdges, values.T, shading='auto')
+	axs[reg, ch].pcolormesh(xEdges, yEdges, values.T, shading='auto', norm='log')
 	axs[reg, ch].plot( xVals, mean_vals, c='r', linestyle='-', linewidth=2)
 	axs[reg, ch].plot( xVals, max_vals, c='r', linestyle='-', linewidth=2)
 	axs[reg, ch].plot( xVals, min_vals, c='r', linestyle='-', linewidth=2)
@@ -59,7 +61,12 @@ for sec in range(6):
 	#if ch != 0:
 	#	axs[reg, ch].set_ylabel("")
 	#	axs[reg, ch].set_yticks(color='w')
-	axs[reg, ch].set_title(f"Sector {sec + 1}")
+	reac_lab = ''
+	if ch_type == 'pip':
+		reac_lab = r'$(e, e^{\prime}\pi^+)$'
+	else:
+		reac_lab = r'$(e, e^{\prime}\pi^-)$'
+	axs[reg, ch].set_title(reac_lab + f", Sector {sec + 1}")
 
 #plt.show()
-fig.savefig(f"{out_dir}/hSF.pdf")
+fig.savefig(f"{out_dir}/hSF_{ch_type}.pdf")

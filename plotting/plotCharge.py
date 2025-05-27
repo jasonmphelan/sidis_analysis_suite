@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
+import sys
 
 in_name = sys.argv[1]
 out_dir = sys.argv[2]
@@ -99,8 +100,8 @@ for key in inFile.keys():
 		
 		ax[1].errorbar(binCenters, ratio, ratio_err, capsize=2, fmt='k o', ecolor='k')
 		
-		ax[1].axhline(y=0, linestyle='--')	
-
+		ax[1].axhline(y=1, linestyle='--', color='grey')	
+		
 		plt.margins(y=0)
 		plt.margins(x=0)
 		

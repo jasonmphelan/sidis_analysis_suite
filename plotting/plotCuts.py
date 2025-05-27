@@ -100,14 +100,14 @@ def drawCut1D( ax, key ):
 		if "Epcal" in key or "EPcal" in key:
 			ax.axvline(x=.07, c="red", linewidth=2) 
 		if "Vz_e" in key:
-			ax.axvline(x=-4., c='r', linewidth=2)
-			ax.axvline(x=-1, c='r', linewidth=2)
+			ax.axvline(x=-7., c='r', linewidth=2)
+			ax.axvline(x=2, c='r', linewidth=2)
 		if "Vz_pip" in key:
-			ax.axvline(x=-5, c='r', linewidth=2)
-			ax.axvline(x=2.5, c='r', linewidth=2)
+			ax.axvline(x=-7, c='r', linewidth=2)
+			ax.axvline(x= 4, c='r', linewidth=2)
 		if "Vz_pim" in key:
-			ax.axvline(x=-3.75, c='r', linewidth=2)
-			ax.axvline(x=3.75, c='r', linewidth=2)
+			ax.axvline(x=-5, c='r', linewidth=2)
+			ax.axvline(x= 4, c='r', linewidth=2)
 		if "Z_pi" in key:	
 			ax.axvline(x=.3, c='r', linewidth=2)
 		if "Y_pi" in key:

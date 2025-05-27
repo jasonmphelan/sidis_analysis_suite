@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
+import sys
 
-fileName = "../histograms/analysis_note/k2pi_fits.root"
+fileName = sys.argv[1] #"../histograms/analysis_note/k2pi_fits.root"
+outBase = sys.argv[2]
 inFile = uproot.open(fileName)
 inFile_R = ROOT.TFile.Open(fileName, "READ")
 key = inFile.keys()
@@ -80,5 +82,6 @@ for charge in chargeSt:
 
 				#plt.show()
 				if makePlot:
-					fig.savefig(f"kaon_fits/fits_k2pi_{charge}_p_{p}_xB_{x}_q2_{q}.pdf")
+					#fig.savefig(f"kaon_fits/fits_k2pi_{charge}_p_{p}_xB_{x}_q2_{q}.pdf")
+					fig.savefig(outBase+f"/fits_k2pi_{charge}_p_{p}_xB_{x}_q2_{q}.pdf")
 				plt.close(fig)

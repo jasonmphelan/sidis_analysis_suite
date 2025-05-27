@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
+import sys
 plt.rcParams["font.family"] = "sans-serif"
-colorList = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080']
+colorList = ['#e6194b', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080']
 
 def setTitle1D( ax, key):
 	ax.axhline(y=1, linestyle='--',c='k', linewidth=2)
@@ -38,13 +39,15 @@ def setTitle1D( ax, key):
 
 #inFile_names = ['../histograms/analysis_note/kinematics_data_10.4_p_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_p_cut.root', '../histograms/analysis_note/kinematics_data_10.4_beta_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_beta_cut.root']
 
-inFile_names = sys.argv[1]
-out_names = sys.argv[1]
+dat_name = sys.argv[1]
+sim_name = sys.argv[2]
+out_names = sys.argv[3]
 
 comp_files = {0,1}
 #inFile_names = ['../histograms/analysis_note/kinematics_data_10.4_p_cut.root', '../histograms/analysis_note/kinematics_data_10.4_beta_cut.root']
 labels = [r'$Y^{Data}$', r'$Y^{Sim}$']
-
+inFile_names = [dat_name, sim_name]
+print(inFile_names)
 inFile = [ uproot.open(i) for i in inFile_names ]
 
 for key in inFile[0].keys():

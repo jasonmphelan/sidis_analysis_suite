@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
- 
+import sys 
 #tools
 def getTitle(var):
 
@@ -50,7 +50,21 @@ def makePlots( corrType, hist, ext):
 	outDir = ''
 	textHeight = 0
 	yMin = 0
-	yMax = 8
+	yMax = 10
+
+	wType = ''
+	if hist.name[-1] == 'P' or hist.name[-3] == 'P':
+		wType = 'w+'
+	elif hist.name[-1] == 'M' or hist.name[-3] == 'M':
+		wType = 'w-'
+	elif 'Kaon' in hist.name:
+		wType = 'w+/w-'
+		yMin = 0
+		yMax = 1.1	
+	else:
+		wType = 'w+/w-'
+		yMin = .5
+		yMax = 1.5
 
 	if corrType == 'bin':
 		outDir = 'bin_migration_corrections/'
@@ -60,6 +74,8 @@ def makePlots( corrType, hist, ext):
 	if corrType == 'acc':
 		outDir = 'acceptance_corrections/'
 		textHeight = 5 
+		if wType == 'w+/w-':
+			textHeight = 1.2
 	if corrType == 'k2pi':
 		outDir = 'k_to_pi_corrections/'
 		textHeight = .75
@@ -70,6 +86,9 @@ def makePlots( corrType, hist, ext):
 		textHeight = .75
 		yMin = 0.5
 		yMax = 1.05
+
+	outDir = f'/volatile/clas12/users/jphelan/SIDIS/analysis_note/corrections_{corrType}/'
+    
 
 	fig, axs = plt.subplots( 4, 3,figsize=(18, 10))
 	plt.subplots_adjust( wspace=.1, hspace=.1 )
@@ -89,19 +108,7 @@ def makePlots( corrType, hist, ext):
 			axs[q%4, math.floor(q/4)].axhline( y = 1, color = 'black', linestyle = '--')
 	
 
-	wType = ''
-	if hist.name[-1] == 'P' or hist.name[-3] == 'P':
-		wType = 'w+'
-	elif hist.name[-1] == 'M' or hist.name[-3] == 'M':
-		wType = 'w-'
-	elif 'Kaon' in hist.name:
-		wType = 'w+/w-'
-		yMin = 0
-		yMax = 1.1	
-	else:
-		wType = 'w+/w-'
-		yMin = .5
-		yMax = 1.5
+	
 
 	for ax in axs.flat:
 		ax.set_xlabel( getTitle('Z'), fontsize=16 )
@@ -110,7 +117,6 @@ def makePlots( corrType, hist, ext):
 
 		ax.set_ylim( [yMin, yMax] )
 		ax.set_xlim( [0.3, 1] )
-
 
 	axs[0,1].legend(loc='upper center', bbox_to_anchor=(0.5, 1.5), ncol=7, fancybox=True, shadow=True)		
 	plt.savefig(outDir+hist.name+ext, bbox_inches='tight')
@@ -125,8 +131,8 @@ p_bin = [1.25, 2.00, 2.50, 3.5, 5.00]
 #start script#
 #############################################
 
-inFile_name = input('File name: \n')
-corrType = input('Correction type (bin, acc, k2pi, pi2k): \n')
+inFile_name = sys.argv[1]#input('File name: \n')
+corrType = sys.argv[2]#input('Correction type (bin, acc, k2pi, pi2k): \n')
 
 inFile = uproot.open('../data/correctionFiles/'+inFile_name)
 
@@ -139,13 +145,15 @@ if corrType == 'acc':
 if corrType == 'k2pi' or corrType == 'pi2k':
 	keyList = ['hKaonCorr', 'hKaonCorrP', 'hKaonCorrM']
 
-energy = '.pdf'
+energy = ' '
+if '3D' or '3d' in inFile_name:
+	energy = energy + '_3d'
 if '10.2' in inFile_name:
-	energy = '_10.2.pdf'
+	energy = energy + '_10.2.pdf'
 elif '10.4' in inFile_name:
-	energy = '_10.4.pdf'
+	energy = energy + '_10.4.pdf'
 elif '10.6' in inFile_name:
-	energy = '_10.6.pdf'
+	energy = energy + '_10.6.pdf'
 else:
 	energy = '.pdf'
 

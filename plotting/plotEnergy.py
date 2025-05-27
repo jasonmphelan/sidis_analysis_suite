@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
+import sys
 plt.rcParams["font.family"] = "sans-serif"
-colorList = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080']
+colorList = ['red', 'gold', 'blue', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080']
 
-accCharge = [1,1,1]
+accCharge = [ 3.49779e+07, 2.90652e+07,2.60921e+07]
 
 def setTitle1D( ax, key):
 	ax.axhline(y=1, linestyle='--',c='k', linewidth=2)
@@ -40,12 +41,12 @@ def setTitle1D( ax, key):
 
 
 inFile_names = sys.argv[1]
-out_names = sys.argv[1]
+out_names = sys.argv[2]
 
 comp_files = {0,1}
 labels = [r'$E = 10.2$ GeV', r'$E = 10.4$ GeV',r'$E = 10.6$ GeV']
 
-inFile = [ uproot.open(i) for i in inFile_names ]
+inFile = [ uproot.open( inFile_names + f'_{i}.root') for i in [10.2,10.4,10.6] ]
 
 for key in inFile[0].keys():
 	if "pim" in key:
@@ -99,10 +100,12 @@ for key in inFile[0].keys():
 			if i == 1 or i == 2:
 				ax[1, 0].errorbar(binCenters, ratio_pip, ratio_err_pip, capsize=2, fmt=colorList[i], ecolor=colorList[i], marker='o')
 				setTitle1D( ax[1,0], key )	
-				ax[1, 0].set_ylabel(r'$Y(E)/Y(E = 10.2$ GeV)', fontsize=16)		
+				ax[1, 0].set_ylabel(r'$Y(E)/Y(E = 10.2$ GeV)', fontsize=14)		
 				ax[1, 1].errorbar(binCenters, ratio_pim, ratio_err_pim, capsize=2, fmt=colorList[i], ecolor=colorList[i], marker='o')
 				setTitle1D( ax[1,1], key )	
-				ax[1, 0].set_ylabel(r'$Y(E)/Y(E = 10.2$ GeV)', fontsize=16)
+				ax[1, 0].set_ylabel(r'$Y(E)/Y(E = 10.2$ GeV)', fontsize=14)
+				ax[1,0].set_ylim(.5, 1.5)
+				ax[1,1].set_ylim(.5, 1.5)
 			#setTitle1D( fig, key )
 			#ax[1, 1].errorbar(binCenters, ratio_pim, ratio_err_pim, capsize=2, fmt='k o', ecolor='k')
 			#setTitle1D( ax[1,1], key )
