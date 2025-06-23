@@ -189,11 +189,14 @@ class pion{// : public TObject {
 		void setPion( TLorentzVector q, TLorentzVector pe, clas12::region_part_ptr rp );
 
 		void setMCPion( bool i ){ isMC = i; }
+		void setPID_eb(int i){PID_eb=i;}
+		int getPID_eb(){return PID_eb;}
 
 		double getVariableByName(TString name);
 		//ClassDef(clashit,7);
 
 	private:
+		int PID_eb		;
 		int	Sector		;
 		int 	PID		;
 		int	Charge		;

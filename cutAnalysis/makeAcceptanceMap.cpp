@@ -60,7 +60,10 @@ int main( int argc, char** argv){
 	TF1 * fThetaPhi[3][6][10]; //Fit functions
 	TVector3 * fitBounds[3][6][10];
 
-	TString momentum_functions = "[0]*(x - [1])*( x-[1] ) + [2]";
+	TString poly2 = "[0]*(x - [1])*( x-[1] ) + [2]";
+	
+	TString poly4 = "[0]*(x - [1])*( x-[1] )*( x-[1] )*( x-[1] ) + [2]";
+	TString momentum_functions[3] = {poly2, poly4, poly4};
 	//TString momentum_functions = "[0]*( -(x - [1])*( x-[1] ) )/( (x - [1])*( x-[1] ) - 1. ) + [2]";
 	TString particle[3] = {"e","pip", "pim"};
 
@@ -81,7 +84,7 @@ int main( int argc, char** argv){
 				
 
 				fThetaPhi[p][sec][bin] = new TF1(Form("fThetaPhi_sec_%i_bin_%i_%s", sec, bin, particle[p].Data() ), 
-								momentum_functions, histMean - 3*histStd, histMean + (3*histStd));
+								momentum_functions[p], histMean - 3*histStd, histMean + (3*histStd));
 				fThetaPhi[p][sec][bin]->SetParameters( 2*histStd, histMean, histMin );
 				fitBounds[p][sec][bin] = new TVector3( 0, 0, 0 );
 			
@@ -113,10 +116,10 @@ int main( int argc, char** argv){
 				for( int phiBin = 0; phiBin < nPhiBins; phiBin++ ){
 					TH1D * temp = new TH1D( "temp", "", hThetaPhi[i][sec][bin]->GetYaxis()->GetNbins(), 0, 40 );
 					temp = (TH1D *)hThetaPhi[i][sec][bin]->ProjectionY( "temp", phiBin ,  phiBin   );
-					if( temp->Integral() < 500 ){
+					if( temp->Integral() < 200 ){
 						//set upper edge
 						if( firstGoodBin && !lastGoodBin ){
-							fitBounds[i][sec][bin]->SetY( hThetaPhi[i][sec][bin]->GetXaxis()->GetBinUpEdge( phiBin ) );
+							fitBounds[i][sec][bin]->SetY( hThetaPhi[i][sec][bin]->GetXaxis()->GetBinLowEdge( phiBin ) );
 							lastGoodBin = true;
 						}
 
@@ -125,7 +128,7 @@ int main( int argc, char** argv){
 					}
 					//set lower edge
 					if( !firstGoodBin ){
-						fitBounds[i][sec][bin]->SetX( hThetaPhi[i][sec][bin]->GetXaxis()->GetBinLowEdge( phiBin ) );
+						fitBounds[i][sec][bin]->SetX( hThetaPhi[i][sec][bin]->GetXaxis()->GetBinUpEdge( phiBin ) );
 						firstGoodBin = true;
 					}
 					
@@ -135,8 +138,8 @@ int main( int argc, char** argv){
 					nPoints++;
 			
 					//set maximum
-					double temp_max =  getThetaPct( 1, temp ) ;
-					if( temp_max > fitBounds[i][sec][bin]->Z() ){
+					double temp_max =  getThetaPct( 0.95, temp ) ;
+					if( temp_max > fitBounds[i][sec][bin]->Z() && temp_max < 40 ){
 						fitBounds[i][sec][bin]->SetZ( temp_max );
 					}
 

@@ -21,10 +21,10 @@ namespace constants{
 	const double n_rich = 1.05;
 	
 	//Monte Carlo info
-	const int nRuns[3] = {4, 1, 2};
+	const int nRuns[3] = {4, 2, 2};
 	const int monteCarloRuns[3][4] ={ 
 				{9013,8990, 8995, 9143},
-				{8963, 0, 0, 0},
+				{8963, 9194, 0, 0},
 				{9031, 8910, 0, 0}
 	};
 				//{7224, 7302, 7304, 7393, 7439, 7520, 8910},

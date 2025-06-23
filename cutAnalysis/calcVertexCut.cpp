@@ -56,7 +56,7 @@ int main( int argc, char** argv){
 
 	if( argc < 3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [outFile name (no extension)] [Beam energy (0 for all energies)]\n";
+		cerr << "./code [outFile name] [Beam energy (0 for all energies)]\n";
 		return -1;
 	}
 	
@@ -67,7 +67,7 @@ int main( int argc, char** argv){
 	
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 && Ebeam != 0 ){
-		cout<< "Invalid Beam Energy... Set EBeam = 10.2\n"<<endl;
+		cout<< "Invaid Beam Energy... Set EBeam = 10.2\n"<<endl;
 		Ebeam = 10.2;
 	}
     	
@@ -78,10 +78,10 @@ int main( int argc, char** argv){
 	std::cout<<"Loaded cut values\n";
 	anal.setAnalyzerLevel(1);
 	anal.loadCutValues(-1, Ebeam);
-	
+
 	reader runReader;
-	runReader.setNumFiles( 1 );
-	runReader.setRunType( 0 );
+	runReader.setNumFiles( 10 );
+	runReader.setRunType( 4 );
 	runReader.setEnergy( Ebeam );
 	
 	clas12root::HipoChain files;
@@ -210,15 +210,18 @@ int main( int argc, char** argv){
 	std::cout<< "Finished File loop! \n";
 	
 	std::vector<TH1F *> hist_list;
-	hist_list.push_back(hVz_e[0]); 
+	//hist_list.push_back(hVz_e[0]); 
 	hist_list.push_back(hVz_pi[0]); 
 	hist_list.push_back(hVz_pi[1]); 
 	outFile->cd();
+	hVz_e[0]->Write();
 	for( TH1F * h : hist_list ){
 	
-	
-
+		TF1 * fit = new TF1( "Fit", "gaus", h->GetMean() - h->GetStdDev()/2. , h->GetMean() + h->GetStdDev()/2.);
+		fit->SetParameters( h->GetMaximum(), h->GetMean(), h->GetStdDev());
+		h->Fit("Fit");
 		//Determine cut values
+		/*
 		double cutMin = -999;
 		double cutMax = 999;
 		bool aboveMax = false;
@@ -249,7 +252,7 @@ int main( int argc, char** argv){
 			
 		cout<<"Min e vertex : "<<cutMin<<std::endl;
 		cout<<"Max e vertex : "<<cutMax<<std::endl;
-		
+		*/
 		
 		h->Write();
 	}

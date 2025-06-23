@@ -112,7 +112,7 @@ private:
 	double mod_el_vtz[2] = {1, 1};
 
 	double mod_pi_fid[2][3] = {0};
-	double mod_pi_vtz[2][2] =  {{1,1},{1,1}};
+	double mod_pi_vtz =  1;
 
 	double mod_W = 1;
 	double mod_Q2[2] = {1,1};

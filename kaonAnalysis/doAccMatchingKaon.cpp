@@ -115,7 +115,7 @@ int main( int argc, char** argv){
 	//Get Cut Value (cut out 1% percentile)
 	
 	double cutValsMin_pim[7];
-	double cutValsMax_pim[6]; //note, we skip first p bin for calc of max
+	double cutValsMax_pim[7]; //note, we skip first p bin for calc of max
 	
 	double cutValsMin_pip[5];
 	double cutValsMax_pip[5]; //note, we skip first p bin for calc of max
@@ -126,9 +126,9 @@ int main( int argc, char** argv){
 	hThetaP[1]->Write();
 	for( int bin = 0; bin < 7; bin++ ){
 		cutValsMin_pim[bin] = getThetaPct( .01, hTheta[bin][1] );
-		if( bin > 0 ){
-			cutValsMax_pim[bin-1] = getThetaPct( .99, hTheta[bin][1] );	
-		}
+		
+		cutValsMax_pim[bin] = getThetaPct( .99, hTheta[bin][1] );	
+		
 		if( bin >= 2 ){
 			cutValsMin_pip[bin-2] = getThetaPct( .01, hTheta[bin][0] );
 			cutValsMax_pip[bin-2] = getThetaPct( .99, hTheta[bin][0] );	
@@ -139,7 +139,7 @@ int main( int argc, char** argv){
 	outFile->cd();
 
 	double binVals_pim_max[7] = {1.5, 2.0, 2.5, 3, 3.5, 4, 4.5};
-	double binVals_pim_min[6] = {2.0, 2.5, 3, 3.5, 4, 4.5};
+	double binVals_pim_min[7] = {1.5, 2.0, 2.5, 3, 3.5, 4, 4.5};
 	double binVals_pip_max[5] = {2.5, 3, 3.5, 4, 4.5};
 	double binVals_pip_min[5] = {2.5, 3, 3.5, 4, 4.5};
 	//double binVals2[5] = { 2.5, 3, 3.5, 4, 4.5};
@@ -170,7 +170,7 @@ int main( int argc, char** argv){
 			else{
 				if( idx == 1 ){
 					gThetaPMin[idx] = new TGraph( 7, binVals_pim_min, cutValsMin_pim );
-					gThetaPMax[idx] = new TGraph( 6, binVals_pim_max, cutValsMax_pim );
+					gThetaPMax[idx] = new TGraph( 7, binVals_pim_max, cutValsMax_pim );
 				}
 				else{
 					gThetaPMin[idx] = new TGraph( 5, binVals_pip_min , cutValsMin_pip );

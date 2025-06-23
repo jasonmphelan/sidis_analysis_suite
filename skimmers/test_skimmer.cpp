@@ -216,12 +216,14 @@ int main( int argc, char** argv){
 			// Get Particles By PID
 			if( RunType == 4){
 				electrons   = c12.getByID( -11   );
+				pipluses    = c12.getByID( -211  );
+				piminuses   = c12.getByID( 211  );
 			}
 			else{
 				electrons   = c12.getByID( 11   );
+				pipluses    = c12.getByID( 211  );
+				piminuses   = c12.getByID(-211  );
 			}
-			pipluses    = c12.getByID( 211  );
-			piminuses   = c12.getByID(-211  );
 
 			if( RunType == 1 ){
 				std::vector<region_part_ptr> kpluses, kminuses; 
@@ -294,7 +296,7 @@ int main( int argc, char** argv){
 					if( pi_match > -1  ){ //&& abs( mcparts->getPid() )!=321  ){ 
 						genPi_dummy.Clear();
 						genPi_dummy.setKinematicInformation(e_gen.getQ(), e_gen.get4Momentum(), mcparts);
-						pi_dummy.setPID( abs(mcparts->getPid() ) );
+						pi_dummy.setPID( abs(mcparts->getPid() ) ); //Set "real" ID
 						pi_gen.push_back(genPi_dummy); 
 					}
 					else { continue; }

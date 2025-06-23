@@ -41,9 +41,9 @@ public:
 	void loadNewEnergy( double energy );
 private:
 	int 	mode;
-	TString weight_name = "corrections_10.2_fit.root";
-	TString kaon_To_pi_name = "corrections_k2pi_fit.root";
-	TString pi_To_kaon_name = "corrections_pi2k_fit.root";
+	TString weight_name = "corrections_10.2_AN.root";
+	TString kaon_To_pi_name = "corrections_k2pi_AN.root";
+	TString pi_To_kaon_name = "corrections_pi2k_AN.root";
 
 	double kin[4];
 	
@@ -54,6 +54,8 @@ private:
 	
 	TH3F *	accCorrection[2];
 	TH3F *	binMigration[2];
+	TH3F *	mcCorrection[2];
+	
 	TH3F *	k_to_pi_Correction[2][4];
 	TH3F *	pi_to_k_Correction[2][4];
 	//TH3F *	rhoCorrection;

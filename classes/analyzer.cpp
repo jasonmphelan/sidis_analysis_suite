@@ -33,11 +33,13 @@ void analyzer::printCuts(){
 		std::cout<<"Pip Fiducial Region "<<i<<" : "<<mod_pi_fid[0][i]*pi_fid_cuts[0][i]<<std::endl;
 		std::cout<<"Pim Fiducial Region "<<i<<" : "<<mod_pi_fid[1][i]*pi_fid_cuts[1][i]<<std::endl;
 	}
-	std::cout<<"Pip-e Min Vertex : "<<mod_pi_vtz[0][0]*Vz_pi_min_inbending[mode][0]<<std::endl;
-	std::cout<<"Pip-e Max Vertex : "<<mod_pi_vtz[1][0]*Vz_pi_max_inbending[mode][0]<<std::endl;
+	std::cout<<"Pip-e Min Vertex : "<<Vz_pi_mean[mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
+	std::cout<<"Pip-e Max Vertex : "<<Vz_pi_mean[mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
 
-	std::cout<<"Pim-e Min Vertex : "<<mod_pi_vtz[0][1]*Vz_pi_min_inbending[mode][1]<<std::endl;
-	std::cout<<"Pim-e Max Vertex : "<<mod_pi_vtz[1][1]*Vz_pi_max_inbending[mode][1]<<std::endl;
+	std::cout<<"Pim-e Min Vertex : "<<Vz_pi_mean[mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
+	std::cout<<"Pim-e Max Vertex : "<<Vz_pi_mean[mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
+
+	
 	
 	std::cout<<"**************** Kinematical Cuts ******************\n";
 	std::cout<<"Minimum pe : "<<mod_pe[0]*P_e_min<<std::endl;
@@ -49,6 +51,43 @@ void analyzer::printCuts(){
 	std::cout<<"Minimum Mx : "<<mod_Mx*Mx_min<<std::endl;
 
 }
+
+void analyzer::writeCutsToFile(TString outName){
+	std::ofstream txtFile;
+	txtFile.open(outName);
+	for( int i = 0; i < 3; i++ ){
+		txtFile<<"Electron Fiducial Region "<<i<<"\t"<<mod_el_fid[i]*e_fid_cuts[i]<<std::endl;
+	}
+	txtFile<<"PCAL W\t"<<mod_el_PCAL[0]*e_PCAL_W_min<<std::endl;
+	txtFile<<"PCAL V\t"<<mod_el_PCAL[1]*e_PCAL_V_min<<std::endl;
+	txtFile<<"Electron Min Vertex\t"<<mod_el_vtz[0]*Vz_e_min_inbending<<std::endl;
+	txtFile<<"Electron Max Vertex\t"<<mod_el_vtz[1]*Vz_e_max_inbending<<std::endl;
+	txtFile<<"Minimum Edep\t"<<mod_el_Edep*e_E_PCAL_min<<std::endl;
+	txtFile<<"SF Sigma\t"<<mod_SF_sigma*3.5<<std::endl;	
+	txtFile<<"SF Correlation\t"<<mod_el_corr*PCAL_ECIN_SF_min<<std::endl;
+
+	for( int i = 0; i < 3; i++ ){
+		txtFile<<"Pip Fiducial Region "<<i<<"\t"<<mod_pi_fid[0][i]*pi_fid_cuts[0][i]<<std::endl;
+		txtFile<<"Pim Fiducial Region "<<i<<"\t"<<mod_pi_fid[1][i]*pi_fid_cuts[1][i]<<std::endl;
+	}
+	txtFile<<"Pip-e Min Vertex\t"<<Vz_pi_mean[mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
+	txtFile<<"Pip-e Max Vertex\t"<<Vz_pi_mean[mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
+
+	txtFile<<"Pim-e Min Vertex\t"<<Vz_pi_mean[mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
+	txtFile<<"Pim-e Max Vertex\t"<<Vz_pi_mean[mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
+
+	
+	
+	txtFile<<"Minimum pe\t"<<mod_pe[0]*P_e_min<<std::endl;
+	txtFile<<"Maximum pe\t"<<mod_pe[1]*P_e_max<<std::endl;
+	txtFile<<"Minimum p_pi\t"<<mod_ppi[0]*P_pi_min<<std::endl;
+	txtFile<<"Maximum p_pi\t"<<mod_ppi[1]*P_pi_max<<std::endl;
+	txtFile<<"Minimum W\t"<<mod_W*W_min<<std::endl;
+	txtFile<<"Maximum y\t"<<mod_y*y_max<<std::endl;
+	txtFile<<"Minimum Mx\t"<<mod_Mx*Mx_min<<std::endl;
+
+}
+
 void analyzer::randomizeCuts(){
 	std::mt19937 gen(rd());
 	
@@ -69,8 +108,6 @@ void analyzer::randomizeCuts(){
 
 		for( int j = 0; j < 3; j++ ){
 			cut_mods.push_back( &mod_pi_fid[i][j]);
-			if( j > 2 ){ continue; }
-			cut_mods.push_back( &mod_pi_vtz[i][j] );
 		}
 	}
 	
@@ -78,21 +115,19 @@ void analyzer::randomizeCuts(){
 	cut_vals.push_back(Vz_e_min_inbending);
 	cut_vals.push_back(P_e_min);
 	cut_vals.push_back(P_pi_min);
+	
 	for( int j = 0; j < 3; j++ ){
 		cut_vals.push_back( pi_fid_cuts[0][j]);
-		if( j > 2 ){ continue; }
-		cut_vals.push_back( Vz_pi_min_inbending[mode][j] );
 	}
 
 
 	cut_vals.push_back(e_PCAL_V_min);
 	cut_vals.push_back(Vz_e_max_inbending);
 	cut_vals.push_back(P_pi_max);
-	cut_vals.push_back(P_e_max);;
+	cut_vals.push_back(P_e_max);
+
 	for( int j = 0; j < 3; j++ ){
 		cut_vals.push_back( pi_fid_cuts[1][j]);
-		if( j > 2 ){ continue; }
-		cut_vals.push_back( Vz_pi_max_inbending[mode][j] );
 	}
 	
 	cut_mods.push_back( &mod_el_Edep);
@@ -103,6 +138,9 @@ void analyzer::randomizeCuts(){
 	
 	cut_mods.push_back( &mod_el_corr);
 	cut_vals.push_back(PCAL_ECIN_SF_min);
+	
+	cut_mods.push_back( &mod_pi_vtz );
+	cut_vals.push_back( 3.5 );
 
 	cut_mods.push_back( &mod_W);
 	cut_vals.push_back(W_min);
@@ -255,16 +293,12 @@ bool analyzer::applyElectronDetectorCuts( electron e ){
 
 	// PCAL FIDUCIAL	
 	if(!applyElectronPCAL( e ) ) return false;
-
 	//PCAL MIN EDEP CUT
 	if(!applyElectronEDep( e ) ) return false;
-		
 	//Electron SF cut
 	if(!applyElectronSF( e ) ) return false;
-
 	//SF CORRELATION CUT
 	if(!applyElectronCorrelation( e ) ) return false;
-	
 	//ELECTRON VERTEX CUT
 	if(!applyElectronVertex( e ) ) return false;
 	
@@ -319,9 +353,12 @@ bool analyzer::applyPionDetectorChi2( pion pi ){
 bool analyzer::applyPionDetectorVertex( pion pi, electron e ){
        
 	int chargeIdx = (int) ( pi.getCharge() < 0 );
+	double min = Vz_pi_mean[mode][chargeIdx] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][chargeIdx];
+	double max = Vz_pi_mean[mode][chargeIdx] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][chargeIdx];
+	
 	//DELTA VERTEX CUT
-	if( !( (pi.getVt() - e.getVt()).Z() >mod_pi_vtz[chargeIdx][0]*Vz_pi_min_inbending[mode][chargeIdx] && 
-				(pi.getVt() - e.getVt()).Z() < mod_pi_vtz[chargeIdx][1]*Vz_pi_max_inbending[mode][chargeIdx] ) ) { 
+	if( !( (pi.getVt() - e.getVt()).Z() > min && 
+				(pi.getVt() - e.getVt()).Z() < max ) ) { 
 		return false; 
 	}
 	
@@ -617,7 +654,7 @@ int analyzer::checkAcceptance( double p, double phi, double theta, int particle 
 		lower = fitBounds[sec][p_bin][particle][0];
 		upper = fitBounds[sec][p_bin][particle][1];
 	
-		if( sec ==3 && phi_temp < 100. ){ phi_temp += 360; }
+		if( (sec == 2 || (sec ==3 && p>1)) && phi_temp < 0. ){ phi_temp += 360; }
 		cutMin = par_0*(phi_temp - par_1)*(phi_temp - par_1) + par_2;
 		
 		if( theta > cutMin && theta < 40

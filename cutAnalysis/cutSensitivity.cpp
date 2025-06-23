@@ -47,10 +47,10 @@ int main( int argc, char** argv){
 	}
 	
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
-       	double Ebeam = atof(argv[2]); // [GeV]
+    double Ebeam = atof(argv[2]); // [GeV]
 	int RunType = atoi(argv[3]);
 	int inclusive =atoi( argv[5]);
-	int singleFile =atoi( argv[4]);
+	int trial_num =atoi( argv[4]);
 	TString outFileName = argv[6]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
 
 	
@@ -60,16 +60,13 @@ int main( int argc, char** argv){
 		Ebeam = 10.2;
 	}
     	
-	if( singleFile != 0 && singleFile != 1 ){
-		cout<<"Invalid entry for number of output files : "<<singleFile<<std::endl;
-		cout<<"Outputting single file\n";
-	}
 
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
 	anal.setAnalyzerLevel(RunType);
 	anal.loadCutValues(-1, Ebeam);
+	anal.loadSamplingFractionParams();
 	
 	reader runReader;
 	runReader.setNumFiles( nFiles);
@@ -77,7 +74,7 @@ int main( int argc, char** argv){
 	runReader.setEnergy( Ebeam );
 	
 	clas12root::HipoChain files;
-       	runReader.readRunFiles(files);
+    runReader.readRunFiles(files);
 
 	cout<<"Set output files"<<endl;
 	
@@ -99,20 +96,16 @@ int main( int argc, char** argv){
 	std::vector<std::vector<int>> pidMC;
 	
 	// Set Output file and tree
-	TFile * outputFile;
+	//TFile * outputFile;
 	
-	outputFile = new TFile(outFileName + ".root", "RECREATE");
+	//outputFile = new TFile(outFileName + ".root", "RECREATE");
 	
 	TH1F * ratio_bins[bins_Q2][bins_xB][bins_Z];
-	TH1F * ratio_pip[bins_Q2][bins_xB];
-	TH1F * ratio_pim[bins_Q2][bins_xB];
-
+	
 	for( int q2 = 0; q2 < bins_Q2; q2++ ){
 		for( int x = 0; x < bins_xB; x++ ){
-			ratio_pip[q2][x] = new TH1F(Form("ratio_pip_q2_%i_xB_%i", q2, x), ";z;Counts", bins_Z, Z_min, Z_max);
-			ratio_pim[q2][x] = new TH1F(Form("ratio_pim_q2_%i_xB_%i", q2, x), ";z;Counts", bins_Z, Z_min, Z_max);
 			for( int z = 0; z < bins_Z; z++ ){
-				ratio_bins[q2][x][z] = new TH1F(Form("ratio_bin_q2_%i_xB_%i_z_%i", q2, x, z), ";R(z);Counts", 500, 0, 1);
+				ratio_bins[q2][x][z] = new TH1F(Form("ratio_bin_q2_%i_xB_%i_z_%i", q2, x, z), ";R(z);Counts", 250, 0, 1);
 			}
 		}
 	}
@@ -130,9 +123,19 @@ int main( int argc, char** argv){
 
 
 
-	for( int tri = 0; tri < 500; tri++ ){
-	////////////////////////////////////Begin file loop////////////////////////////////////////////////////
+	for( int tri = 0; tri < 1; tri++ ){
+	
+		////////////////////////////////////Begin file loop////////////////////////////////////////////////////
 		std::cout<<"begin trial : "<<tri<<std::endl;
+		TH1F * ratio_pip[bins_Q2][bins_xB];
+		TH1F * ratio_pim[bins_Q2][bins_xB];
+
+		for( int q2 = 0; q2 < bins_Q2; q2++ ){
+			for( int x = 0; x < bins_xB; x++ ){
+				ratio_pip[q2][x] = new TH1F(Form("ratio_pip_q2_%i_xB_%i", q2, x), ";z;Counts", bins_Z, Z_min, Z_max);
+				ratio_pim[q2][x] = new TH1F(Form("ratio_pim_q2_%i_xB_%i", q2, x), ";z;Counts", bins_Z, Z_min, Z_max);
+			}
+		}
 		anal.randomizeCuts();
 		anal.printCuts();
 		
@@ -141,7 +144,6 @@ int main( int argc, char** argv){
 			//Only skim desired number of files
 			if(nFiles != 0 && i > nFiles){break;}	
 		
-				
 			//create the event reader
 			clas12reader c12(files.GetFileName(i).Data());
 			auto mcparts = c12.mcparts();		
@@ -190,7 +192,9 @@ int main( int argc, char** argv){
 				//Find good electrons
 				int e_idx = GetLeadingElectron(electrons, Ne);	
 				e.setElectron( Ebeam, electrons[e_idx]);
+				
 				if( !anal.applyElectronDetectorCuts( e )){continue;}
+				if( !anal.applyElectronKinematicCuts( e )){continue;}
 
 				////////////////Pion analysis/////////////////
 				
@@ -202,12 +206,14 @@ int main( int argc, char** argv){
 					pi_dummy.setMCPion( (bool)RunType );
 					pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
 					if( !anal.applyPionDetectorCuts( pi_dummy, e ) ) {continue;}
-					
+					if( !anal.applyPionKinematicCuts( pi_dummy) ) {continue;}
+
+
 					int charge = pi_dummy.getCharge();
 					int this_bin_Q2 = (int)( ( (e.getQ2() - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
 					int this_bin_xB = (int)( ( (e.getXb() - xB_min)/(xB_max-xB_min) )*bins_xB);
-					
-					if( charge<0 ){ ratio_pip[this_bin_Q2][this_bin_xB]->Fill( pi_dummy.getZ() );}
+
+					if( charge>0 ){ ratio_pip[this_bin_Q2][this_bin_xB]->Fill( pi_dummy.getZ() );}
 					else{ ratio_pim[this_bin_Q2][this_bin_xB]->Fill( pi_dummy.getZ() );}
 
 				}
@@ -216,27 +222,43 @@ int main( int argc, char** argv){
 			}
 
 		}
-		
-		for( int i = 1; i <= bins_Q2; i++ ){
-			for( int j = 1; j <= bins_xB; j++ ){
-			
-				ratio_pip[i-1][j-1]->Divide(ratio_pim[i-1][j-1]);
-	
-				TH1F * helper_3 = (TH1F *)ratio_pip[i-1][j-1]->Clone();
-				ratio_pip[i-1][j-1]->Scale(-1.);
-				ratio_pip[i-1][j-1]->Add(helper_2);
 
-				helper_3->Scale(4.);
-				helper_3->Add( helper_1 );
+		std::ofstream txtFile_pip, txtFile_pim, txtFile_ratio;
+		txtFile_pip.open(outFileName+ "_pip.txt");
+		txtFile_pim.open(outFileName+ "_pim.txt");
+		txtFile_ratio.open(outFileName+ "_ratio.txt");
 
-				ratio_pip[i-1][j-1]->Divide(helper_3);
+		anal.writeCutsToFile(outFileName + "_cuts.txt");
 		
+		txtFile_pip<< "xB\tQ2\t";
+		txtFile_pim<< "xB\tQ2\t";
+
+		for( int z = 1; z <= bins_Z; z++ ){
+			txtFile_pip<<z<<"\t";
+			txtFile_pim<<z<<"\t";
+		}
+		txtFile_pip<<"\n";
+		txtFile_pim<<"\n";
+		for( int j = 1; j <= bins_xB; j++ ){
+			for( int i = 1; i <= bins_Q2; i++ ){
+				
+				txtFile_pip<<j<<"\t"<<i;
+				txtFile_pim<<j<<"\t"<<i;
+
 				for( int z = 1; z <= bins_Z; z++ ){
-					ratio_bins[i-1][j-1][z-1]->Fill( ratio_pip[i-1][j-1]->GetBinContent(z) );
+					txtFile_pip<<"\t"<<ratio_pip[i-1][j-1]->GetBinContent(z);
+					txtFile_pim<<"\t"<<ratio_pim[i-1][j-1]->GetBinContent(z);
+					//if( ratio_pip[i-1][j-1]->GetBinContent(z) < 0 ) continue;
+					//ratio_bins[i-1][j-1][z-1]->Fill( ratio_pip[i-1][j-1]->GetBinContent(z) );
 				}
+				txtFile_pip<<"\n";
+				txtFile_pim<<"\n";
 
 			}
-		}		
+		}	
+		
+		txtFile_pip.close();
+		txtFile_pim.close();
 		
 
 		std::cout<<"Done!\n";
@@ -245,20 +267,8 @@ int main( int argc, char** argv){
 		std::chrono::duration<double> elapsed = finish - start;
 
 		std::cout << "Done. Elapsed time: " << elapsed.count() << std::endl;
-	}
-
-	outputFile->cd();
-
-	for( int i = 1; i <= bins_Q2; i++ ){
-		for( int j = 1; j <= bins_xB; j++ ){
-			for( int k = 1; k <= bins_Z; k++ ){
-				ratio_bins[i-1][j-1][k-1]->Write();
-			}
-
-		}
 	
 	}
-	outputFile->Close();
 	
 }
 

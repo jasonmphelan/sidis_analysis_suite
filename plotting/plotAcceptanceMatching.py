@@ -20,12 +20,12 @@ keys = inFile.keys()
 
 nSec = 6
 
-for key in keys: 
-	num_check = any(ch.isdigit() for ch in key)
-	if "Kaon" in inName or "kaon" in inName:
+#for key in keys: 
+#	num_check = any(ch.isdigit() for ch in key)
+if "Pi2K" in inName or "K2Pi" in inName:
 		nSec = 1
-		break
 
+print(nSec)
 
 ch_string = ['pip', 'pim']
 tit_string = [r"d(e, e'$\pi^{+}$)", "d(e, e'$\pi^{-}$)"]
@@ -49,9 +49,9 @@ for sec in range(nSec):
 
 	for i in range(2):
 		if nSec == 1:
-			hist[i] = inFile[ f"hTheta_P_"+ch_string[i] ]
-			fMax[i] = inFile_R.Get( "max_0"+ch_string[i] )
-			fMin[i] = inFile_R.Get( "min_0"+ch_string[i] )
+			hist[i] = inFile[ f"hTheta_P_"+ch_string[i]+";1" ]
+			fMax[i] = inFile_R.Get( "max_0"+ch_string[i]+";1" )
+			fMin[i] = inFile_R.Get( "min_0"+ch_string[i]+";1" )
 		else:
 			hist[i] = inFile[ f"hTheta_P_sec_{sec}_{ch_string[i]}" ]
 			fMax[i] = inFile_R.Get( f"max_{sec}_{ch_string[i]}" )

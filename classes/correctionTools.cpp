@@ -34,6 +34,8 @@ void correctionTools::loadHistograms(){
 	accCorrection[1] = (TH3F*)weightFile->Get( "hAccCorrectionM" );
 	binMigration[0] = (TH3F*)weightFile->Get( "hBinMigrationP" );
 	binMigration[1] = (TH3F*)weightFile->Get( "hBinMigrationM" );
+	mcCorrection[0] = (TH3F*)weightFile->Get( "hMcCorrectionP" );
+	mcCorrection[1] = (TH3F*)weightFile->Get( "hMcCorrectionM" );
 
 	for( int i = 0; i < 4; i++ ){
 		k_to_pi_Correction[0][i] = (TH3F*)pi2kFile->Get( Form( "hKaonCorrP_%i", i) );
@@ -251,7 +253,7 @@ double correctionTools::getCorrectionFactor( int type, int charge ){
 
 	else if(mode == 1){
 		int this_bin_Q2 = (int)( ( (q - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
-                int this_bin_xB = (int)( ( (x - xB_min)/(xB_max-xB_min) )*bins_xB);
+        int this_bin_xB = (int)( ( (x - xB_min)/(xB_max-xB_min) )*bins_xB);
 		
 		double mcWeight = weightFit[charge][this_bin_xB][this_bin_Q2]->Eval(z);
 		double pi2kWeight = pi2kFit[charge][this_bin_xB][this_bin_Q2][this_bin_p]->Eval(z); 
@@ -304,35 +306,39 @@ double correctionTools::getCorrectionFactor( int type, int charge ){
 		int z_bin_k = pi_to_k_Correction[charge][0]->GetZaxis()->FindBin(z);
 		double binWeight = binMigration[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
 		double accWeight = accCorrection[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
+		double mcWeight = mcCorrection[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
 		double pi2kWeight = pi_to_k_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
 		double k2piWeight = k_to_pi_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
 		double kWeight = 0;
 
 		if( type == 0 ) return binWeight;
 		if( type == 1 ) return accWeight;
-		if( type == 2 ) kWeight = pi2kWeight;
-		if( type == 3 ) kWeight = k2piWeight;
-		if( type > 3 ){ return 0; }	
+		if( type == 2 ) return mcWeight;
+		if( type == 3 && this_bin_p >= 2) kWeight = pi2kWeight;
+		if( type == 4 && this_bin_p >= 2) kWeight = k2piWeight;
+		if( type > 4 ){ return 0; }	
 		
 		//Check if in correction phase space       
-		if( kWeight <= 0 || kWeight > 1 ){return 1;}
+		double badBinVals[2] = {1, 0}; //Don't correct "bad" pi2k bins, kill "bad" k2pi bins
+
+		if( kWeight <= 0 || kWeight > 1 ){return badBinVals[type - 3];}
 		else{
 			double kWeightTemp;
 			int tempCharge;
 			if( charge == 0 ){ tempCharge = 1; }
 			if( charge == 1 ){ tempCharge = 0; }
 
-			if(type == 2){
+			if(type == 3){
 				kWeightTemp = pi_to_k_Correction[tempCharge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
 			}
-			if( type == 3 ){
+			if( type == 4 ){
 				kWeightTemp = k_to_pi_Correction[tempCharge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
 			}
 
 			if( kWeightTemp <= 0 || kWeightTemp > 1 ){
 			       //if( this_bin_p >= 2 ){ return 1; }
 			       //else{ return 0; }
-				return 1;
+				return badBinVals[type-3];
 			}
 			return kWeight;
 		}
@@ -397,16 +403,18 @@ double correctionTools::getCorrectionError( int type, int charge ){
 		int y_bin_k = pi_to_k_Correction[charge][0]->GetYaxis()->FindBin(q);
 		int z_bin_k = pi_to_k_Correction[charge][0]->GetZaxis()->FindBin(z);
 		
-		double binErr = binMigration[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
-		double accErr = accCorrection[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
-		double pi2kErr = pi_to_k_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
-		double k2piErr = k_to_pi_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
+		double binErr = binMigration[charge]->GetBinError( x_bin_w, y_bin_w, z_bin_w);
+		double accErr = accCorrection[charge]->GetBinError( x_bin_w, y_bin_w, z_bin_w);
+		double mcErr = mcCorrection[charge]->GetBinError( x_bin_w, y_bin_w, z_bin_w);
+		double pi2kErr = pi_to_k_Correction[charge][this_bin_p]->GetBinError( x_bin_k, y_bin_k, z_bin_k );
+		double k2piErr = k_to_pi_Correction[charge][this_bin_p]->GetBinError( x_bin_k, y_bin_k, z_bin_k );
 
 		if( type == 0 ) return binErr;
 		if( type == 1 ) return accErr;
-		if( type == 2 ) return pi2kErr;
-		if( type == 3 ) return k2piErr;
-		if( type > 3 ){ return 0; }	
+		if( type == 2 ) return mcErr;
+		if( type == 3 ) return pi2kErr;
+		if( type == 4 ) return k2piErr;
+		if( type > 4 ){ return 0; }	
 		
 	}
 

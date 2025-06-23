@@ -37,8 +37,10 @@ namespace cutVals{
 	const double Vz_e_min_inbending = -7;//-4.0;
 	const double Vz_e_max_inbending = 2;//-1.0;
 	
-	const double Vz_pi_min_inbending[2][2] = {{-7.0, -5}, {-4, -4}};//[RunType][charge]
-	const double Vz_pi_max_inbending[2][2] = {{4.0, 4.0}, {5, 5}}; //[RunType][charge]
+	const double Vz_pi_mean[5][2] = {{-1, -0.15},{-0.15, -0.02}, {0,0},{0,0}, {-3.6, -1.9 } };
+	//{{-7.0, -5}, {-4, -4}, {-7, -5}};//[RunType][charge]
+	const double Vz_pi_sigma[5][2] = {{1.4,1.2}, {0.9, 0.85}, {10,10}, {10,10}, {1.9, 1.9} };
+	//{{4.0, 4.0}, {5, 5}, {4, 4}}; //[RunType][charge]
 
 	//Legacy cuts ("loose")
 	const double SamplingFraction_min=0.17;

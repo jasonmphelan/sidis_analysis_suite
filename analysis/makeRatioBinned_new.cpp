@@ -17,6 +17,7 @@
 #include "TH3.h"
 #include "TCanvas.h"
 #include "TLine.h"
+#include "TChain.h"
 #include "TLegend.h"
 #include "TTreeReader.h"
 #include "TTreeReaderValue.h"
@@ -54,21 +55,57 @@ int main( int argc, char** argv){
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
 
-	TString in_name = argv[1];
-	TString k_name = argv[2];
-       	TString r_name = argv[3];
-	TString out_name = argv[4];
-	int matchType = atoi(argv[5]);
-	int applyCorr = atoi(argv[6]);
+	double inBeam = atof(argv[1]);
+
+	//TString in_name = argv[1];
+	//TString k_name = argv[2];
+    //TString r_name = argv[3];
+	TString out_name = argv[2];
+	int matchType = atoi(argv[3]);
+	int applyCorr = atoi(argv[4]);
 
 	cout<<"Create and Load files\n";
 
-	TFile * outFile = new TFile((TString) HIST_PATH + "/" + out_name, "RECREATE");
+	TFile * outFile = new TFile(out_name, "RECREATE");
 
 	//TFile * outFile = new TFile( outName, "RECREATE");
-	TFile * inFile = new TFile( in_name );
-	TFile * kFile = new TFile( k_name );
-	TFile * rFile = new TFile( r_name );
+	TChain * dChain = new TChain( "ePi" );
+	TChain * kChain = new TChain( "ePi" );
+	TChain * rChain = new TChain( "ePi" );
+
+	TString base = "/volatile/clas12/users/jphelan/SIDIS/data/";
+
+	if( inBeam == 0 || inBeam == 10.2){
+		dChain->Add( base + "final_skims/10.2/final_skim.root");
+		if( applyCorr >= 3 ){
+			kChain->Add( base + "final_skims/kaons_10.2/final_skim.root");
+		}
+		if( applyCorr == 4 ){
+			rChain->Add( base + "rho_skims/rotated_10.2.root");
+		}
+	}
+	if( inBeam == 0 || inBeam == 10.4){
+		dChain->Add( base + "final_skims/10.6/final_skim.root");
+		if( applyCorr >= 3 ){
+			kChain->Add( base + "final_skims/kaons_10.4/final_skim.root");
+		}
+		if( applyCorr == 4 ){
+			rChain->Add( base + "rho_skims/rotated_10.4.root");
+		}
+	}
+	if( inBeam == 0 || inBeam == 10.6){
+		dChain->Add( base + "final_skims/10.6/final_skim.root");
+		if( applyCorr >= 3 ){
+			kChain->Add( base + "final_skims/kaons_10.6/final_skim.root");
+		}
+		if( applyCorr == 4 ){
+			rChain->Add( base + "rho_skims/rotated_10.6.root");
+		}
+	}
+
+	//TFile * inFile = new TFile( in_name );
+	//TFile * kFile = new TFile( k_name );
+	//TFile * rFile = new TFile( r_name );
 
 	double sumWeights[4][bins_Q2+1][bins_xB+1][bins_Z + 1][2] = {0};
 	double sumWeightsErr[4][bins_Q2+1][bins_xB+1][bins_Z + 1][2] = {0};
@@ -95,8 +132,11 @@ int main( int argc, char** argv){
 		}
 	}
 	
-	correctionTools corrector(1);
-	corrector.loadFits();	
+	correctionTools corrector(2);
+	if( matchType == 3){
+		corrector.setWeightName( "corrections_10.2_3d_AN.root");
+	}
+	corrector.loadHistograms();	
 
 	////////////////////////////
 	///////// Pions ////////////
@@ -105,13 +145,14 @@ int main( int argc, char** argv){
 	cout<<"Begin analysis\n";
 	double beam_energy = 10.2; //current energy of file
 
-	TTreeReader reader_rec("ePi", inFile);
-
-	TTreeReaderValue<double> eBeam( reader_rec, "eBeam" );
+	//TTreeReader reader_rec("ePi", inFile);
+	TTreeReader reader_rec(dChain);
+	TTreeReaderValue<double> eBeam( reader_rec, "Ebeam" );
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
+	TTreeReaderArray<bool> isGoodPion3d(reader_rec, "isGoodPion_3d");
 
 	int event_total = reader_rec.GetEntries();
 	double events_in_bin[2][bins_Q2][bins_xB][bins_Z][bins_p] = {0};
@@ -124,9 +165,13 @@ int main( int argc, char** argv){
 		}
 
 		if( *eBeam != beam_energy ){
-			corrector.loadNewEnergy( *eBeam );
+			if( matchType == 3 ) corrector.setWeightName( Form("corrections_%0.1f_3d_AN.root", *eBeam));
+			else corrector.setWeightName( Form("corrections_%0.1f_AN.root", *eBeam));
+
+			corrector.loadHistograms();	
 			beam_energy = *eBeam;
 		}
+		
 
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			
@@ -137,41 +182,49 @@ int main( int argc, char** argv){
 			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*bins_Z);
 
 			bool matching = true;
-			if( matchType == 2 ){ matching = !isGoodPion[i]; }
-			//else if( matchType == 3 ){ matching = !isGoodPion3d[i]; }
-			//else{ matching = false; }
+			if( matchType == 2 ){ matching = isGoodPion[i]; }
+			else if( matchType == 3 ){ matching = isGoodPion3d[i]; }
 
-			if( matching ){ continue; }
+			if( !matching ){ continue; }
 			corrector.setKinematics( e->getXb(), e->getQ2(), pi[i].getZ(), p_pi );
 
 			double weight = 1;
+			double eventWeightErr = 0;
+
+			double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
+			double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+			double mc_weight = corrector.getCorrectionFactor( 2, chargeIdx );
+			double k_weight = corrector.getCorrectionFactor(3, chargeIdx);
+			double bin_err = corrector.getCorrectionError(0, chargeIdx);
+			double acc_err = corrector.getCorrectionError(1, chargeIdx);
+			double mc_err = corrector.getCorrectionFactor( 2, chargeIdx );
+			double k_err = corrector.getCorrectionError(3, chargeIdx);
 			
-			//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
-			//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
-			double mc_weight = corrector.getCorrectionFactor( 1, chargeIdx );
-			double k_weight = corrector.getCorrectionFactor(2, chargeIdx);
-			//double bin_err = corrector.getCorrectionError(0, chargeIdx);
-			//double acc_err = corrector.getCorrectionError(1, chargeIdx);
-			double mc_err = corrector.getCorrectionFactor( 1, chargeIdx );
-			double k_err = corrector.getCorrectionError(2, chargeIdx);
-			
-			if( applyCorr > 0 ){
-				//if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
-				//if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
-				
+			if( applyCorr == 1 ) weight *= bin_weight;
+			if( applyCorr == 2 ) weight *= acc_weight;
+			if( applyCorr > 2 ){
 				//weight *= acc_weight*bin_weight;
 				weight *= mc_weight;
 			}
-			if( applyCorr > 1 ){
+			if( applyCorr > 3 ){
 				weight *= k_weight;
 			}	
 
-			double eventWeightErr = 0;
-			if( applyCorr > 1 ){
+			
+
+			if( applyCorr > 3 ){
 				//eventWeightErr +=  weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
 				eventWeightErr +=  weight*sqrt( pow(mc_err/mc_weight, 2) + pow(k_err/k_weight, 2) );
 			}
 			if( applyCorr == 1 ){
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
+				eventWeightErr += bin_err;
+			}
+			if( applyCorr == 2 ){
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
+				eventWeightErr += acc_err;
+			}
+			if( applyCorr == 3 ){
 				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
 				eventWeightErr += mc_err;
 			}
@@ -192,18 +245,20 @@ int main( int argc, char** argv){
 	////////////// Kaons /////////////////
 	///////////////////////////////////////
 
-	TTreeReader reader_k("ePi", kFile);
-	TTreeReaderValue<double> eBeam_k( reader_k, "eBeam" );
+	//TTreeReader reader_k("ePi", kFile);
+	TTreeReader reader_k(kChain);
+	TTreeReaderValue<double> eBeam_k( reader_k, "Ebeam" );
 
 	TTreeReaderValue<electron> e_k(reader_k, "e");
 	TTreeReaderArray<pion> k(reader_k, "pi");
 	
 	TTreeReaderArray<bool> isGoodKaon(reader_k, "isGoodPion");
+	TTreeReaderArray<bool> isGoodKaon3d(reader_k, "isGoodPion_3d");
 
 	event_total = reader_k.GetEntries();
 	//double events_in_bin[2][bins_Q2][bins_xB][bins_Z][bins_p] = {0};
 
-	if( applyCorr >= 3 ){
+	if( applyCorr > 3 ){
 		while (reader_k.Next()) {
 			int event_count = reader_k.GetCurrentEntry();
 
@@ -211,7 +266,10 @@ int main( int argc, char** argv){
 				cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
 			}
 			if( *eBeam_k != beam_energy ){
-				corrector.loadNewEnergy( *eBeam_k );
+				if( matchType == 3 ) corrector.setWeightName( Form("corrections_%0.1f_3d_AN.root", *eBeam_k));
+				else corrector.setWeightName( Form("corrections_%0.1f_AN.root", *eBeam_k));
+				corrector.loadHistograms();
+				//corrector.loadNewEnergy( *eBeam_k );
 				beam_energy = *eBeam_k;
 			}
 
@@ -224,39 +282,55 @@ int main( int argc, char** argv){
 				int this_bin_Z = (int)( ( (k[i].getZ() - .3)/(1.-.3) )*bins_Z);
 
 				bool matching = true;
-				if( matchType == 2 ){ matching = !isGoodKaon[i]; }
-
-				if( matching ){ continue; }
+				if( matchType == 2 ){ matching = isGoodKaon[i]; }
+				
+				if( !matching ){ continue; }
 
 				corrector.setKinematics( e_k->getXb(), e_k->getQ2(), k[i].getZ(), p_pi );
 				double weight = 1;
-				
+				double eventWeightErr = 0;	
 			
-				//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
-				//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
-				double mc_weight = corrector.getCorrectionFactor( 1, chargeIdx );
-				double k_weight = corrector.getCorrectionFactor(3, chargeIdx);
-				//double bin_err = corrector.getCorrectionError(0, chargeIdx);
-				//double acc_err = corrector.getCorrectionError(1, chargeIdx);
-				double mc_err = corrector.getCorrectionFactor( 1, chargeIdx );
-				double k_err = corrector.getCorrectionError(3, chargeIdx);
+				double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
+				double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+				double mc_weight = corrector.getCorrectionFactor( 2, chargeIdx );
+				double k_weight = corrector.getCorrectionFactor(4, chargeIdx);
+				double bin_err = corrector.getCorrectionError(0, chargeIdx);
+				double acc_err = corrector.getCorrectionError(1, chargeIdx);
+				double mc_err = corrector.getCorrectionFactor( 2, chargeIdx );
+				double k_err = corrector.getCorrectionError(4, chargeIdx);
 			
 				
-				if( applyCorr > 0 ){
-					//if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
-					//if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
-					
-					weight *= mc_weight; //acc_weight*bin_weight;
-				}
-				if( applyCorr > 1 ){
-					weight *= k_weight;
-				}	
+				if( applyCorr == 1 ) weight *= bin_weight;
+				if( applyCorr == 2 ) weight *= acc_weight;
+				if( applyCorr > 2 ){
+				//if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
+				//if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
 				
+				//weight *= acc_weight*bin_weight;
+				weight *= mc_weight;
+			}
+			if( applyCorr > 3 ){
+				weight *= k_weight;
+			}	
 
-				double eventWeightErr = 0;
-				
-				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
+			
+
+			if( applyCorr > 3 ){
+				//eventWeightErr +=  weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
 				eventWeightErr +=  weight*sqrt( pow(mc_err/mc_weight, 2) + pow(k_err/k_weight, 2) );
+			}
+			if( applyCorr == 1 ){
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
+				eventWeightErr += bin_err;
+			}
+			if( applyCorr == 2 ){
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
+				eventWeightErr += acc_err;
+			}
+			if( applyCorr == 3 ){
+				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) );
+				eventWeightErr += mc_err;
+			}
 			
 				sumWeights[1][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += weight*weight;	
 				sumWeightsErr[1][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += eventWeightErr*eventWeightErr;	
@@ -273,8 +347,9 @@ int main( int argc, char** argv){
 	////////////// Rhos /////////////////
 	///////////////////////////////////////
 	
-	TTreeReader reader_r("ePi", rFile);
-	TTreeReaderValue<double> eBeam_r( reader_r, "eBeam" );
+	//TTreeReader reader_r("ePi", rFile);
+	TTreeReader reader_r(rChain);
+	TTreeReaderValue<double> eBeam_r( reader_r, "Ebeam" );
 
 	TTreeReaderValue<electron> e_r(reader_r, "e");
 	TTreeReaderArray<pion> r(reader_r, "pi");
@@ -286,7 +361,7 @@ int main( int argc, char** argv){
 	event_total = reader_r.GetEntries();
 	//double events_in_bin[2][bins_Q2][bins_xB][bins_Z][bins_p] = {0};
 
-	if( applyCorr == 4 ){
+	if( applyCorr > 4 ){
 		while (reader_r.Next()) {
 			int event_count = reader_r.GetCurrentEntry();
 
@@ -294,7 +369,9 @@ int main( int argc, char** argv){
 				cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
 			}
 			if( *eBeam_r != beam_energy ){
-				corrector.loadNewEnergy( *eBeam_r );
+				if( matchType == 3 ) corrector.setWeightName( Form("corrections_%0.1f_3d_AN.root", *eBeam_r));
+				else corrector.setWeightName( Form("corrections_%0.1f_AN.root", *eBeam_r));
+				corrector.loadHistograms();
 				beam_energy = *eBeam_r;
 			}
 
@@ -307,43 +384,48 @@ int main( int argc, char** argv){
 				int this_bin_Z = (int)( ( (r[i].getZ() - .3)/(1.-.3) )*bins_Z);
 
 				bool matching = true;
-				if( matchType == 2 ){ matching = !isGoodRho[i]; }
-
-				if( matching ){ continue; }
+				if( matchType == 2 ){ matching = isGoodRho[i]; }
+				if( !matching ){ continue; }
 
 				corrector.setKinematics( e_r->getXb(), e_r->getQ2(), r[i].getZ(), p_pi );
 				double weight = 1;
-				
-				//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
-				//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
-				//double bin_err = corrector.getCorrectionError(0, chargeIdx);
-				//double acc_err = corrector.getCorrectionError(1, chargeIdx);
-				
-				//double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
-				//double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
-				double mc_weight = corrector.getCorrectionFactor( 1, chargeIdx );
-				//double k_weight = corrector.getCorrectionFactor(3, chargeIdx);
-				//double bin_err = corrector.getCorrectionError(0, chargeIdx);
-				//double acc_err = corrector.getCorrectionError(1, chargeIdx);
-				double mc_err = corrector.getCorrectionFactor( 1, chargeIdx );
-				//double k_err = corrector.getCorrectionError(3, chargeIdx);
-				
-				if( applyCorr > 0 ){
-					//if( !isfinite(acc_weight) || acc_err/acc_weight > .2){acc_weight = 0;}// || acc_weight < 0.2 || acc_weight > 6 ){continue;}
-					//if( !isfinite(bin_weight) || bin_err/bin_weight > .2){bin_weight = 0;}// || bin_weight < 0.2 || bin_weight > 3 ){continue;}
-					
-					weight *= mc_weight;//acc_weight*bin_weight;
-				}
-				if( applyCorr > 3 ){
-					if( *rhoWeight <= 1 || *rhoWeight > 10 ){continue;}
-					weight *= (*rhoWeight);
-				}	
-					
-				double eventWeightErr = 0;
-				
-				//eventWeightErr += weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(*rhoError / *rhoWeight, 2) );
-				eventWeightErr += weight*sqrt( pow(mc_err/mc_weight, 2) + pow(*rhoError / *rhoWeight, 2) );
+			double eventWeightErr = 0;
+
+			double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
+			double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
+			double mc_weight = corrector.getCorrectionFactor( 2, chargeIdx );
+			double k_weight = corrector.getCorrectionFactor(3, chargeIdx);
+			double bin_err = corrector.getCorrectionError(0, chargeIdx);
+			double acc_err = corrector.getCorrectionError(1, chargeIdx);
+			double mc_err = corrector.getCorrectionFactor( 2, chargeIdx );
+			double k_err = corrector.getCorrectionError(3, chargeIdx);
 			
+			if( applyCorr == 1 ) weight *= bin_weight;
+			if( applyCorr == 2 ) weight *= acc_weight;
+			if( applyCorr > 2 ){
+				//weight *= acc_weight*bin_weight;
+				weight *= mc_weight;
+			}
+			//if( applyCorr > 3 ){
+			//	weight *= k_weight;
+			//}	
+
+			
+
+			if( applyCorr > 3 ){
+				//eventWeightErr +=  weight*sqrt( pow(bin_err/bin_weight, 2) + pow(acc_err/acc_weight, 2) + pow(k_err/k_weight, 2) );
+				eventWeightErr +=  weight*sqrt( pow(mc_err/mc_weight, 2) + pow(k_err/k_weight, 2) );
+			}
+			if( applyCorr == 1 ){
+				eventWeightErr += bin_err;
+			}
+			if( applyCorr == 2 ){
+				eventWeightErr += acc_err;
+			}
+			if( applyCorr == 3 ){
+				eventWeightErr += mc_err;
+			}
+				
 				if( *Mx_2pi < 1.15 ){
 					hZ_r[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
 					sumWeights[2][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += weight*weight;	
@@ -353,9 +435,7 @@ int main( int argc, char** argv){
 					hZ_r_bac[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
 					sumWeights[3][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += weight*weight;	
 					sumWeightsErr[3][this_bin_Q2][this_bin_xB][this_bin_Z][chargeIdx] += eventWeightErr*eventWeightErr;	
-				}
-				//events_in_bin[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]++;
-				
+				}				
 
 			}
 		}
@@ -388,9 +468,9 @@ int main( int argc, char** argv){
 
 	for( int i = 1; i <= bins_Q2; i++ ){
 		for( int j = 1; j <= bins_xB; j++ ){
-			cout<<"Doing bin : x = "<<j<<" , Q2 = "<<i<<std::endl;
+			
 			for( int k = 1; k <= bins_Z; k++ ){
-				cout<<" and z = "<<k<<std::endl;
+				
 				hZ[i-1][j-1][0]->SetBinError( k, sqrt( sumWeights[0][i-1][j-1][k-1][0] + sumWeightsErr[0][i-1][j-1][k-1][0]) );
 				hZ[i-1][j-1][1]->SetBinError( k, sqrt( sumWeights[0][i-1][j-1][k-1][1] + sumWeightsErr[0][i-1][j-1][k-1][1]) );
 				
@@ -405,22 +485,18 @@ int main( int argc, char** argv){
 
 			}
 
-			cout<<"Adding kaons\n";
-			if( applyCorr >= 3 ){
+			
+			if( applyCorr > 3 ){
 				hZ[i-1][j-1][0]->Add( hZ_k[i-1][j-1][0] );
 				hZ[i-1][j-1][1]->Add( hZ_k[i-1][j-1][1] );
 			}
-			cout<<"Subtracting rho\n";
-			if( applyCorr == 4 ){
+		
+			if( applyCorr > 4 ){
 				for( int k = 1; k <= bins_Z; k++ ){
 					double pip_cont = hZ_r_bac[i-1][j-1][0]->GetBinContent(k);
-					cout<<"pip cont = "<<pip_cont<<std::endl;
 					double pip_err = hZ_r_bac[i-1][j-1][0]->GetBinError(k);
-					cout<<"pip err = "<<pip_err<<std::endl;
 					double pip_scale = hNorms_pip->GetBinContent(j, i, k);
-					cout<<"pip_scale = "<<pip_scale<<std::endl;
-					double pip_scale_err = 0; //hNorms_pip->GetBinError(j, i, k);
-					cout<<"pip_scale_err = "<<pip_scale_err<<std::endl;
+					double pip_scale_err = hNorms_pip->GetBinError(j, i, k);
 
 					hZ_r_bac[i-1][j-1][0]->SetBinContent( k, pip_cont*pip_scale );
 					hZ_r_bac[i-1][j-1][0]->SetBinError( k, pip_cont*pip_scale*sqrt( pow( pip_err/pip_cont, 2) 

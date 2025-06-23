@@ -71,11 +71,11 @@ int main( int argc, char** argv){
 
 	for( int sec = 0; sec < 6; sec++ ){
 		for( int bin = 0; bin < 5; bin++ ){
-			hThetaPhi[1][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_pip", sec, bin), "", 880, -220, 220, 80, 0, 40 );
-			hThetaPhi[2][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_pim", sec, bin), "", 880, -220, 220, 80, 0, 40 );
+			hThetaPhi[1][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_pip", sec, bin), "", 1000, -250, 250, 80, 0, 40 );
+			hThetaPhi[2][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_pim", sec, bin), "", 1000, -250, 250, 80, 0, 40 );
 		}
 		for( int bin = 0; bin < 10; bin++ ){
-			hThetaPhi[0][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_e", sec, bin), "", 880, -220, 220, 80, 0, 40 );
+			hThetaPhi[0][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_e", sec, bin), "", 1000, -250, 250, 80, 0, 40 );
 		}
 	}
 
@@ -109,7 +109,7 @@ int main( int argc, char** argv){
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta()*rad_to_deg;
 			double phi_pi = pi[i].get3Momentum().Phi()*rad_to_deg;
-			if( pi[i].getSector() == 4 && phi_pi < 100. ){ phi_pi += 360; }
+			if( (pi[i].getSector() == 3 || (pi[i].getSector() == 4 && pi[i].get3Momentum().Mag() > 1) ) && phi_pi < 0. ){ phi_pi += 360; }
 			
 			int chargeIdx = (int)( pi[i].getCharge() < 0 ) + 1;
 

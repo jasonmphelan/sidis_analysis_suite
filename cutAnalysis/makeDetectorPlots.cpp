@@ -233,11 +233,16 @@ int main( int argc, char** argv){
 
 			}
 
-			
-			// Get Particles By PID
-			electrons   = c12.getByID( 11   );
-			pipluses    = c12.getByID( 211  );
-			piminuses   = c12.getByID(-211  );
+			if( RunType == 4){
+				electrons   = c12.getByID( -11   );
+				pipluses    = c12.getByID( -211  );
+				piminuses   = c12.getByID( 211  );
+			}
+			else{
+				electrons   = c12.getByID( 11   );
+				pipluses    = c12.getByID( 211  );
+				piminuses   = c12.getByID(-211  );
+			}
 			
 			pions = pipluses;
 			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );

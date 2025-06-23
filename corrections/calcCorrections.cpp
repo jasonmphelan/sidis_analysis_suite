@@ -29,6 +29,7 @@
 #include "TTreeReaderArray.h"
 #include "TTreeReaderValue.h"
 
+
 using std::cerr;
 using std::isfinite;
 using std::cout;
@@ -100,6 +101,12 @@ int main( int argc, char** argv){
 		}
 	}
 
+	analyzer anal(0, -1);
+	anal.setAnalyzerLevel(1);
+	anal.loadMatchingFunctions();
+	anal.loadMatchingFunctions3D();
+	
+
     TTreeReader reader_rec(recChain);
 
         
@@ -144,8 +151,10 @@ int main( int argc, char** argv){
 
 			if( matching ){ continue; }
 			if( abs( pi.getPID() ) != 211 ){continue;}
+			
 			int chargeIdx = (int)( pi.getCharge() < 1 );
 		
+			if( !anal.applyPionDetectorVertex( pi, *e ) ){ continue; }
 			//Fill reco pions
 			recHists[this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
 			
@@ -160,12 +169,7 @@ int main( int argc, char** argv){
 	}
 				
 
-	analyzer anal(0, -1);
-	anal.setAnalyzerLevel(0);
-	anal.loadCutValues(-1, 10.2);
-	anal.loadMatchingFunctions();
-	anal.loadMatchingFunctions3D();
-	
+
     TTreeReader reader_gen(genChain);
 	TTreeReaderValue<genElectron> e_gen(reader_gen, "e_gen");
     TTreeReaderArray<genPion> pi_gen(reader_gen, "pi_gen");
@@ -328,13 +332,13 @@ int main( int argc, char** argv){
 }
 
 double getUncertainty( double num, double den ){
-
 	return (num/den)*sqrt( pow( sqrt(num)/num , 2 ) + pow( sqrt(den)/den , 2 ) );
+	//return sqrt( pow( sqrt(num)/num , 2 ) + pow( sqrt(den)/den , 2 ) );
 
 }
 
 double getUncertainty( double num, double den, double num_unc, double den_unc ){
-
 	return (num/den)*sqrt( pow( num_unc/num , 2 ) + pow( den_unc/den , 2 ) );
+	//return sqrt( pow( num_unc/num , 2 ) + pow( den_unc/den , 2 ) );
 
 }

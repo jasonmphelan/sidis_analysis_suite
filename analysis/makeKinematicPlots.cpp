@@ -111,6 +111,9 @@ int main( int argc, char** argv){
 	TH1F * h_theta_pi[2][bins_Q2+1][bins_xB+1];
 	TH1F* h_p_pi[2][bins_Q2+1][bins_xB+1];
 
+	TH1F * h_Eta[2][bins_Q2+1][bins_xB+1];
+	TH1F * h_Phi_q[2][bins_Q2+1][bins_xB+1];
+
 
 	TH2F * hQ2_omega[2][bins_Q2+1][bins_xB+1];
 	TH2F * hQ2_W[2][bins_Q2+1][bins_xB+1];
@@ -142,6 +145,8 @@ int main( int argc, char** argv){
 				h_phi_pi[i][j][k]        = new TH1F("hPhi_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("phi_pi_%i_%i;#phi_{#pi} [rad];Counts [a.u.]", j, k), 100, -180, 180);
 				h_Pt_pi[i][j][k]         = new TH1F("hPt_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("Pt_pi_%i_%i;P^{T}_{#pi} [GeV];Counts [a.u.]", j, k), 100, 0, 1.3);
 				h_Mx[i][j][k]            = new TH1F("hMx_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 1, 5);
+				h_Phi_q[i][j][k]            = new TH1F("hPhi_q_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 1, 5);
+				h_Eta[i][j][k]            = new TH1F("hEta_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 1, 5);
 
 				hQ2_omega[i][j][k]		= new TH2F("hQ2_omega_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 2 ,5 );
 				hQ2_W[i][j][k]		= new TH2F("hQ2_W_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 1.5 ,3.7 );
@@ -226,6 +231,10 @@ int main( int argc, char** argv){
 			double phi_pi = pi[i].getPi_q().Phi()*rad_to_deg;
 			double Z = pi[i].getZ();
 			double Vz_pi = pi[i].getVt().z() - Vz_e;
+			TLorentzVector pi_q = pi[i].getPi_q();
+			double eta = pi[i].getEta();
+			double phi_q = pi[i].getPi_q().Phi();
+
 
 			double beta = 0;
 			//if( p_cut > 0 && p_pi < 2.5 ){ continue;}
@@ -279,7 +288,9 @@ int main( int argc, char** argv){
 			h_Vz_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(Vz_pi, radWeight);
 			h_p_pi[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(p_pi, radWeight);
 
-	
+			h_Phi_q[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(phi_q, radWeight);
+			h_Eta[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(eta, radWeight);
+
 			hQ2_omega[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, omega);
 			hQ2_Z[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, Z);
 			hQ2_W[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( xB, W);

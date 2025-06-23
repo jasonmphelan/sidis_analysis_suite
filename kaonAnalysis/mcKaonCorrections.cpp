@@ -34,7 +34,7 @@ using std::isfinite;
 using std::cout;
 using std::ofstream;
 
-const int nXbBins = bins_xB;
+const int nXbBins = bins_xB/2;
 const int nQ2Bins = bins_Q2;
 const int nZBins = 2*bins_Z;
 
@@ -43,9 +43,9 @@ double getUncertainty( double num, double den, double num_unc, double den_unc );
 
 int main( int argc, char** argv){
 
-	if( argc < 5 ){
+	if( argc < 4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Rec File] [Output File] [Matching]\n";
+		cerr << "./code [Rec File] [Output File] [Matching] [pi2k (0), k2pi(1)]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2]  << "\n";
@@ -53,6 +53,11 @@ int main( int argc, char** argv){
 	TString inName_rec = argv[1];
 	TString outName = argv[2];
 	int matchType = atoi( argv[3] );
+	int corrType = atoi( argv[4] );
+	int pid = 211;
+	if( corrType == 1 ){
+		pid = 321;
+	}
 
 	TFile * outFile = new TFile( outName, "RECREATE");
 
@@ -60,8 +65,8 @@ int main( int argc, char** argv){
 	TTree * recChain = (TTree *)inFile_rec->Get("ePi");
 	
 
-	TH1F * recHists[4][nXbBins][nQ2Bins][2];
-	TH1F * matchHists[4][nXbBins][nQ2Bins][2];
+	TH1F * allHists[4][nXbBins][nQ2Bins][2];
+	TH1F * piHists[4][nXbBins][nQ2Bins][2];
 
 	TH3F * mcCorrection_p[4];
 	TH3F * mcCorrection_m[4];
@@ -69,19 +74,19 @@ int main( int argc, char** argv){
 
 	for( int p = 0; p < 4; p++ ){
 
-		TH3F * mcCorrection_p[p] = new TH3F( Form("hKaonCorrP_%i", p), "hMcCorrectionP", nXbBins, xB_min, xB_max, nQ2Bins, Q2_min, Q2_max, nZBins, .3, 1); 
-		TH3F * mcCorrection_m[p] = new TH3F( Form("hKaonCorrM_%i",p), "hMcCorrectionM", nXbBins, xB_min, xB_max, nQ2Bins, Q2_min, Q2_max, nZBins, .3, 1); 
-		TH3F * mcCorrection_full[p] = new TH3F( "hKaonCorr", "hMcCorrection", nXbBins, xB_min, xB_max, nQ2Bins, Q2_min, Q2_max, nZBins, .3, 1); 
+		mcCorrection_p[p] = new TH3F( Form("hKaonCorrP_%i", p), "hKaonCorrP", nXbBins, xB_min, xB_max, nQ2Bins, Q2_min, Q2_max, nZBins, .3, 1); 
+		mcCorrection_m[p] = new TH3F( Form("hKaonCorrM_%i",p), "hKaonCorrM", nXbBins, xB_min, xB_max, nQ2Bins, Q2_min, Q2_max, nZBins, .3, 1); 
+		mcCorrection_full[p] = new TH3F( Form("hKaonCorr_%i", p), "hKaonCorr", nXbBins, xB_min, xB_max, nQ2Bins, Q2_min, Q2_max, nZBins, .3, 1); 
 	
 
 		for( int i = 0; i < nXbBins; i++ ){
 			for( int j = 0; j < nQ2Bins; j++ ){
 			
-				recHists[p][i][j][0] = new TH1F( (TString)"recHist_P_"+Form("_%i_%i", i, j), Form("recHist_P_%i_%i", i, j), 14, .3, 1); 
-				matchHists[p][i][j][0] = new TH1F((TString)"matchHist_P_"+Form("_%i_%i", i, j), Form("matchHist_P_%i_%i", i, j), 14, .3, 1); 
+				allHists[p][i][j][0] = new TH1F( (TString)"recHist_P_"+Form("_%i_%i_%i", p, i, j), Form("recHist_P_%i_%i", i, j), nZBins, .3, 1); 
+				piHists[p][i][j][0] = new TH1F((TString)"matchHist_P_"+Form("_%i_%i_%i", p, i, j), Form("matchHist_P_%i_%i", i, j), nZBins, .3, 1); 
 				
-				recHists[p][i][j][1] = new TH1F( (TString)"recHist_M_"+Form("_%i_%i", i, j), Form("recHist_M_%i_%i", i, j), 14, .3, 1); 
-				matchHists[p][i][j][1] = new TH1F( (TString)"matchHist_M_"+Form("_%i_%i", i, j), Form("matchHist_M_%i_%i", i, j), 14, .3, 1); 
+				allHists[p][i][j][1] = new TH1F( (TString)"recHist_M_"+Form("_%i_%i_%i", p, i, j), Form("recHist_M_%i_%i", i, j), nZBins, .3, 1); 
+				piHists[p][i][j][1] = new TH1F( (TString)"matchHist_M_"+Form("_%i_%i_%i", p, i, j), Form("matchHist_M_%i_%i", i, j), nZBins, .3, 1); 
 			
 			}
 		}
@@ -92,9 +97,10 @@ int main( int argc, char** argv){
         
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
 	TTreeReaderValue<electron> e(reader_rec, "e");
-	TTreeReaderValue<genElectron> e_MC(reader_rec, "e_gen");
+
     TTreeReaderArray<pion> pi_vec(reader_rec, "pi");
-    TTreeReaderArray<genPion> pi_match(reader_rec, "pi_gen");
+
+	TTreeReaderArray<bool> isGoodPion3d(reader_rec, "isGoodPion_3d");
 
 	//Define good event list and additional variables for output branches
 
@@ -111,19 +117,23 @@ int main( int argc, char** argv){
                 double xB = e->getXb();
 		
 		int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nQ2Bins);
-                int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nXbBins);
+            int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nXbBins);
 
 		int pi_count = -1;
 		for( auto pi : pi_vec ){
 			pi_count++;
-			bool matching = false;
+			if( abs( pi.getPID_eb() ) != pid ){ continue; }
+	
+			bool matching = true;
 
-			if( !anal.applyAcceptanceMatching)
+			if( matchType == 2 ){ matching = !isGoodPion[pi_count]; }
+			else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
+			else{ matching = false; }
 
 			if( matching ){ continue; }
-
 			int chargeIdx = (int)( pi.getCharge() < 1 );
 			int this_bin_p = -1;
+			double p_pi = pi.get3Momentum().Mag();
 			for( int j= 0; j < bins_p; j++ ){
 				if( p_pi > p_bin_edges[j] && p_pi < p_bin_edges[j+1] ){
 					this_bin_p = j;
@@ -132,12 +142,13 @@ int main( int argc, char** argv){
 			if( this_bin_p<0 ){continue;}
 
 			//Fill reco pions
-			recHists[this_bin_p][this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
+
+			allHists[this_bin_p][this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
 			
 
 			//Fill matched pions
 			if( abs(pi.getPID()) == 211 ){
-				matchHists[this_bin_p][this_bin_xB_MC][this_bin_Q2_MC][chargeIdx]->Fill( pi_match[pi_count].getZ() );
+				piHists[this_bin_p][this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
 			}
 		}
 	}
@@ -146,75 +157,61 @@ int main( int argc, char** argv){
 
 	outFile->cd();
 
-
+	for( int p = 0; p < 4; p++ ){
 	for( int i = 0; i < nXbBins; i++ ){
 		for( int j = 0; j < nQ2Bins; j++ ){
-			recHists[i][j][0]->Write();
-			recHists[i][j][1]->Write();
-			matchHists[i][j][0]->Write();
-			matchHists[i][j][1]->Write();
+			allHists[p][i][j][0]->Write();
+			allHists[p][i][j][1]->Write();
+			piHists[p][i][j][0]->Write();
+			piHists[p][i][j][1]->Write();
 			
 			for( int k = 1; k <= nZBins; k++ ){
 
-				double recBinPos = recHists[i][j][0]->GetBinContent(k);
-				double recBinMin = recHists[i][j][1]->GetBinContent(k);
+				double allBinPos = allHists[p][i][j][0]->GetBinContent(k);
+				double allBinMin = allHists[p][i][j][1]->GetBinContent(k);
 
-				double matchBinPos = matchHists[i][j][0]->GetBinContent(k);
-				double matchBinMin = matchHists[i][j][1]->GetBinContent(k);
+				double piBinPos = piHists[p][i][j][0]->GetBinContent(k);
+				double piBinMin = piHists[p][i][j][1]->GetBinContent(k);
 
-				double binMigrationPos = matchBinPos/recBinPos;
-
-				double binMigrationMin = matchBinMin/recBinMin;
-				double accCorrMin = genBinMin/matchBinMin;				
-				double mcCorrMin = genBinMin/recBinMin;
-	
-				double accCorr = accCorrPos/accCorrMin;
-				double binMigrationCorr = binMigrationPos/binMigrationMin;
+				double mcCorrPos = piBinPos/allBinPos;	
+				double mcCorrMin = piBinMin/allBinMin;
+		
 				double mcCorr = mcCorrPos/mcCorrMin;
-				
-								
 
-
-				mcCorrection_p->SetBinContent( i+1, j+1, k,  mcCorrPos );
+				mcCorrection_p[p]->SetBinContent( i+1, j+1, k,  mcCorrPos );
 			
-				mcCorrection_m->SetBinContent( i+1, j+1, k, mcCorrMin );
+				mcCorrection_m[p]->SetBinContent( i+1, j+1, k, mcCorrMin );
 
-				mcCorrection_full->SetBinContent( i+1, j+1, k, mcCorr );
+				mcCorrection_full[p]->SetBinContent( i+1, j+1, k, mcCorr );
 				
-				mcCorrection_p->SetBinError( i+1, j+1, k,  getUncertainty(genBinPos, recBinPos ) );
+				mcCorrection_p[p]->SetBinError( i+1, j+1, k,  getUncertainty(piBinPos, allBinPos ) );
 				
-				mcCorrection_m->SetBinError( i+1, j+1, k, getUncertainty( genBinMin, recBinMin) );
+				mcCorrection_m[p]->SetBinError( i+1, j+1, k, getUncertainty( piBinMin, allBinMin) );
 
-				mcCorrection_full->SetBinError( i+1, j+1, k, getUncertainty( mcCorrPos, mcCorrMin, getUncertainty(genBinPos, recBinPos ),getUncertainty(genBinMin, recBinMin )  ) );
+				mcCorrection_full[p]->SetBinError( i+1, j+1, k, getUncertainty( mcCorrPos, mcCorrMin, getUncertainty(piBinPos, allBinPos ) ,getUncertainty(piBinMin, allBinMin )   ) );
 
 			}
 		}
 	}
-	binMigration_p->Write();
-	accCorrection_p->Write();
-	mcCorrection_p->Write();
-				
-	binMigration_m->Write();
-	accCorrection_m->Write();
-	mcCorrection_m->Write();
 
-	binMigration_full->Write();
-	accCorrection_full->Write();
-	mcCorrection_full->Write();
-
+	mcCorrection_p[p]->Write();
+	mcCorrection_m[p]->Write();
+	mcCorrection_full[p]->Write();
+}
 	outFile->Close();
 	
 	return 1;
 }
 
 double getUncertainty( double num, double den ){
-
 	return (num/den)*sqrt( pow( sqrt(num)/num , 2 ) + pow( sqrt(den)/den , 2 ) );
+	//return sqrt( pow( sqrt(num)/num , 2 ) + pow( sqrt(den)/den , 2 ) );
 
 }
 
 double getUncertainty( double num, double den, double num_unc, double den_unc ){
-
 	return (num/den)*sqrt( pow( num_unc/num , 2 ) + pow( den_unc/den , 2 ) );
+	//return sqrt( pow( num_unc/num , 2 ) + pow( den_unc/den , 2 ) );
 
 }
+

@@ -39,7 +39,7 @@ def makePlots( corrType, hist, ext):
 	
 	xBins = 14 
 	if 'Kaon' in hist.name:
-		xBins=10
+		xBins=7
 	qBins = 12 
 
 	zEdges = hist.axis(2).edges()
@@ -86,7 +86,10 @@ def makePlots( corrType, hist, ext):
 		textHeight = .75
 		yMin = 0.5
 		yMax = 1.05
-
+	if 'ratio' in ext:
+		yMin = 0.75
+		yMax = 1.25
+		textHeight = 1.2
 	outDir = f'/volatile/clas12/users/jphelan/SIDIS/analysis_note/corrections_{corrType}/'
     
 
@@ -96,16 +99,16 @@ def makePlots( corrType, hist, ext):
 	for q in range(qBins):
 		for x in range(xBins):
 
-			axs[q%4, math.floor(q/4)].text(.75, textHeight, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q-1), 2+.5*(q)), fontsize=12)
+			axs[math.floor(q/3), q%3].text(.75, textHeight, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q-1), 2+.5*(q)), fontsize=12)
 				
-			axs[q%4, math.floor(q/4)].plot( zBinCenters, values[x][q], colorList[x], marker = '.', linestyle='none', label = r'%0.2f $< x_B <$ %0.2f'%(.1+0.04*x, .1 + 0.04*(x+1)), ms=15, mec='black' )
-			axs[q%4, math.floor(q/4)].errorbar(zBinCenters, values[x][q], yerr=errors[x][q], color = colorList[x], linestyle = '',capsize = 2, lw = 1, capthick = 1)
+			axs[math.floor(q/3), q%3].plot( zBinCenters, values[x][q], colorList[x], marker = '.', linestyle='none', label = r'%0.2f $< x_B <$ %0.2f'%(.1+0.04*x, .1 + 0.04*(x+1)), ms=15, mec='black' )
+			axs[math.floor(q/3), q%3].errorbar(zBinCenters, values[x][q], yerr=errors[x][q], color = colorList[x], linestyle = '',capsize = 2, lw = 1, capthick = 1)
 
 			if corrType == 'k2pi' or corrType == 'pi2k':
 				bin_num = int(hist.name[-1])
-				axs[q%4, math.floor(q/4)].text(.745, textHeight - .1, r'%.2f $< p_{\pi} <$ %.2f'%( p_bin[bin_num], p_bin[bin_num+1]), fontsize=12)
+				axs[math.floor(q/3), q%3].text(.745, textHeight - .1, r'%.2f $< p_{\pi} <$ %.2f'%( p_bin[bin_num], p_bin[bin_num+1]), fontsize=12)
 			
-			axs[q%4, math.floor(q/4)].axhline( y = 1, color = 'black', linestyle = '--')
+			axs[math.floor(q/3), q%3].axhline( y = 1, color = 'black', linestyle = '--')
 	
 
 	
@@ -118,7 +121,8 @@ def makePlots( corrType, hist, ext):
 		ax.set_ylim( [yMin, yMax] )
 		ax.set_xlim( [0.3, 1] )
 
-	axs[0,1].legend(loc='upper center', bbox_to_anchor=(0.5, 1.5), ncol=7, fancybox=True, shadow=True)		
+	axs[0,1].legend(loc='upper center', bbox_to_anchor=(0.5, 1.5), ncol=7, fancybox=True, shadow=True)	
+	print('Writing : ' + outDir+hist.name+ext)	
 	plt.savefig(outDir+hist.name+ext, bbox_inches='tight')
 	
 		
@@ -135,7 +139,7 @@ inFile_name = sys.argv[1]#input('File name: \n')
 corrType = sys.argv[2]#input('Correction type (bin, acc, k2pi, pi2k): \n')
 
 inFile = uproot.open('../data/correctionFiles/'+inFile_name)
-
+print('../data/correctionFiles/'+inFile_name)
 keyList = []
 
 if corrType == 'bin':
@@ -145,17 +149,23 @@ if corrType == 'acc':
 if corrType == 'k2pi' or corrType == 'pi2k':
 	keyList = ['hKaonCorr', 'hKaonCorrP', 'hKaonCorrM']
 
-energy = ' '
-if '3D' or '3d' in inFile_name:
-	energy = energy + '_3d'
+energy = '_'
+if '3d' in inFile_name:
+	energy = energy + '3d_'
+if 'no_match' in inFile_name:
+	energy = energy + 'no_match.pdf'
+if 'ratio' in inFile_name:
+	energy = energy + 'ratio.pdf'
 if '10.2' in inFile_name:
-	energy = energy + '_10.2.pdf'
+	energy = energy + '10.2.pdf'
 elif '10.4' in inFile_name:
-	energy = energy + '_10.4.pdf'
+	energy = energy + '10.4.pdf'
 elif '10.6' in inFile_name:
-	energy = energy + '_10.6.pdf'
-else:
+	energy = energy + '10.6.pdf'
+if energy == '_':
 	energy = '.pdf'
+
+print( energy )
 
 for key in keyList:
 	if 'k2pi' in inFile_name or 'pi2k' in inFile_name:
