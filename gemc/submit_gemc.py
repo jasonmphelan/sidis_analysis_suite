@@ -6,7 +6,7 @@ import subprocess
 import time
 
 Ebeam = 10.2
-xsv = 'proton'
+xsv = 'neutron'
 xpv = 'dis'
 suffix='';
 
@@ -16,10 +16,9 @@ suffix='';
 exe='gemc'
 #gcard='/work/clas12/users/jphelan/GEMC_DATA/rgb_spring2019.gcard'
 gcard='/work/clas12/users/nwright/BAND/simScripts/GEMC/gcards/rgb_spring2019.gcard'
-lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/proton_'
+lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/deuteron_'
 
-runlist=[593,586,393,393,420,426,206]
-for x in runlist:#range(0, 1000):
+for x in range(0, 5000):
 	n = x + 1 
 	#n = runList[x]
 	time.sleep(0.5)			
@@ -35,8 +34,8 @@ for x in runlist:#range(0, 1000):
 export GEMC_DATA_DIR="/work/clas12/users/tkutz/gemc/clas12Tags/clas12Tags-5.10"
 export CCDB_CONNECTION="sqlite:////work/clas12/users/jphelan/GEMC_DATA/ccdb_05-12-2024.sqlite"
 export RCDB_CONNECTION="sqlite:////work/clas12/users/jphelan/GEMC_DATA/rcdb_2024-06-18.sqlite"
-time {2} {3} -USE_GUI=0 -N=5000 -INPUT_GEN_FILE="LUND, {4}{7}.dat" -OUTPUT="hipo, /volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/{8}/hipo/proton_{7}.hipo"
-	""".format(xsv, xpv, exe, gcard, lunddir, 0, suffix, n, Ebeam)	
+time {2} {3} -USE_GUI=0 -N=5000 -INPUT_GEN_FILE="LUND, {4}{7}.dat" -OUTPUT="hipo, /volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/{8}/hipo/deuteron_{7}.hipo"
+    """.format(xsv, xpv, exe, gcard, lunddir, 0, suffix, n, Ebeam)	
 	command = command.replace('\t', '')
 	print(command)
 	p=Popen(args=["sbatch"],stdin=PIPE)
