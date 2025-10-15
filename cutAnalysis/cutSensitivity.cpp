@@ -67,6 +67,7 @@ int main( int argc, char** argv){
 	anal.setAnalyzerLevel(RunType);
 	anal.loadCutValues(-1, Ebeam);
 	anal.loadSamplingFractionParams();
+	anal.loadMatchingFunctions();
 	
 	reader runReader;
 	runReader.setNumFiles( nFiles);
@@ -207,7 +208,7 @@ int main( int argc, char** argv){
 					pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
 					if( !anal.applyPionDetectorCuts( pi_dummy, e ) ) {continue;}
 					if( !anal.applyPionKinematicCuts( pi_dummy) ) {continue;}
-
+					if( !anal.applyAcceptanceMatching(pi_dummy, 2) ) {continue;}
 
 					int charge = pi_dummy.getCharge();
 					int this_bin_Q2 = (int)( ( (e.getQ2() - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
@@ -226,9 +227,9 @@ int main( int argc, char** argv){
 		std::ofstream txtFile_pip, txtFile_pim, txtFile_ratio;
 		txtFile_pip.open(outFileName+ "_pip.txt");
 		txtFile_pim.open(outFileName+ "_pim.txt");
-		txtFile_ratio.open(outFileName+ "_ratio.txt");
+		//txtFile_ratio.open(outFileName+ "_ratio.txt");
 
-		anal.writeCutsToFile(outFileName + "_cuts.txt");
+		//anal.writeCutsToFile(outFileName + "_cuts.txt");
 		
 		txtFile_pip<< "xB\tQ2\t";
 		txtFile_pim<< "xB\tQ2\t";
@@ -237,8 +238,9 @@ int main( int argc, char** argv){
 			txtFile_pip<<z<<"\t";
 			txtFile_pim<<z<<"\t";
 		}
-		txtFile_pip<<"\n";
-		txtFile_pim<<"\n";
+		anal.writeCutsNamesToFile(txtFile_pip);
+		anal.writeCutsNamesToFile(txtFile_pim);
+		
 		for( int j = 1; j <= bins_xB; j++ ){
 			for( int i = 1; i <= bins_Q2; i++ ){
 				
@@ -248,11 +250,13 @@ int main( int argc, char** argv){
 				for( int z = 1; z <= bins_Z; z++ ){
 					txtFile_pip<<"\t"<<ratio_pip[i-1][j-1]->GetBinContent(z);
 					txtFile_pim<<"\t"<<ratio_pim[i-1][j-1]->GetBinContent(z);
-					//if( ratio_pip[i-1][j-1]->GetBinContent(z) < 0 ) continue;
+					//if( ratio_pim[i-1][j-1]->GetBinContent(z) <= 0 ) continue;
 					//ratio_bins[i-1][j-1][z-1]->Fill( ratio_pip[i-1][j-1]->GetBinContent(z) );
 				}
-				txtFile_pip<<"\n";
-				txtFile_pim<<"\n";
+				txtFile_pip<<"\t";
+				txtFile_pim<<"\t";
+				anal.writeCutsToFile(txtFile_pip);
+				anal.writeCutsToFile(txtFile_pim);
 
 			}
 		}	

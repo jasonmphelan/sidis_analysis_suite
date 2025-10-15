@@ -34,23 +34,30 @@ public:
 	double getCorrectionError( int type, int charge );
 //	void setFilePaths(int corr, TString path);
 	void printFilePaths();
-	void testHists(){ accCorrection[1]->Print("all");}
+	void testHists(){ pi_to_k_Correction[0][2]->Print("all");}
 	void loadFits();
 
 	void setCorrectionFile(TString name){ weight_name = name; }
 	void loadNewEnergy( double energy );
+
+	double getX(){ return kin[0];}
+	double getQ2(){ return kin[1];}
+	double getZ(){ return kin[2];}
+	double getP(){ return kin[3];}
+
+
+
 private:
 	int 	mode;
 	TString weight_name = "corrections_10.2_AN.root";
 	TString kaon_To_pi_name = "corrections_k2pi_AN.root";
 	TString pi_To_kaon_name = "corrections_pi2k_AN.root";
 
-	double kin[4];
-	
-	TFile * weightFile;
-	TFile * pi2kFile;
-	TFile * k2piFile;
+	//TFile * weightFile = new TFile((TString) _DATA + "/correctionFiles/"+ weight_name);
+	//TFile * pi2kFile = new TFile((TString) _DATA + "/correctionFiles/"+ pi_To_kaon_name);
+	//TFile * k2piFile= new TFile((TString) _DATA + "/correctionFiles/"+ kaon_To_pi_name);
 
+	double kin[4];
 	
 	TH3F *	accCorrection[2];
 	TH3F *	binMigration[2];

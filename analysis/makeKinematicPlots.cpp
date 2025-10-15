@@ -43,6 +43,9 @@ using std::ofstream;
 using namespace cutVals;
 using namespace constants;
 
+double compXf(TLorentzVector gamma, TLorentzVector pi4, double W);
+TLorentzVector compPi_q(TVector3 pe, TLorentzVector q, pion pi);
+
 int main( int argc, char** argv){
 
 	if( argc < 4 ){
@@ -112,9 +115,11 @@ int main( int argc, char** argv){
 	TH1F* h_p_pi[2][bins_Q2+1][bins_xB+1];
 
 	TH1F * h_Eta[2][bins_Q2+1][bins_xB+1];
+	TH1F * h_Xf[2][bins_Q2+1][bins_xB+1];
+
 	TH1F * h_Phi_q[2][bins_Q2+1][bins_xB+1];
 
-
+	TH2F * hQ2_Xb[2][bins_Q2+1][bins_xB+1];
 	TH2F * hQ2_omega[2][bins_Q2+1][bins_xB+1];
 	TH2F * hQ2_W[2][bins_Q2+1][bins_xB+1];
 	TH2F * hQ2_Z[2][bins_Q2+1][bins_xB+1];
@@ -130,7 +135,6 @@ int main( int argc, char** argv){
 				h_W[i][j][k]             = new TH1F("hW_"+data_type[i]+Form("_%i_%i", j, k), Form("W_%i_%i;W [GeV];Counts [a.u.]", j, k), 100, 2.5, 3.7);
 				h_Xb[i][j][k]            = new TH1F("hXb_"+data_type[i]+Form("_%i_%i", j, k), Form("xB_%i_%i;x_{B};Counts [a.u.]", j, k), 100, 0.15, .6);
 				h_Q2[i][j][k]            = new TH1F("hQ2_"+data_type[i]+Form("_%i_%i", j, k), Form("Q2_%i_%i;Q^{2} [GeV^{2}];Counts [a.u.]", j, k), 100, 0, 8);
-				h_eta[i][j][k]           = new TH1F("hEta_"+data_type[i]+Form("_%i_%i", j, k), Form("eta_%i_%i;#eta;Counts [a.u.]", j, k), 100, 0.5, 4.5);
 				h_y[i][j][k]             = new TH1F("hY_"+data_type[i]+Form("_%i_%i", j, k), Form("y_%i_%i;y;Counts [a.u.]", j, k), 100, 0, 1);
 				h_omega[i][j][k]         = new TH1F("hOmega_"+data_type[i]+Form("_%i_%i", j, k), Form("omega_%i_%i;#omega [GeV];Counts [a.u.]", j, k), 100, 0, 10);
 				h_theta_e[i][j][k]       = new TH1F("hTheta_e_"+data_type[i]+Form("_%i_%i",j, k), Form("theta_e_%i_%i;#theta_{e} [rad];Counts [a.u.]", j, k), 100, 0, 45);
@@ -142,13 +146,15 @@ int main( int argc, char** argv){
 				h_p_pi[i][j][k]          = new TH1F("hP_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("p_pi_%i_%i;p_{#pi} [GeV];Counts [a.u.]", j, k), 100, 0, 5);
 				h_Vz_pi[i][j][k]         = new TH1F("hVz_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("Vx_pi_%i_%i;V_{z}^{#pi} [cm];Counts [a.u.]", j, k), 100, -10, 10);
 				h_theta_pi[i][j][k]      = new TH1F("hTheta_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("theta_pi_%i_%i;#theta_{#pi} [rad];Counts [a.u.]", j, k), 100, 0, 45);
-				h_phi_pi[i][j][k]        = new TH1F("hPhi_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("phi_pi_%i_%i;#phi_{#pi} [rad];Counts [a.u.]", j, k), 100, -180, 180);
+				h_phi_pi[i][j][k]        = new TH1F("hPhi_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("phi_pi_%i_%i;#phi_{#pi} [rad];Counts [a.u.]", j, k), 100, 0, 360);
 				h_Pt_pi[i][j][k]         = new TH1F("hPt_pi_"+data_type[i]+Form("_%i_%i", j, k), Form("Pt_pi_%i_%i;P^{T}_{#pi} [GeV];Counts [a.u.]", j, k), 100, 0, 1.3);
 				h_Mx[i][j][k]            = new TH1F("hMx_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 1, 5);
-				h_Phi_q[i][j][k]            = new TH1F("hPhi_q_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 1, 5);
+				h_Phi_q[i][j][k]            = new TH1F("hPhi_q_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 0, 360);
 				h_Eta[i][j][k]            = new TH1F("hEta_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, 1, 5);
+				h_Xf[i][j][k]            = new TH1F("hXf_"+data_type[i]+Form("_%i_%i", j, k), Form("Mx_%i_%i;M_{x} [GeV];Counts [a.u.]", j, k), 100, -1, 1);
 
 				hQ2_omega[i][j][k]		= new TH2F("hQ2_omega_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 2 ,5 );
+				hQ2_Xb[i][j][k]		= new TH2F("hQ2_Xb_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 0 ,0.7 );
 				hQ2_W[i][j][k]		= new TH2F("hQ2_W_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, 1.5 ,3.7 );
 				hQ2_Z[i][j][k]		= new TH2F("hQ2_Z_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, .3 ,1 );
 				
@@ -173,7 +179,7 @@ int main( int argc, char** argv){
 
 	int event_count = 0;
 	while (reader_rec.Next()) {
-                if(event_count%10000 == 0){cout<<"Events Analyzed: "<<event_count<<endl;}
+                if(event_count%100000 == 0){cout<<"Events Analyzed: "<<event_count<<endl;}
                 event_count++;
 
                 double Q2 = e->getQ2();
@@ -220,20 +226,28 @@ int main( int argc, char** argv){
 		*/
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			if( !isGoodPion_vec[i] || !(abs(pi[i].getPID()) == 211) ) {continue;}
+			if( !anal.applyElectronVertex( *e )){ continue; }
+			if( !anal.applyPionDetectorVertex( pi[i], *e )){ continue; }
 
-			if( beta_cut > 0 && pi[i].getBeta_rich() < .0001 ){continue;}
+			//if( beta_cut > 0 && pi[i].getBeta_rich() < .0001 ){continue;}
+			if( beta_cut > 0 && (pi[0].getZ() + pi[1].getZ() < 0.9)){continue;}
+			
 
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double M_x = pi[i].getMx();
 			double pT_pi = pi[i].getPi_q().Pt();
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta()*rad_to_deg;
-			double phi_pi = pi[i].getPi_q().Phi()*rad_to_deg;
+			double phi_pi = pi[i].get3Momentum().Phi()*rad_to_deg;
 			double Z = pi[i].getZ();
 			double Vz_pi = pi[i].getVt().z() - Vz_e;
-			TLorentzVector pi_q = pi[i].getPi_q();
+			TLorentzVector pi_q= compPi_q(e->get3Momentum(), e->getQ(), pi[i]);
 			double eta = pi[i].getEta();
-			double phi_q = pi[i].getPi_q().Phi();
+			double phi_q = pi_q.Phi()*rad_to_deg;
+			if( phi_q < 0) phi_q += 360;
+			if( phi_pi < 0) phi_pi += 360;
+
+			double xF = compXf(e->getQ(), pi_q, W );
 
 
 			double beta = 0;
@@ -276,6 +290,11 @@ int main( int argc, char** argv){
 			h_Vz_pi[chargeIdx][0][0]->Fill(Vz_pi - Vz_e, radWeight);
 			h_p_pi[chargeIdx][0][0]->Fill(p_pi, radWeight);
 	
+			h_Phi_q[chargeIdx][0][0]->Fill(phi_q, radWeight);
+			h_Eta[chargeIdx][0][0]->Fill(eta, radWeight);
+			h_Xf[chargeIdx][0][0]->Fill(xF, radWeight);
+
+			hQ2_Xb[chargeIdx][0][0]->Fill( Q2, xB, radWeight);
 			hQ2_omega[chargeIdx][0][0]->Fill( Q2, omega, radWeight);
 			hQ2_Z[chargeIdx][0][0]->Fill( Q2, Z, radWeight);
 			hQ2_W[chargeIdx][0][0]->Fill( Q2, W, radWeight);
@@ -290,7 +309,9 @@ int main( int argc, char** argv){
 
 			h_Phi_q[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(phi_q, radWeight);
 			h_Eta[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(eta, radWeight);
+			h_Xf[chargeIdx][this_bin_Q2][this_bin_xB]->Fill(xF, radWeight);
 
+			hQ2_Xb[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, xB);
 			hQ2_omega[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, omega);
 			hQ2_Z[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( Q2, Z);
 			hQ2_W[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( xB, W);
@@ -325,10 +346,11 @@ int main( int argc, char** argv){
 			for( int i = 0; i < 2; i++ ){
 				h_W[i][j][k]->Write();
 				h_Xb[i][j][k]->Write();
+				h_Xf[i][j][k]->Write();
 
 				h_Q2[i][j][k]->Write();
 
-				h_eta[i][j][k]->Write();
+				h_Eta[i][j][k]->Write();
 				h_y[i][j][k] ->Write();
 				h_omega[i][j][k]->Write();
 				h_theta_e[i][j][k]->Write();
@@ -341,9 +363,11 @@ int main( int argc, char** argv){
 				h_Vz_pi[i][j][k]->Write();
 				h_theta_pi[i][j][k] ->Write();
 				h_phi_pi[i][j][k]   ->Write();
+				h_Phi_q[i][j][k]   ->Write();
 				h_Pt_pi[i][j][k]   ->Write();
 				h_Mx[i][j][k]     ->Write();
 				
+				hQ2_Xb[i][j][k]->Write();
 				hQ2_omega[i][j][k]->Write();
 				hQ2_Z[i][j][k]->Write();
 				hQ2_W[i][j][k]->Write();
@@ -355,4 +379,40 @@ int main( int argc, char** argv){
 		}
 	}
 	outFile->Close();
+}
+
+double compXf(TLorentzVector gamma, TLorentzVector pi4, double W){
+	TLorentzVector q(0, 0, gamma.Mag(), gamma.E());
+	TLorentzVector targ(0,0,0, 0.938); //nucleon target
+	TLorentzVector CoM_vec = (targ + gamma); //boost vector
+	TVector3 CoMBoost = -1*CoM_vec.BoostVector();
+	
+	q = gamma;
+	q.RotateZ(-gamma.Phi());
+	q.RotateY(-gamma.Theta());
+
+	q.Boost(CoMBoost);
+	pi4.Boost(CoMBoost);
+
+	TVector3 pi3 = pi4.Vect();
+	TVector3 q3 = q.Vect();
+
+	double xF = 2* pi3.Dot(q3) / (W* q3.Mag());
+	return xF;
+}
+
+TLorentzVector compPi_q(TVector3 pe, TLorentzVector q, pion pi){
+	pe.RotateZ(-q.Phi());
+	pe.RotateY(-q.Theta());
+
+	TLorentzVector pi_q;
+	TVector3 pi3_temp = pi.get3Momentum();
+
+	pi3_temp.RotateZ( -q.Phi()  );
+    pi3_temp.RotateY( -q.Theta() );
+	pi3_temp.RotateZ( -pe.Phi() );
+	
+	pi_q.SetVectM( pi3_temp, pi.get4Momentum().M() ); 
+
+	return pi_q;
 }

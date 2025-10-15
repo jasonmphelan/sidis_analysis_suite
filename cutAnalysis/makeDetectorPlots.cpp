@@ -120,9 +120,12 @@ int main( int argc, char** argv){
 
 	TH1F * hPositives = new TH1F("hPos", "hPos", 500, 0.75, 1.01);
 	TH1F * hNegatives = new TH1F("hMin", "hMin", 500, 0.75, 1.01);
-	
+	TH1F * hElectrons = new TH1F("hEl", "hEl", 500, 0.75, 1.01);
+
 	TH2F * hPos_b_p = new TH2F("hPos_b_p", "hPos_b_p", 150, 0, 10, 500, 0.75, 1.01);
 	TH2F * hNeg_b_p = new TH2F("hMin_b_p", "hMin_b_p", 150, 0, 10, 500, 0.75, 1.01);
+	TH2F * hElectrons_b_p = new TH2F("hEl_b_p", "hEl_b_p", 150, 0, 10, 500, 0.75, 1.01);
+
 
 	double e_ext[3] = {150, 250,  300};
 	double pi_ext[3] = {175, 275,  350};
@@ -152,7 +155,7 @@ int main( int argc, char** argv){
 	}
 
 	for( int i = 0; i < 11; i++ ){
-		hBeta_p_e[i] = new TH2F( (TString) "hBeta_p_e_" + cuts[i], ";p_{e} [GeV];#beta", 400, 0, 5.5, 400, .85, 1.15);
+		hBeta_p_e[i] = new TH2F( (TString) "hBeta_p_e_" + cuts[i], ";p_{e} [GeV];#beta", 400, 0, 10, 400, .85, 1.15);
 		hBeta_p_pi[i][0] = new TH2F((TString) "hBeta_p_pip_" + cuts[i], ";p_{#pi -} [GeV];#beta", 400, 0, 5.5, 400, .85, 1.15);
 		hBeta_p_pi[i][1] = new TH2F((TString) "hBeta_p_pim_" + cuts[i], ";p_{#pi -} [GeV];#beta", 400, 0, 5.5, 400, .85, 1.15);
 	
@@ -230,6 +233,11 @@ int main( int argc, char** argv){
 					hNeg_b_p->Fill( particle->par()->getP(),particle->getBeta());	
 					counts[1][0]++;
 				}
+				if( particle->par()->getPid() == 11){
+					hElectrons->Fill(particle->getBeta());
+					hElectrons_b_p->Fill( particle->par()->getP(),particle->getBeta());	
+					counts[1][0]++;
+				}
 
 			}
 
@@ -244,6 +252,7 @@ int main( int argc, char** argv){
 				piminuses   = c12.getByID(-211  );
 			}
 			
+
 			pions = pipluses;
 			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );
 
@@ -433,9 +442,11 @@ int main( int argc, char** argv){
    	outputFile->cd();
 	hPositives->Write();
 	hNegatives->Write();
-	
+	hElectrons->Write();
+
 	hPos_b_p->Write();
 	hNeg_b_p->Write();
+	hElectrons_b_p->Write();
 	for( int i = 0; i < 2; i++ ){
 		hPCAL_WV[i]->Write();
 		hEdep[i]->Write();

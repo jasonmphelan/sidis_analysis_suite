@@ -52,6 +52,8 @@ def makePlots( corrType, hist, ext):
 	yMin = 0
 	yMax = 10
 
+	deltaX = 0.04
+
 	wType = ''
 	if hist.name[-1] == 'P' or hist.name[-3] == 'P':
 		wType = 'w+'
@@ -71,7 +73,7 @@ def makePlots( corrType, hist, ext):
 		textHeight = .75
 		yMin = .5
 		yMax = 1.5
-	if corrType == 'acc':
+	if corrType == 'acc' or corrType == 'mc':
 		outDir = 'acceptance_corrections/'
 		textHeight = 5 
 		if wType == 'w+/w-':
@@ -81,11 +83,13 @@ def makePlots( corrType, hist, ext):
 		textHeight = .75
 		yMin = 0
 		yMax = 1.05
+		deltaX = 0.08
 	if corrType == 'pi2k':
 		outDir = 'pi_to_k_corrections/'
 		textHeight = .75
 		yMin = 0.5
 		yMax = 1.05
+		deltaX = 0.08
 	if 'ratio' in ext:
 		yMin = 0.75
 		yMax = 1.25
@@ -98,10 +102,9 @@ def makePlots( corrType, hist, ext):
 	
 	for q in range(qBins):
 		for x in range(xBins):
-
-			axs[math.floor(q/3), q%3].text(.75, textHeight, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q-1), 2+.5*(q)), fontsize=12)
+			axs[math.floor(q/3), q%3].text(.75, textHeight, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q), 2+.5*(q+1)), fontsize=12)
 				
-			axs[math.floor(q/3), q%3].plot( zBinCenters, values[x][q], colorList[x], marker = '.', linestyle='none', label = r'%0.2f $< x_B <$ %0.2f'%(.1+0.04*x, .1 + 0.04*(x+1)), ms=15, mec='black' )
+			axs[math.floor(q/3), q%3].plot( zBinCenters, values[x][q], colorList[x], marker = '.', linestyle='none', label = r'%0.2f $< x_B <$ %0.2f'%(.1+deltaX*x, .1 + deltaX*(x+1)), ms=10, mec='black' )
 			axs[math.floor(q/3), q%3].errorbar(zBinCenters, values[x][q], yerr=errors[x][q], color = colorList[x], linestyle = '',capsize = 2, lw = 1, capthick = 1)
 
 			if corrType == 'k2pi' or corrType == 'pi2k':
@@ -130,7 +133,7 @@ def makePlots( corrType, hist, ext):
 #colorList = ['red', 'blue', 'magenta', 'green', 'gold', 'cyan', 'black', 'blueviolet','darkorange', 'brown','red', 'blue', 'magenta','green']
 colorList = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080']
 
-p_bin = [1.25, 2.00, 2.50, 3.5, 5.00]
+p_bin = [1.25, 2.00, 3, 4, 5.00]
 ##############################################
 #start script#
 #############################################
@@ -148,6 +151,8 @@ if corrType == 'acc':
 	keyList = ['hAccCorrection', 'hAccCorrectionP', 'hAccCorrectionM']
 if corrType == 'k2pi' or corrType == 'pi2k':
 	keyList = ['hKaonCorr', 'hKaonCorrP', 'hKaonCorrM']
+if corrType == 'mc':
+	keyList = ['hMcCorrection', 'hMcCorrectionP', 'hMcCorrectionM']
 
 energy = '_'
 if '3d' in inFile_name:

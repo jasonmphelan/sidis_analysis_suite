@@ -15,7 +15,7 @@ Ebeam = E_options[Eindex]
 
 xsv = 'tagged_full'
 xpv = 'PRC'
-variation='';
+variation=''
 suffix='_lowAlphaS'
 nuc = 'proton'
 
@@ -26,12 +26,12 @@ yamlfile='/work/clas12/users/tkutz/gemc/clas12-config/coatjava/10.0.2/rgb_spring
 #reruns = np.loadtxt('rerecon_{0}MeV{1}.dat'.format(Np,suffix),dtype=int)
 #for n in reruns:
 
-for n in range(5000):
+for n in range(0,5):
 
     time.sleep(0.25)			
 
-    decfile = '{0}/{1}_{2}.hipo'.format(decdir,nuc,n+1)
-    recfile = '{0}/{1}_{2}.hipo'.format(recdir,nuc,n+1)
+    decfile = '{0}/{1}_mag_{2}.hipo'.format(decdir,nuc,n+1)
+    recfile = '{0}/{1}_mag_{2}.hipo'.format(recdir,nuc,n+1)
     errfile = '/farm_out/jphelan/clasdis/err_gemc_{0}_{1}.txt'.format(nuc, n+1)
     outfile = '/volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/farm_out/out_gemc_{0}_{1}.txt'.format(nuc, n+1)
 	
@@ -41,7 +41,7 @@ for n in range(5000):
 #SBATCH -p production
 #SBATCH --constraint=el9
 #SBATCH --export=NONE
-#SBATCH --mem-per-cpu=1500
+#SBATCH --mem-per-cpu=3500
 #SBATCH -t600
 #SBATCH --error=%s
 #SBATCH --output=%s

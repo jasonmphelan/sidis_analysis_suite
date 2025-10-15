@@ -70,7 +70,7 @@ int main( int argc, char** argv){
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
-	if( RunType == 4 ){
+	if( RunType == 4 || RunType == 3){
 		anal.setAnalyzerLevel(0);
 	}	
 	else{ anal.setAnalyzerLevel(RunType); }
@@ -192,9 +192,23 @@ int main( int argc, char** argv){
 			event++;
 			evnum  = c12.runconfig()->getEvent();
 			runnum = c12.runconfig()->getRun();
-           		if( RunType == 1 && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
-           		if( ( RunType == 0 || RunType == 4) && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
+           	if( RunType == 1 && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
+           	if( ( RunType == 0 || RunType == 4 || RunType ==3) && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
 			
+			//For outbending, we want to use the hadron trigger, so check trigger bits
+			if( RunType == 4 ){ 
+				
+				bool trigger = false;
+				
+				for( int tb = 7; tb<=12 ;tb++){
+					bool trigger_temp = c12.checkTriggerBit(tb);
+					if (trigger_temp) trigger = trigger_temp;
+				}
+				if( !trigger ) continue;
+		
+			}
+
+
 			///////////////////////////Initialize variables//////////////////////////////////////////////	
 			electrons.clear();
 			pions.clear();
@@ -214,7 +228,7 @@ int main( int argc, char** argv){
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
 			
 			// Get Particles By PID
-			if( RunType == 4){
+			if( RunType == 4 || RunType == 3){
 				electrons   = c12.getByID( -11   );
 				pipluses    = c12.getByID( -211  );
 				piminuses   = c12.getByID( 211  );
@@ -314,7 +328,7 @@ int main( int argc, char** argv){
    		if( singleFile == 0 ){
 			std::cout<<"Writing file!\n";
 			outputFile->cd();
-    			outTree->Write();
+    		outTree->Write();
 			outputFile->Close();
 		}
 	}

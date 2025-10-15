@@ -4,6 +4,7 @@
 #./analysis/makeKinematics /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data_10.4.root 0 0 /volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root &
 #./analysis/makeKinematics /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data_10.6.root 0 0 /volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root &
 #./analysis/makeKinematics /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data_out.root 0 0 /volatile/clas12/users/jphelan/SIDIS/data/final_skims/outbending/final_skim.root &
+./analysis/makeKinematics /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data_out_etrig.root 0 0 /volatile/clas12/users/jphelan/SIDIS/data/final_skims/outbending/final_skim_etrig.root &
 
 wait
 
@@ -17,9 +18,10 @@ wait
 
 #python ../plotting/plotCharge.py /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data_allE.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/charge_plots
 
-python ../plotting/plotEnergy.py /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data /volatile/clas12/users/jphelan/SIDIS/analysis_note/energy_kinematic_dep
+#python ../plotting/plotEnergy.py /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data /volatile/clas12/users/jphelan/SIDIS/analysis_note/energy_kinematic_dep
+python ../plotting/plotOutbending.py /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data /volatile/clas12/users/jphelan/SIDIS/analysis_note/outbending_kinematics
 
 #for energy in 10.2 10.4 10.6;
 #do
-#	python ../plotting/plotDataSim.py /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data_$energy.root /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_gemc_$energy.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/data_sim_plots_$energy
+#	python ../plotting/plotDataSim.py /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_data_$energy.root /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_gemc_$energy.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/data_sim_plots_$energy &
 #done

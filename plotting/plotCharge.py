@@ -56,6 +56,17 @@ def setTitle1D( ax, key):
 		plt.xlabel(r"$M_X$ [GeV]", fontsize=18)
 	if "Omega" in key:
 		plt.xlabel(r"$\omega$ [GeV]", fontsize=18)
+	if "Xb" in key:
+		plt.xlabel(r"$x_B$", fontsize=18)
+	if "Xf" in key:
+		plt.xlabel(r"$x_F$", fontsize=18)
+	if "Eta" in key:
+		plt.xlabel(r"$\eta$", fontsize=18)
+	if "Pt" in key:
+		plt.xlabel(r"$p_{\pi}^{\perp}$ [GeV]", fontsize=18)
+	if "Phi_q" in key:
+		plt.xlabel(r"$\phi_{\pi}^{q-frame}$ [deg.]", fontsize=18)
+
 
 
 #inFile = uproot.open("../histograms/analysis_note/kinematics_data_10.4.root")

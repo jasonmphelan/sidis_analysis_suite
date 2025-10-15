@@ -31,7 +31,7 @@ void analyzer::printCuts(){
 	std::cout<<"**************** Pion Selection Cuts ******************\n";
 	for( int i = 0; i < 3; i++ ){
 		std::cout<<"Pip Fiducial Region "<<i<<" : "<<mod_pi_fid[0][i]*pi_fid_cuts[0][i]<<std::endl;
-		std::cout<<"Pim Fiducial Region "<<i<<" : "<<mod_pi_fid[1][i]*pi_fid_cuts[1][i]<<std::endl;
+		std::cout<<"Pim Fiducial Region "<<i<<" : "<<mod_pi_fid[0][i]*pi_fid_cuts[1][i]<<std::endl;
 	}
 	std::cout<<"Pip-e Min Vertex : "<<Vz_pi_mean[mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
 	std::cout<<"Pip-e Max Vertex : "<<Vz_pi_mean[mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
@@ -52,39 +52,110 @@ void analyzer::printCuts(){
 
 }
 
-void analyzer::writeCutsToFile(TString outName){
-	std::ofstream txtFile;
-	txtFile.open(outName);
+void analyzer::writeCutsNamesToFile(std::ofstream& txtFile){
+	
 	for( int i = 0; i < 3; i++ ){
-		txtFile<<"Electron Fiducial Region "<<i<<"\t"<<mod_el_fid[i]*e_fid_cuts[i]<<std::endl;
+		//electron fid
+		txtFile<<"Electron Fiducial Region "<<i<<"\t";
 	}
-	txtFile<<"PCAL W\t"<<mod_el_PCAL[0]*e_PCAL_W_min<<std::endl;
-	txtFile<<"PCAL V\t"<<mod_el_PCAL[1]*e_PCAL_V_min<<std::endl;
-	txtFile<<"Electron Min Vertex\t"<<mod_el_vtz[0]*Vz_e_min_inbending<<std::endl;
-	txtFile<<"Electron Max Vertex\t"<<mod_el_vtz[1]*Vz_e_max_inbending<<std::endl;
-	txtFile<<"Minimum Edep\t"<<mod_el_Edep*e_E_PCAL_min<<std::endl;
-	txtFile<<"SF Sigma\t"<<mod_SF_sigma*3.5<<std::endl;	
-	txtFile<<"SF Correlation\t"<<mod_el_corr*PCAL_ECIN_SF_min<<std::endl;
+	//pcal W
+	txtFile<<"PCAL W\t";
+	//pcal V
+	txtFile<<"PCAL V\t";
+	//e vt min
+	txtFile<<"Electron Min Vertex\t";
+	//e vt max
+	txtFile<<"Electron Max Vertex\t";
+	//edep
+	txtFile<<"Minimum Edep\t";
+	//sf
+	txtFile<<"SF Sigma\t";	
+	//sf corr
+	txtFile<<"SF Correlation\t";
 
 	for( int i = 0; i < 3; i++ ){
-		txtFile<<"Pip Fiducial Region "<<i<<"\t"<<mod_pi_fid[0][i]*pi_fid_cuts[0][i]<<std::endl;
-		txtFile<<"Pim Fiducial Region "<<i<<"\t"<<mod_pi_fid[1][i]*pi_fid_cuts[1][i]<<std::endl;
+		//pip fid
+		txtFile<<"Pip Fiducial Region "<<i<<"\t";
+		//pim fid
+		txtFile<<"Pim Fiducial Region "<<i<<"\t";
 	}
-	txtFile<<"Pip-e Min Vertex\t"<<Vz_pi_mean[mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
-	txtFile<<"Pip-e Max Vertex\t"<<Vz_pi_mean[mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
-
-	txtFile<<"Pim-e Min Vertex\t"<<Vz_pi_mean[mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
-	txtFile<<"Pim-e Max Vertex\t"<<Vz_pi_mean[mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
+	//pip min vtz
+	txtFile<<"Pip-e Min Vertex\t";
+	//pim max vtz
+	txtFile<<"Pip-e Max Vertex\t";
+	//pim min vtz
+	txtFile<<"Pim-e Min Vertex\t";
+	//pim max vtz
+	txtFile<<"Pim-e Max Vertex\t";
 
 	
+	//min pe
+	txtFile<<"Minimum pe\t";
+	//max pe
+	txtFile<<"Maximum pe\t";
+	//min ppi
+	txtFile<<"Minimum p_pi\t";
+	// max ppi
+	txtFile<<"Maximum p_pi\t";
+	// min W
+	txtFile<<"Minimum W\t";
+	// max y
+	txtFile<<"Maximum y\t";
+	// min Mx
+	txtFile<<"Minimum Mx\n";
+
+}
+
+void analyzer::writeCutsToFile(std::ofstream& txtFile){
+	for( int i = 0; i < 3; i++ ){
+		//electron fid
+		txtFile<<mod_el_fid[i]*e_fid_cuts[i]<<"\t";
+	}
+	//pcal W
+	txtFile<<mod_el_PCAL[0]*e_PCAL_W_min<<"\t";
+	//pcal V
+	txtFile<<mod_el_PCAL[1]*e_PCAL_V_min<<"\t";
+	//e vt min
+	txtFile<<mod_el_vtz[0]*Vz_e_min_inbending<<"\t";
+	//e vt max
+	txtFile<<mod_el_vtz[1]*Vz_e_max_inbending<<"\t";
+	//edep
+	txtFile<<mod_el_Edep*e_E_PCAL_min<<"\t";
+	//sf
+	txtFile<<mod_SF_sigma*3.5<<"\t";	
+	//sf corr
+	txtFile<<mod_el_corr*PCAL_ECIN_SF_min<<"\t";
+
+	for( int i = 0; i < 3; i++ ){
+		//pip fid
+		txtFile<<mod_pi_fid[0][i]*pi_fid_cuts[0][i]<<"\t";
+		//pim fid
+		txtFile<<mod_pi_fid[0][i]*pi_fid_cuts[1][i]<<"\t";
+	}
+	//pip min vtz
+	txtFile<<Vz_pi_mean[mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<"\t";
+	//pim max vtz
+	txtFile<<Vz_pi_mean[mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<"\t";
+	//pim min vtz
+	txtFile<<Vz_pi_mean[mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<"\t";
+	//pim max vtz
+	txtFile<<Vz_pi_mean[mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<"\t";
+
 	
-	txtFile<<"Minimum pe\t"<<mod_pe[0]*P_e_min<<std::endl;
-	txtFile<<"Maximum pe\t"<<mod_pe[1]*P_e_max<<std::endl;
-	txtFile<<"Minimum p_pi\t"<<mod_ppi[0]*P_pi_min<<std::endl;
-	txtFile<<"Maximum p_pi\t"<<mod_ppi[1]*P_pi_max<<std::endl;
-	txtFile<<"Minimum W\t"<<mod_W*W_min<<std::endl;
-	txtFile<<"Maximum y\t"<<mod_y*y_max<<std::endl;
-	txtFile<<"Minimum Mx\t"<<mod_Mx*Mx_min<<std::endl;
+	//min pe
+	txtFile<<mod_pe[0]*P_e_min<<"\t";
+	//max pe
+	txtFile<<mod_pe[1]*P_e_max<<"\t";
+	//min ppi
+	txtFile<<mod_ppi[0]*P_pi_min<<"\t";
+	// max ppi
+	txtFile<<mod_ppi[1]*P_pi_max<<"\t";
+	// min W
+	txtFile<<mod_W*W_min<<"\t";
+	// max y
+	txtFile<<mod_y*y_max<<"\t";
+	// min Mx
+	txtFile<<mod_Mx*Mx_min<<std::endl;
 
 }
 
@@ -106,13 +177,13 @@ void analyzer::randomizeCuts(){
 		cut_mods.push_back( &mod_pe[i]);
 		cut_mods.push_back( &mod_ppi[i]);
 
-		for( int j = 0; j < 3; j++ ){
-			cut_mods.push_back( &mod_pi_fid[i][j]);
-		}
+	for( int j = 0; j < 3; j++ ){
+		cut_mods.push_back( &mod_pi_fid[i][j]);
+	}
 	}
 	
 	cut_vals.push_back(e_PCAL_W_min);
-	cut_vals.push_back(Vz_e_min_inbending);
+	//cut_vals.push_back(Vz_e_min_inbending);
 	cut_vals.push_back(P_e_min);
 	cut_vals.push_back(P_pi_min);
 	
@@ -139,7 +210,7 @@ void analyzer::randomizeCuts(){
 	cut_mods.push_back( &mod_el_corr);
 	cut_vals.push_back(PCAL_ECIN_SF_min);
 	
-	cut_mods.push_back( &mod_pi_vtz );
+	//fig, axs = plt.scatter(), figsize=(16,14))cut_mods.push_back( &mod_pi_vtz );
 	cut_vals.push_back( 3.5 );
 
 	cut_mods.push_back( &mod_W);
@@ -330,7 +401,7 @@ bool analyzer::applyPionDetectorFiducials( pion pi ){
 		// layer:   1-3
 		// bending: 0(out)/1(in)
 
-		if( pi.getEdge(regionIdx) < mod_pi_fid[piCharge][regionIdx]*pi_fid_cuts[piCharge][regionIdx] ){ 
+		if( pi.getEdge(regionIdx) < mod_pi_fid[0][regionIdx]*pi_fid_cuts[piCharge][regionIdx] ){ 
 			return false; 
 		}
 	}
@@ -478,7 +549,7 @@ int analyzer::acceptance_match_3d( double phi_part, double theta, double p, int 
 	//set momentum bins
 	int this_bin_p;
 	for( int i = 0; i < 4; i++ ){
-		if( p > p_bin_edges[i] && p < p_bin_edges[i+1]){ this_bin_p = i; }
+		if( p > p_bin_edges_3d[i] && p < p_bin_edges_3d[i+1]){ this_bin_p = i; }
 	}
 
 	int passCut = -1;
@@ -609,20 +680,33 @@ void analyzer::loadAcceptanceMap(TString fileName){
 	TFile f(fileName);
 
 	TString parType[3] = {"e", "pip", "pim"};
-	int nPbins[3] = {10, 5, 5};
+	int nPbins[3] = {20, 20, 20};
 	for( int par = 0; par < 3; par++ ){
 		for( int p = 0; p < nPbins[par]; p++ ){
 			for( int sec = 0; sec < 6; sec++ ){
-				TF1 * f1 = (TF1 *) f.Get(Form("fThetaPhi_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
-				TVector3 * fBounds = (TVector3 *) f.Get(Form("fitBounds_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
+				//TF1 * f1 = (TF1 *) f.Get(Form("fThetaPhi_max_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
+				//TF1 * f2 = (TF1 *) f.Get(Form("fThetaPhi_min_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
+
+				TF1 * f1 = (TF1 *) f.Get(Form("lower_p_%i_sec_%i_%s", p, sec, parType[par].Data() ) );
+				f1->Print("V");
+				TF1 * f2 = (TF1 *) f.Get(Form("upper_p_%i_sec_%i_%s", p, sec, parType[par].Data() ) );
+				f2->Print("V");
+				
+				TVector3 * fBounds = (TVector3 *) f.Get(Form("bounds_p_%i_sec_%i_%s", p, sec, parType[par].Data() ) );
 				
 				acceptanceMap[sec][p][par][0] = f1->GetParameter(0);
 				acceptanceMap[sec][p][par][1] = f1->GetParameter(1);
 				acceptanceMap[sec][p][par][2] = f1->GetParameter(2);
+				acceptanceMap[sec][p][par][3] = f1->GetParameter(3);
+
+				acceptanceMap[sec][p][par][4] = f2->GetParameter(0);
+				acceptanceMap[sec][p][par][5] = f2->GetParameter(1);
+				acceptanceMap[sec][p][par][6] = f2->GetParameter(2);
+				acceptanceMap[sec][p][par][7] = f2->GetParameter(3);
 				
 				fitBounds[sec][p][par][0] = fBounds->X();
 				fitBounds[sec][p][par][1] = fBounds->Y();
-				fitBounds[sec][p][par][2] = fBounds->Z();
+				//fitBounds[sec][p][par][2] = fBounds->Z();
 			}
 		}
 	}
@@ -640,26 +724,35 @@ int analyzer::checkAcceptance( double p, double phi, double theta, int particle 
 
 	//acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
 	double p_max = 5 + 5*( (int) (particle < 1) );
-	int p_bin = (int)( ( (p)/(p_max) )*p_max);
+	int p_bin = (int)( ( (p)/(p_max) )*20 );
+	if( p_bin >= 20 ) return -1;
 
+	if( particle == 0 )return 0;
 
 	double cutMin = 40;
 	for( int sec = 0; sec < 6; sec++ ){
 		double phi_temp = phi;
-		par_0 = acceptanceMap[sec][p_bin][particle][0];
-		par_1 = acceptanceMap[sec][p_bin][particle][1];
-		par_2 = acceptanceMap[sec][p_bin][particle][2];
+		//par_0 = acceptanceMap[sec][p_bin][particle][0];
+		//par_1 = acceptanceMap[sec][p_bin][particle][1];
+		//par_2 = acceptanceMap[sec][p_bin][particle][2];
 		
-		max = fitBounds[sec][p_bin][particle][2];
+		//max = fitBounds[sec][p_bin][particle][2];
 		lower = fitBounds[sec][p_bin][particle][0];
 		upper = fitBounds[sec][p_bin][particle][1];
 	
 		if( (sec == 2 || (sec ==3 && p>1)) && phi_temp < 0. ){ phi_temp += 360; }
-		cutMin = par_0*(phi_temp - par_1)*(phi_temp - par_1) + par_2;
+		//cutMin = par_0*(phi_temp - par_1)*(phi_temp - par_1) + par_2;
 		
-		if( theta > cutMin && theta < 40
-			&& theta < max && phi_temp > lower && phi_temp < upper ){ 
-			
+		double cutMin = 0, cutMax = 0;
+
+		for( int param = 0; param < 4; param++ ){
+			cutMin += acceptanceMap[sec][p_bin][particle][param]*pow(theta, param);
+			cutMax += acceptanceMap[sec][p_bin][particle][param+4]*pow(theta, param);
+
+		}
+
+		if( phi_temp > cutMin
+				&& phi_temp < cutMax && theta > lower && theta < upper ){ 	
 			return sec; 
 		}
 	}

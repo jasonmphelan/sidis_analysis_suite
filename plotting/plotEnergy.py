@@ -38,7 +38,12 @@ def setTitle1D( ax, key):
 		ax.set_xlabel(r"$M_X$ [GeV]", fontsize=16)
 	if "Omega" in key:
 		ax.set_xlabel(r"$\omega$ [GeV]", fontsize=16)
-
+	if "Eta" in key:
+		ax.set_xlabel(r"$\eta$", fontsize=16)
+	if "Xb" in key:
+		ax.set_xlabel(r"$x_B$", fontsize=16)
+	if "Pt_pi" in key:
+		ax.set_xlabel(r"$p^{\perp}_{\pi}$ [GeV]", fontsize=16)
 
 inFile_names = sys.argv[1]
 out_names = sys.argv[2]
@@ -94,16 +99,16 @@ for key in inFile[0].keys():
 
 			ax[0, 0].errorbar(binCenters, values_pip[i], errors_pip[i], capsize=2, fmt=colorList[i], ecolor=colorList[i],drawstyle='steps-mid', label=labels[i])
 			ax[0,0].set_title(rf"$d(e, e'\pi^+)$", fontsize=16)
-			ax[0,0].set_ylabel('Counts', fontsize=16)
+			ax[0,0].set_ylabel('Counts [a.u.]', fontsize=16)
 			ax[0, 1].errorbar(binCenters, values_pim[i], errors_pim[i], capsize=2, fmt=colorList[i], ecolor=colorList[i],drawstyle='steps-mid')
 			ax[0,1].set_title(rf"$d(e, e'\pi^-)$", fontsize=16)
 			if i == 1 or i == 2:
-				ax[1, 0].errorbar(binCenters, ratio_pip, ratio_err_pip, capsize=2, fmt=colorList[i], ecolor=colorList[i], marker='o')
+				ax[1, 0].errorbar(binCenters, ratio_pip, ratio_err_pip, capsize=2, fmt=colorList[i], ecolor=colorList[i], marker='o', mec='k', linestyle=' ')
 				setTitle1D( ax[1,0], key )	
 				ax[1, 0].set_ylabel(r'$Y(E)/Y(E = 10.2$ GeV)', fontsize=14)		
-				ax[1, 1].errorbar(binCenters, ratio_pim, ratio_err_pim, capsize=2, fmt=colorList[i], ecolor=colorList[i], marker='o')
+				ax[1, 1].errorbar(binCenters, ratio_pim, ratio_err_pim, capsize=2, fmt=colorList[i], ecolor=colorList[i], marker='o', mec='k',linestyle=' ')
 				setTitle1D( ax[1,1], key )	
-				ax[1, 0].set_ylabel(r'$Y(E)/Y(E = 10.2$ GeV)', fontsize=14)
+				ax[1, 0].set_ylabel(r'$Y(E)/Y(E = 10.2$ GeV)', fontsize=12)
 				ax[1,0].set_ylim(.5, 1.5)
 				ax[1,1].set_ylim(.5, 1.5)
 			#setTitle1D( fig, key )

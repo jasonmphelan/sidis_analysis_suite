@@ -83,28 +83,28 @@ int main( int argc, char** argv){
 
 	if( inBeam == 0 || inBeam == 10.2){
 		dChain->Add( base + "final_skims/10.2/final_skim.root");
-		if( applyCorr >= 3 ){
+		if( applyCorr > 3 ){
 			kChain->Add( base + "final_skims/kaons_10.2/final_skim.root");
 		}
-		if( applyCorr == 4 ){
+		if( applyCorr > 4 ){
 			rChain->Add( base + "rho_skims/rotated_10.2.root");
 		}
 	}
 	if( inBeam == 0 || inBeam == 10.4){
 		dChain->Add( base + "final_skims/10.6/final_skim.root");
-		if( applyCorr >= 3 ){
+		if( applyCorr > 3 ){
 			kChain->Add( base + "final_skims/kaons_10.4/final_skim.root");
 		}
-		if( applyCorr == 4 ){
+		if( applyCorr > 4 ){
 			rChain->Add( base + "rho_skims/rotated_10.4.root");
 		}
 	}
 	if( inBeam == 0 || inBeam == 10.6){
 		dChain->Add( base + "final_skims/10.6/final_skim.root");
-		if( applyCorr >= 3 ){
+		if( applyCorr > 3 ){
 			kChain->Add( base + "final_skims/kaons_10.6/final_skim.root");
 		}
-		if( applyCorr == 4 ){
+		if( applyCorr > 4 ){
 			rChain->Add( base + "rho_skims/rotated_10.6.root");
 		}
 	}
@@ -359,15 +359,14 @@ int main( int argc, char** argv){
 	
 	//TTreeReader reader_r("ePi", rFile);
 	TTreeReader reader_r(rChain);
-	TTreeReaderValue<double> eBeam_r( reader_r, "Ebeam" );
 
 	TTreeReaderValue<electron> e_r(reader_r, "e");
 	TTreeReaderArray<pion> r(reader_r, "pi");
-	TTreeReaderValue<double> rhoWeight( reader_r, "rhoWeight");
+	TTreeReaderArray<double> rhoWeight( reader_r, "rhoWeight");
 	TTreeReaderValue<double> Mx_2pi( reader_r, "Mx_2pi");
-	TTreeReaderValue<double> rhoError( reader_r, "rhoErr");
+	TTreeReaderArray<double> rhoError( reader_r, "rhoErr");
 	TTreeReaderArray<bool> isGoodRho(reader_r, "isGoodPion");
-
+	TTreeReaderValue<TLorentzVector> beam( reader_r, "beam");
 	event_total = reader_r.GetEntries();
 	//double events_in_bin[2][bins_Q2][bins_xB][bins_Z][bins_p] = {0};
 
@@ -378,11 +377,11 @@ int main( int argc, char** argv){
 			if(event_count%100000 == 0){
 				cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
 			}
-			if( *eBeam_r != beam_energy ){
-				corrector.setWeightName( Form("corrections_%0.1f_AN.root", *eBeam_r));
+			if( beam->E() != beam_energy ){
+				corrector.setWeightName( Form("corrections_%0.1f_AN.root", beam->E()));
 				corrector.loadHistograms();
 				//corrector.loadNewEnergy( *eBeam_r );
-				beam_energy = *eBeam_r;
+				beam_energy = beam->E();
 			}
 
 			for( int i = 0; i < (int) ( r.end() - r.begin() ); i++ ){

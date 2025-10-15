@@ -6,9 +6,9 @@ import subprocess
 import time
 
 Ebeam = 10.2
-xsv = 'neutron'
+xsv_v = ['proton','neutron']
 xpv = 'dis'
-suffix='';
+suffix=''
 
 #Note, everything works with version 4.4.1
 #gcard='/cvmfs/oasis.opensciencegrid.org/jlab/hallb/clas12/sw/noarch/clas12-config/prod/gemc/5.10/rgb_spring2019.gcard'
@@ -16,13 +16,16 @@ suffix='';
 exe='gemc'
 #gcard='/work/clas12/users/jphelan/GEMC_DATA/rgb_spring2019.gcard'
 gcard='/work/clas12/users/nwright/BAND/simScripts/GEMC/gcards/rgb_spring2019.gcard'
-lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/deuteron_'
+#gcard='rgb_spring2019.gcard'
+#lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/neutron_'
 
-for x in range(0, 5000):
-	n = x + 1 
+for xsv in xsv_v:
+	for x in range(0,  5000):
+		n = x + 1 
+		lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/'+xsv+"_"
 	#n = runList[x]
-	time.sleep(0.5)			
-	command="""#!/bin/sh 
+		time.sleep(0.5)			
+		command="""#!/bin/sh 
 #SBATCH --job-name={0}_{1}_{8}GeV_{7:05d}
 #SBATCH --account=clas12
 #SBATCH -p production
@@ -34,12 +37,12 @@ for x in range(0, 5000):
 export GEMC_DATA_DIR="/work/clas12/users/tkutz/gemc/clas12Tags/clas12Tags-5.10"
 export CCDB_CONNECTION="sqlite:////work/clas12/users/jphelan/GEMC_DATA/ccdb_05-12-2024.sqlite"
 export RCDB_CONNECTION="sqlite:////work/clas12/users/jphelan/GEMC_DATA/rcdb_2024-06-18.sqlite"
-time {2} {3} -USE_GUI=0 -N=5000 -INPUT_GEN_FILE="LUND, {4}{7}.dat" -OUTPUT="hipo, /volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/{8}/hipo/deuteron_{7}.hipo"
-    """.format(xsv, xpv, exe, gcard, lunddir, 0, suffix, n, Ebeam)	
-	command = command.replace('\t', '')
-	print(command)
-	p=Popen(args=["sbatch"],stdin=PIPE)
-	p.communicate(command.encode())
+time {2} {3} -USE_GUI=0 -N=5000 -INPUT_GEN_FILE="LUND, {4}{7}.dat" -OUTPUT="hipo, /volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/{8}/hipo/{0}_mag_{7}.hipo"
+    	""".format(xsv, xpv, exe, gcard, lunddir, 0, suffix, n, Ebeam)	
+		command = command.replace('\t', '')
+		print(command)
+		p=Popen(args=["sbatch"],stdin=PIPE)
+		p.communicate(command.encode())
 #SBATCH --export=NONE
 #module use /scigroup/cvmfs/hallb/clas12/sw/modulefiles
 #module load clas12

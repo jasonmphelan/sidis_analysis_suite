@@ -74,25 +74,9 @@ int main( int argc, char** argv){
 	cout<<"Loaded skims\n";
 
 	TString data_type[2] = {"pip", "pim"};
-	TH1F* h_W[2];    
-	TH1F* h_Xb[2];    
+	    
 	TH1F* h_Q2[2];     
-	TH1F* h_eta[2];     
-	TH1F* h_y[2];        
-	TH1F* h_omega[2];     
-	TH1F* h_Pt_e[2];       
-	TH1F* h_theta_e[2];     
-	TH1F* h_Vz_e[2];         
-	TH1F* h_p_e[2];           
-	TH1F* h_phi_e[2];        
-
 	TH1F* h_Z[2];             
-	TH1F* h_p_pi[2];          
-	TH1F* h_Vz_pi[2];         
-	TH1F* h_delta_phi_pi[2];  
-	TH1F* h_theta_pi[2];     
-	TH1F* h_phi_pi[2];        
-	TH1F* h_Pt_pi[2];
 	TH1F* h_Mx_Q2[2][4]; 
 	TH1F* h_Mx_Z[2][4]; 
 	
@@ -126,7 +110,7 @@ int main( int argc, char** argv){
 	int event_total = reader_rec.GetEntries();
 
 	while (reader_rec.Next()) {
-                int event_count = reader_rec.GetCurrentEntry();
+        int event_count = reader_rec.GetCurrentEntry();
 
 		if(event_count%1000000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
@@ -136,13 +120,13 @@ int main( int argc, char** argv){
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			int idx = (int)( pi[i].getCharge() < 0 );
 	
-			//if( sqrt(e->getW2()) < 2.5  ){continue;}
-			if( e->getQ2() < 2 ){ continue; }
-			//if( e->getY() > 0.75 ){continue;}
-			//if( e->get3Momentum().Theta()*rad_to_deg < 5 || e->get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
+			if( sqrt(e->getW2()) < 2.5  ){continue;}
+			
+			if( e->getY() > 0.75 ){continue;}
+			if( e->get3Momentum().Theta()*rad_to_deg < 5 || e->get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
 
-			//if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum().Mag() > 5 ){continue;}
-			//if( pi[i].get3Momentum().Theta()*rad_to_deg < 5 || pi[i].get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
+			if( pi[i].get3Momentum().Mag() < 1.25 || pi[i].get3Momentum().Mag() > 5 ){continue;}
+			if( pi[i].get3Momentum().Theta()*rad_to_deg < 5 || pi[i].get3Momentum().Theta()*rad_to_deg > 35 ){continue;}
 			if( pi[i].getZ() < 0.3 ){ continue; }	
 			
 			int q2 = -1;
@@ -153,18 +137,21 @@ int main( int argc, char** argv){
 				if( pi[i].getZ() > z_bin_edge[bin] && pi[i].getZ() < z_bin_edge[bin+1] ) z = bin;
 			}
 			
-			if( q2 < 0 || z < 0 ){ continue; }
+			if( q2 >= 0 ){
+				h_Mx_Q2[idx][q2]->Fill( pi[i].getMx() );
+				h_Q2[idx]->Fill( e->getQ2() );
 
-			h_Mx_Q2[idx][q2]->Fill( pi[i].getMx() );
-			h_Mx_Z[idx][z]->Fill( pi[i].getMx() );
-			h_Q2[idx]->Fill( e->getQ2() );
-			h_Z[idx]->Fill( pi[i].getZ() );
+			}
+			if( z >= 0 ){
+				h_Mx_Z[idx][z]->Fill( pi[i].getMx() );		
+				h_Z[idx]->Fill( pi[i].getZ() );
+			}
 		}
 	}
 	
 	cout<<"Completed good event list... \n";
 
-        cout<<"Writing to file\n";
+     cout<<"Writing to file\n";
         
 	TFile * outFile = new TFile( out_name, "RECREATE");
 	outFile->cd();

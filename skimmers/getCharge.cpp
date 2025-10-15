@@ -63,7 +63,7 @@ int main( int argc, char** argv){
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
-	if( RunType == 4 ){
+	if( RunType == 4 || RunType == 3){
 		anal.setAnalyzerLevel(0);
 	}	
 	else{ anal.setAnalyzerLevel(RunType); }

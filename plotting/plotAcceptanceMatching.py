@@ -23,7 +23,7 @@ nSec = 6
 #for key in keys: 
 #	num_check = any(ch.isdigit() for ch in key)
 if "Pi2K" in inName or "K2Pi" in inName:
-		nSec = 1
+	nSec = 1
 
 print(nSec)
 
@@ -45,17 +45,18 @@ for sec in range(nSec):
 	values = np.empty( 2, dtype='object')
 	max_vals = np.empty( 2, dtype='object')
 	min_vals = np.empty( 2, dtype='object')
-	xVals = np.linspace(1.25, 4.75, 1000)
+	xVals = np.linspace(0.5, 4.75, 1000)
 
 	for i in range(2):
 		if nSec == 1:
+			print("max_0"+ch_string[i]+";1" )
 			hist[i] = inFile[ f"hTheta_P_"+ch_string[i]+";1" ]
-			fMax[i] = inFile_R.Get( "max_0"+ch_string[i]+";1" )
-			fMin[i] = inFile_R.Get( "min_0"+ch_string[i]+";1" )
+			fMax[i] = inFile_R.Get( "max_0_"+ch_string[i]+";1" )
+			fMin[i] = inFile_R.Get( "min_0_"+ch_string[i]+";1" )
 		else:
-			hist[i] = inFile[ f"hTheta_P_sec_{sec}_{ch_string[i]}" ]
-			fMax[i] = inFile_R.Get( f"max_{sec}_{ch_string[i]}" )
-			fMin[i] = inFile_R.Get( f"min_{sec}_{ch_string[i]}" )
+			hist[i] = inFile[ f"hTheta_P_sec_{sec}_{ch_string[i]};1" ]
+			fMax[i] = inFile_R.Get( f"max_{sec}_{ch_string[i]};1" )
+			fMin[i] = inFile_R.Get( f"min_{sec}_{ch_string[i]};1" )
 		max_params[i] = [fMax[i].GetParameter(j) for j in range(2)]
 		min_params[i] = [fMin[i].GetParameter(j) for j in range(2)]
 		xEdges = hist[i].axis(0).edges()
@@ -74,9 +75,10 @@ for sec in range(nSec):
 		axs[i].tick_params(which='both', width=2)
 		axs[i].tick_params(which='major', length=7)
 		axs[i].tick_params(which='minor', length=4)
-		axs[i].tick_params(labelsize='20')
+		axs[i].tick_params(labelsize='18')
 		
 		axs[i].set_ylim( [5, 35] )
+
 		axs[i].pcolormesh(xEdges, yEdges, values[i].T, cmap='winter', shading='auto')
 		if( i == 1 ):
 			axs[i].plot( xVals, max_vals[0], c='r', linestyle='-', linewidth=4, label = tit_string[0] + ' Cut')
@@ -88,8 +90,8 @@ for sec in range(nSec):
 		axs[i].plot( xVals, min_vals[1], c='orange', linestyle='-', linewidth=4) 
 
 
-		axs[i].set_xlabel(r"$p_{\pi}$ [GeV]", fontsize=16)
-		axs[i].set_ylabel(r"$\theta_{\pi}$ [deg.]", fontsize=16)
+		axs[i].set_xlabel(r"$p_{\pi}$ [GeV]", fontsize=20)
+		axs[i].set_ylabel(r"$\theta_{\pi}$ [deg.]", fontsize=20)
 		if(nSec != 1):
 			axs[i].set_title(f"Sector {sec}, " + tit_string[i], fontsize=16)
 		else:
@@ -98,6 +100,9 @@ for sec in range(nSec):
 	fig.legend(fontsize=16)
 
 	if nSec == 1:
-		fig.savefig(f'{out_dir}/hMatch_kaons.pdf')
+		if "Pi2K" in inName:
+			fig.savefig(f'{out_dir}/hMatch_pions.pdf')
+		else:
+			fig.savefig(f'{out_dir}/hMatch_kaons.pdf')
 	else:
 		fig.savefig(f'{out_dir}/hMatch_{sec+1}.pdf')

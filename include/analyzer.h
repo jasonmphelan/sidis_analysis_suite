@@ -26,6 +26,9 @@ class analyzer{
 public:
 	analyzer(int _mode, int _torusBending_);
 	~analyzer();
+	analyzer( const analyzer&) =default;
+	analyzer& operator=( const analyzer&) =default;
+
 	void setAnalyzerLevel( int _mode ){ mode = _mode; }
 	void loadElectron( electron *iE ){ e = iE; } 
 	void loadPion( pion *iPi ){ pi = iPi; } 
@@ -77,7 +80,9 @@ public:
 	bool applyPionDetectorVertex( pion pi, electron e );
 	
 	int checkAcceptance( double p, double phi, double theta, int particle );
-	
+	void writeCutsNamesToFile(std::ofstream& txtFile);
+	void writeCutsToFile(std::ofstream& txtFile);
+
 private:
 	int	fdebug;
 	int	torusBending; // -1 for In-bending, +1 for Out-bending
@@ -100,8 +105,8 @@ private:
 	double SF_p_mean[6][3];
 	double SF_p_sigma[6][3];
 
-	double acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
-	double fitBounds[6][10][3][3];	
+	double acceptanceMap[6][20][3][8];  //sector, p bin, particle type, number of parameters	
+	double fitBounds[6][20][3][2];	
 
 	//parameter modifiers for cut sensitivity
 	double mod_el_fid[3] = {1, 1, 1};

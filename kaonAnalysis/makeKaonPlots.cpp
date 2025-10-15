@@ -51,7 +51,7 @@ int main( int argc, char** argv){
 
 	int nBinsQ2 = bins_Q2;
 	int nBinsXb = bins_xB/2;//(int) (10* (bins_xB/25.));
-	int nBinsZ = 2*bins_Z;
+	int nBinsZ = bins_Z;
 
 	//TString in_name = argv[1];
        	TString out_name = argv[1];
@@ -80,8 +80,8 @@ int main( int argc, char** argv){
 			for( int l = 0; l <= nBinsZ; l++ ){
 				for( int i = 0; i < 2; i++ ){//Bin by charge
 					for( int m = 0; m <= bins_p; m++ ){//momentum bins
-						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 250, -.1, 1.25);
-						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 250, -.1, 1.25);
+						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 135, -.1, 1.25);
+						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 135, -.1, 1.25);
 					}
 					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, .9 ,1.05 );
 					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, 0.9 ,1.05 );

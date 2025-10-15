@@ -153,10 +153,13 @@ void pion::setPi_q ( TLorentzVector q, TLorentzVector pe ){
     	// move to q-Pe system: q is the z axis, Pe is in x-z plane: Pe=(Pe[x],0,Pe[q])
 
 	TVector3 pi3_temp = pi3;
+	
+	pe.RotateZ(-q.Phi());
+	pe.RotateY(-q.Theta());
 
 	pi3_temp.RotateZ( -q.Phi()  );
-    	pi3_temp.RotateY( -q.Theta() );
-    	pi3_temp.RotateZ( -pe.Phi() );
+    pi3_temp.RotateY( -q.Theta() );
+	pi3_temp.RotateZ( -pe.Phi() );
 	
 	pi_q.SetVectM( pi3_temp, pi4.M() ); 
 }

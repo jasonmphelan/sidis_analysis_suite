@@ -35,7 +35,7 @@ double fitF( double *p, double *par);
 
 int main( int argc, char** argv){
 
-	if( argc <3 ){
+	if( argc < 4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [Input File] [Correction File (no extension)] [Fit File (full path)]\n";
 		return -1;
@@ -47,14 +47,15 @@ int main( int argc, char** argv){
 	TString in_name = argv[1];
        	TString out_name = argv[2];
 	TString fit_name = argv[3];
+	double sigma = atof(argv[4]);
 
        	TFile * outFile = new TFile(out_name, "RECREATE");
        	TFile * outFile_fits = new TFile(fit_name, "RECREATE");
        	TFile * inFile = new TFile(in_name);
 	
 	int nBinsQ2 = bins_Q2;
-	int nBinsXb = bins_xB;
-	int nBinsZ = 2*bins_Z;
+	int nBinsXb = bins_xB/2;
+	int nBinsZ = bins_Z;
 	
 	//Load hists for fitting
 	TH1F * hBeta[2][nBinsQ2+1][nBinsXb+1][nBinsZ+1][bins_p+1];
@@ -130,17 +131,18 @@ int main( int argc, char** argv){
 					int pip_bin_min = 1;//hBeta[0][j+1][k+1][l+1][m+1]->GetXaxis()->FindBin( pip_fit_mean - 2*pip_fit_std );
 					int pip_bin_max = 1;
 					
-				 	if( pip_fit_mean < -0.05 || pip_fit_mean > 0.075 || fitProb_pip <= 0 || fitProb_pip >= 1 || hBeta[0][j+1][k+1][l+1][m+1]->Integral() <= 30 ){	
+				 	if( pip_fit_mean < -0.05 || pip_fit_mean > 0.075 || fitProb_pip <= 0 || fitProb_pip >= 1 || hBeta[0][j+1][k+1][l+1][m+1]->Integral() <= 120 ||
+							 pip_fit_mean + sigma*pip_fit_std > .2){	
 						pip_bin_max= hBeta[0][j+1][k+1][l+1][m+1]->FindBin( 0.1 );
 					}
 					else{
-						pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->FindBin( pip_fit_mean + 2*pip_fit_std );
+						pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->FindBin( pip_fit_mean + sigma*pip_fit_std );
 
 						fitPip[j][k][l][m]->Write();	
 					}
 				
 
-					for( int bin = 0; bin <= pip_bin_max; bin++ ){
+					for( int bin = 1; bin <= pip_bin_max; bin++ ){
 						pip_num+=hBeta[0][j+1][k+1][l+1][m+1]->GetBinContent(bin);
 					}
 
@@ -155,15 +157,16 @@ int main( int argc, char** argv){
 					int pim_bin_min = 1;//hBeta[1][j+1][k+1][l+1][m+1]->GetXaxis()->FindBin( pim_fit_mean - 2*pim_fit_std );
 					int pim_bin_max = 1;//hBeta[1][j+1][k+1][l+1][m+1]->GetBin( pim_fit_mean + 2*pim_fit_std );
 				 	
-					if( pim_fit_mean < 0 || pim_fit_mean > 0.05 || fitProb_pim <= 0 || fitProb_pim >= 1 || hBeta[1][j+1][k+1][l+1][m+1]->Integral() <= 10){	
+					if( pim_fit_mean < 0 || pim_fit_mean > 0.05 || fitProb_pim <= 0 || fitProb_pim >= 1 || hBeta[1][j+1][k+1][l+1][m+1]->Integral() <= 150||
+					pim_fit_mean + sigma*pim_fit_std > .2){	
 						pim_bin_max= hBeta[1][j+1][k+1][l+1][m+1]->FindBin( 0.1 );
 					}
 					else{
-						pim_bin_max = hBeta[1][j+1][k+1][l+1][m+1]->FindBin( pim_fit_mean + 2*pim_fit_std );
+						pim_bin_max = hBeta[1][j+1][k+1][l+1][m+1]->FindBin( pim_fit_mean + sigma*pim_fit_std );
 						fitPim[j][k][l][m]->Write();	
 					}
 
-					for( int bin = 0; bin <= pim_bin_max; bin++ ){
+					for( int bin = 1; bin <= pim_bin_max; bin++ ){
 						pim_num+=hBeta[1][j+1][k+1][l+1][m+1]->GetBinContent(bin);
 					}
 

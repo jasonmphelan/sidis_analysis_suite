@@ -52,7 +52,7 @@ for sec in range(6):
 	axs[reg, ch].tick_params(which='minor', length=4)
 	
 	axs[reg, ch].pcolormesh(xEdges, yEdges, values.T, shading='auto', norm='log')
-	axs[reg, ch].plot( xVals, mean_vals, c='r', linestyle='-', linewidth=2)
+	axs[reg, ch].plot( xVals, mean_vals, c='r', linestyle='--', linewidth=2)
 	axs[reg, ch].plot( xVals, max_vals, c='r', linestyle='-', linewidth=2)
 	axs[reg, ch].plot( xVals, min_vals, c='r', linestyle='-', linewidth=2)
 	

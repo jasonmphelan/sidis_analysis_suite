@@ -7,7 +7,7 @@ import time
 
 Ebeam = 10.2
 
-for x in range(0, 200):
+for x in range(0, 300):
 	n = x + 1 
 	#n = runList[x]
 	time.sleep(0.5)			
@@ -15,12 +15,12 @@ for x in range(0, 200):
 #SBATCH --job-name=cut_sensitivity_{0}_{1}
 #SBATCH --account=clas12
 #SBATCH -p production
-#SBATCH --mem-per-cpu=1500
-#SBATCH -t720
+#SBATCH --mem-per-cpu=250
+#SBATCH -t600
 #SBATCH --constraint=el9
 #SBATCH --error=/farm_out/jphelan/cut_sensitivity/err_cs_{0}_{1}.txt
 #SBATCH --output=/volatile/clas12/users/jphelan/SIDIS/cut_sensitivity/farm_out/out_{0}_{1}.txt
-time ./cutAnalysis/cutSensitivity 20 {1} 0 0 0 /volatile/clas12/users/jphelan/SIDIS/cut_sensitivity/ratio_{1}_{0}.txt
+time ./cutAnalysis/cutSensitivity 10 0 0 0 0 /volatile/clas12/users/jphelan/SIDIS/cut_sensitivity/ratio_no_vz_{1}_{0}
     """.format( n, Ebeam)	
 	command = command.replace('\t', '')
 	print(command)

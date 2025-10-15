@@ -19,14 +19,14 @@ inFile_list = [sys.argv[2*i + 2] for i in range(nFiles)]
 inFile_tits = [sys.argv[2*i + 3] for i in range(nFiles)]
 
 
-colorList = ['red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray']
+colorList = ['red', 'blue', 'green', 'magenta', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray']
 
 for q in range(12):
 	
 	for x in range(14):
 	
 		fig, ax = plt.subplots(2, 1, figsize=(12,6), height_ratios=[3,1], sharex='col', layout='constrained')
-		ax[1].set_ylim( [0.8, 1.2] )
+		#ax[1].set_ylim( [0.8, 1.2] )
 		ax[0].set_ylim( [0, 1] )
 		ax[1].set_xlim( [.3, .8] )
 		
@@ -51,12 +51,14 @@ for q in range(12):
 		xEdges = hist.axis().edges()
 		binCenters = (xEdges[:-1]+xEdges[1:])/2 + ( -.01 + .002*q)
 
-		ax[0].errorbar( binCenters, values, errors, label=inFile_tits[0], marker='o',
-						color = colorList[0], linestyle = '',capsize = 2, lw = 1, capthick = 1)
+		ax[0].errorbar( binCenters, values, errors, label=inFile_tits[0], marker='.',
+						color = colorList[0], linestyle = '',capsize = 2, lw = 1, capthick = 1, markersize=10,mec='black')
 
 		if( np.isnan(values).all() ):
 			continue
-
+		
+		rat_max = 1.1
+		rat_min = 0.9
 		for num in range( 1, len(inFile_list) ):
 			inFile_temp = uproot.open(inFile_list[num])
 			hist_temp = inFile_temp[f'hRatio_{q+1}_{x+1}']
@@ -68,18 +70,21 @@ for q in range(12):
 			ratio_err =  ratio*np.sqrt( (errors/values)**2 + (errors_temp/values_temp)**2 )
 			ratio_err[ratio_err<=0] = np.nan
 				
-			ax[0].errorbar( binCenters, values_temp, errors_temp, label=inFile_tits[num], marker='o',
-							color = colorList[num], linestyle = '',capsize = 2, lw = 1, capthick = 1)
+			ax[0].errorbar( binCenters, values_temp, errors_temp, label=inFile_tits[num], marker='.',
+							color = colorList[num], linestyle = '',capsize = 2, lw = 1, capthick = 1,markersize=10,mec='black')
 
-			ax[1].errorbar( binCenters, ratio, ratio_err, marker='o',
-							color = colorList[num], linestyle = '',capsize = 2, lw = 1, capthick = 1)
+			ax[1].errorbar( binCenters, ratio, ratio_err, marker='.',
+							color = colorList[num], linestyle = '',capsize = 2, lw = 1, capthick = 1, markersize=10,mec='black')
 
-			
+			if np.max(ratio)*1.2 > rat_max:
+				rat_max = np.maximum(ratio)*1.2
+			if np.min(ratio)*0.8 < rat_min:
+				rat_min = np.minimum(ratio)*0.8
 
 		#plt.errorbar(binCenters, ratio, yerr=ratio_err, color=colorList[x], label=tit, linestyle='',marker='.', markersize=10, mec='black', capsize=2)
 		#plt.plot(binCenters, ratio, color=colorList[q], label=tit, linestyle='',marker='.', markersize=10, mec='black')
 		
-
+		ax[1].set_ylim( rat_min, rat_max )
 		ax[0].legend()
 		#plt.text(.95, .5, r'%.2f $< x_B <$ %.2f'%( .1 + .04*x, .1 + .04*(x+1) ), fontsize=12)
 		#plt.title( r'%.1f $< Q^2 <$ %.1f [GeV$^2$]'%( 2 + 0.5*q, 2 + 0.5*(q+1) ), fontsize=16)

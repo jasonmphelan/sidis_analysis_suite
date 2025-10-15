@@ -51,7 +51,7 @@ for x in range(14):
 		ax[0].errorbar( binCenters, values, errors, label=r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q), 2+.5*(q+1)), marker='o',
 						color = colorList[q], linestyle = '',capsize = 2, lw = 1, capthick = 1)
 
-		ratio = np.asarray(ff(binCenters))/values
+		ratio = values/np.asarray(ff(binCenters))
 		ratio_err =  ratio*np.sqrt( (errors/values)**2)
 		ratio_err[ratio_err<=0] = np.nan
 

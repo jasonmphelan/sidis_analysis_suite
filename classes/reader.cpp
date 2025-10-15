@@ -12,12 +12,13 @@
 #include <fstream>
 #include <unistd.h>
 #include "constants.h"
-
+#include <filesystem>
 
 #define RUN_PATH _DATA
 
 using namespace std;
 using namespace constants;
+namespace fs = std::filesystem; 
 
 reader::reader() {}
 
@@ -79,8 +80,13 @@ void reader::setDataPaths(){
     		
 		dataPath = "/cache/clas12/rg-b/production/recon/"+path_temp;	
     	}
-	else if( runType == 4 ){
+	else if( runType == 3 ){
 		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_0";
+		//dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/background_hipo";
+	}
+	else if( runType == 4 ){
+		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/recon/0";
+		//dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/background_hipo";
 	}
 }
 
@@ -100,7 +106,8 @@ void reader::getRunList(){
 
 		cout<<"Run List : "<<runList<<endl;
 	}
-	else if( runType == 4 ){
+
+	else if( runType == 4 || runType == 3){
 		runList = (TString) RUN_PATH+"/runLists/good_runs_10-4_pos.txt";
 	}	
 }
@@ -116,7 +123,7 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 	int beamType =	(int) ( (EBeam - 10.2)/.2 );
 	cout<<runList<<std::endl;
 	if(!stream ){ cout<<"fAILEd TO open runlist\n";}
-	if(runType == 0 || runType == 4){
+	if(runType == 0 || runType == 3){
 		int i = 0;
 		while(std::getline(stream, runNum)){
 			if(nFiles != 0 && i >= nFiles ) break;
@@ -138,13 +145,27 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 			}
 		}
 	}
-	else {
-		for( int i = 0; i < 18; i++){
-			if( nFiles != 0 && i >= nFiles ) break;
-			inFile = dataPath + Form("%i.hipo", i);
-			if( gSystem->AccessPathName(inFile) ) continue;
-			files.Add(inFile.Data());
+	else if(runType == 4){
+		int i = 0;
+		while(std::getline(stream, runNum)){
+			if(nFiles != 0 && i >= nFiles ) break;
+			string run = runNum;
+		 	string inDir = (string)dataPath + run;
+			//need to iterate over all subfiles
+			for (const auto& entry : fs::directory_iterator(inDir)) {
+				// Check if the entry is a regular file (not a directory or other type)
+				if (fs::is_regular_file(entry.status())) {
+					//
+					// cout<<"File name : "<<entry.path().filename().string()<<std::endl;
+					files.Add(inDir + '/' + entry.path().filename().string());
+					runNums.push_back( stoi( run ) );
+				}
+			}
+			i++;
 		}
+	}
+	else {
+		std::cout<<"Incorrect runType submitted\n";
 	}
 
 
@@ -174,7 +195,7 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 		int beamType =	(int) ( (EBeam - 10.2)/.2 );
 		if(!stream ){ cout<<"Failed to open runlist\n";}
 		
-		if(runType == 0 ){
+		if(runType == 0 || runType == 3){
 			int i = 0;
 			while(std::getline(stream, runNum)){
 				if(nFiles != 0 && i >= nFiles ) break;

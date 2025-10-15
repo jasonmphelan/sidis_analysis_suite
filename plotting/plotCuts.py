@@ -103,11 +103,11 @@ def drawCut1D( ax, key ):
 			ax.axvline(x=-7., c='r', linewidth=2)
 			ax.axvline(x=2, c='r', linewidth=2)
 		if "Vz_pip" in key:
-			ax.axvline(x=-7, c='r', linewidth=2)
-			ax.axvline(x= 4, c='r', linewidth=2)
+			ax.axvline(x=-1+3.5*1.4, c='r', linewidth=2)
+			ax.axvline(x=-1-3.5*1.4, c='r', linewidth=2)
 		if "Vz_pim" in key:
-			ax.axvline(x=-5, c='r', linewidth=2)
-			ax.axvline(x= 4, c='r', linewidth=2)
+			ax.axvline(x=-0.15+1.2*3.5, c='r', linewidth=2)
+			ax.axvline(x=-0.15-1.2*3.5, c='r', linewidth=2)
 		if "Z_pi" in key:	
 			ax.axvline(x=.3, c='r', linewidth=2)
 		if "Y_pi" in key:
