@@ -83,6 +83,11 @@ public:
 	void writeCutsNamesToFile(std::ofstream& txtFile);
 	void writeCutsToFile(std::ofstream& txtFile);
 
+
+	void loadAcceptanceMapContinuous(TString fileName);
+	int applyAcceptanceMap( double p, double phi, double theta, int particle );
+	double mapFunc(int particle, int sector, int param, double p) {return mapParameters[particle][sector][param]->Eval(p);}
+
 private:
 	int	fdebug;
 	int	torusBending; // -1 for In-bending, +1 for Out-bending
@@ -96,6 +101,8 @@ private:
 
 	TF1 * match3d[6][3];
 	TF1 * match2d[6][2][2]; //[sector][max/min][pip/pim]
+
+	TF1 * mapParameters[3][6][7];
 
 	e_pid epid;
 	DCfid_SIDIS dcfid;

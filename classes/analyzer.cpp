@@ -759,6 +759,68 @@ int analyzer::checkAcceptance( double p, double phi, double theta, int particle 
 
 	return -1;
 }
+
+void analyzer::loadAcceptanceMapContinuous(TString fileName){
+	TFile f(fileName);
+
+	TString pars[3] = {"e", "pip", "pim"};
+	TString params[7] = {"lower_a","upper_a","lower_b", "upper_b","theta", "max", "mean"};
+	
+	for (int par = 0; par < 3; par++ ){
+		for (int sec = 0; sec < 6; sec++ ){
+			for ( int param = 0; param < 7; param++ ){
+				//mapParameters[par][sec][param] = (TF1*) f.Get( Form("f_%s_%i_param_%s", pars[par], sec+1, params[param]) );
+				mapParameters[par][sec][param] = (TF1*) f.Get( Form("f_")+pars[par]+Form("_%i_param_", sec+1) + params[param] );
+
+			}
+		}
+	}
+
+}
+
+int analyzer::applyAcceptanceMap( double p, double phi, double theta, int particle ){
+	int out_sec = -1;
+
+	for( int sec = 0; sec < 6; sec++ ){
+		double phi_temp = phi;
+		
+		if( particle == 0 && sec == 4 && phi < 100. ){ phi_temp += 360; }
+		if( particle > 0 && (sec == 3 || (sec == 4 && p > 1) ) && phi < 0. ){ phi_temp += 360; }
+		double phi_avg = mapFunc(particle, sec, 6, p);
+		double theta_min = mapFunc(particle, sec, 4, p);
+		double theta_max = mapFunc(particle, sec, 5, p);
+
+		double a_low = mapFunc(particle, sec, 0, p);
+		double a_up = mapFunc(particle, sec, 1, p);
+		double b_low = mapFunc(particle, sec, 2, p);
+		double b_up = mapFunc(particle, sec, 3, p);
+
+		double denom_up = (theta - theta_min)/b_up;
+		double denom_low = (theta - theta_min)/b_low;
+
+		if(particle > 0){
+			denom_up = exp( (theta - theta_min)/b_up );
+			denom_low = exp( (theta - theta_min)/b_low );
+		}
+
+
+		double phi_max = phi_avg + a_up*(1 - 1/( denom_up + 1 ));
+		double phi_min = phi_avg - a_low*(1 - 1/( denom_low + 1 ));
+
+		std::cout<<"Phi : "<<phi<<std::endl;
+		std::cout<<"Theta : "<<theta<<std::endl;
+		std::cout<<"P : "<<p<<std::endl;
+		std::cout<<"Sector : "<<sec<<std::endl;
+		std::cout<<"Phi Max: "<<phi_max<<std::endl;
+		std::cout<<"Phi Min: "<<phi_min<<std::endl;
+		std::cout<<"Theta min : "<<theta_min<<std::endl;
+		std::cout<<"Theta max : "<<theta_max<<std::endl;
+
+		if ( phi_temp>phi_min && phi_temp < phi_max && theta > theta_min && theta < theta_max ) out_sec = sec;
+	}
+
+	return out_sec;
+}
 //Legacy cut function
 /*
 bool analyzer::applyElectronDetectorCuts( electron e ){

@@ -67,7 +67,8 @@ int main( int argc, char** argv){
 		inFiles->Add( Form("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/%.1f/final_skim.root", ebeam ) );
 	}
 
-
+	analyzer anal(0, -1);
+	anal.loadAcceptanceMapContinuous("../data/acceptance_map/acceptanceMap_allE_final.root");
 
 	TFile * outFile = new TFile( outFileName, "RECREATE");
 
@@ -84,11 +85,11 @@ int main( int argc, char** argv){
 	}
 
 	//Load input tree
-        TTreeReader reader_rec(inFiles);
+    TTreeReader reader_rec(inFiles);
 
-        TTreeReaderValue<electron> e(reader_rec, "e");
+    TTreeReaderValue<electron> e(reader_rec, "e");
 
-        TTreeReaderArray<pion> pi(reader_rec, "pi");
+    TTreeReaderArray<pion> pi(reader_rec, "pi");
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion_no_acc");
 	int event_total = reader_rec.GetEntries();
 
@@ -98,6 +99,8 @@ int main( int argc, char** argv){
 		if(event_count%1000000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<endl;
 		}
+		if( anal.applyAcceptanceMap( e->get3Momentum().Mag(), e->get3Momentum().Phi()*rad_to_deg, e->get3Momentum().Theta()*rad_to_deg, 0 ) < 0 ) continue;
+		
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
                         int sector_i = pi[i].getDC_sector() - 1;
     			int chargeIdx = (int)(pi[i].getCharge() < 0);			
@@ -105,10 +108,13 @@ int main( int argc, char** argv){
 			if ( !isGoodPion[i] ) { continue; }
 		
 			double p = pi[i].get3Momentum().Mag();
-			double theta = pi[i].get3Momentum().Theta()*rad_to_deg; 
+			double theta = pi[i].get3Momentum().Theta()*rad_to_deg; 			
+			double phi = pi[i].get3Momentum().Phi()*rad_to_deg; 
+
+			if( anal.applyAcceptanceMap(p, phi, theta, chargeIdx ) < 0 ) continue;
 
 			if(sector_i < 0){continue;}
-
+			
 			int this_bin_p = (int)( ( (p - p_min)/(p_max-p_min) )*NpBins);
 			if(this_bin_p > 6){continue;}
 			hTheta[sector_i][this_bin_p][chargeIdx]->Fill(theta);
