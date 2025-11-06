@@ -111,7 +111,7 @@ int main( int argc, char** argv){
 			double theta = pi[i].get3Momentum().Theta()*rad_to_deg; 			
 			double phi = pi[i].get3Momentum().Phi()*rad_to_deg; 
 
-			if( anal.applyAcceptanceMap(p, phi, theta, chargeIdx ) < 0 ) continue;
+			if( anal.applyAcceptanceMap(p, phi, theta, chargeIdx + 1 ) < 0 ) continue;
 
 			if(sector_i < 0){continue;}
 			

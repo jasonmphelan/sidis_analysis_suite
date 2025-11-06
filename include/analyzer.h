@@ -87,12 +87,14 @@ public:
 	void loadAcceptanceMapContinuous(TString fileName);
 	int applyAcceptanceMap( double p, double phi, double theta, int particle );
 	double mapFunc(int particle, int sector, int param, double p) {return mapParameters[particle][sector][param]->Eval(p);}
-
+	double returnElPhiMin(int sector, double p, double theta);
+	double returnElPhiMax(int sector, double p, double theta);
 private:
 	int	fdebug;
 	int	torusBending; // -1 for In-bending, +1 for Out-bending
 	int 	mode;
 
+	bool loadedAcceptanceMaps = false;
 
 	TH3F *	accCorrection;
 	TH3F *	binCorrection;

@@ -31,7 +31,7 @@ using std::isfinite;
 using std::cout;
 using std::endl;
 using std::ofstream;
-
+using std::isnan;
 using namespace cutVals;
 using namespace constants;
 
@@ -47,11 +47,16 @@ int main( int argc, char** argv){
 
 	TString in_name = argv[1];
     TString out_name = argv[2];
-	
+	double Mx_low = atof(argv[3]);
+	double Mx_high = atof(argv[4]);
+	double norm_bound = atof(argv[5]);
+
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);//runType);
-	anal.loadMatchingFunctions();
+	anal.loadMatchingFunctions("matchCut2D_map.root");
 	anal.loadMatchingFunctions3D();
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
+
 
 	int nBinsXb = 14;
 	int nBinsQ2 = 12;
@@ -62,8 +67,9 @@ int main( int argc, char** argv){
 	double widthZ = (1. - .3)/( (double) nBinsZ );
 
         //TFile * file_rec = new TFile(in_name);
-	TFile * file_out = new TFile(out_name + ".root", "RECREATE");
-	
+	TFile * file_out = new TFile(out_name + in_name + ".root", "RECREATE");
+	TVector3 * bounds = new TVector3(Mx_low, Mx_high, norm_bound);
+
 	TH1F* hMx_2pi[2][nBinsXb][nBinsQ2][nBinsZ];
 	TH1F* hM_rho[2][nBinsXb][nBinsQ2][nBinsZ];
 	TH1F* hM_rho_back[2][nBinsXb][nBinsQ2][nBinsZ];
@@ -115,20 +121,26 @@ int main( int argc, char** argv){
 		}
 	
 		for( int i = 0; i < (int)(pi.end() - pi.begin());i++ ){
-			//if( !isGoodPion[i] ){continue;}
+			if( !isGoodPion[i] ){continue;}
 			//if( !isGoodPion[0] || !isGoodPion[1]){continue;}
 			int chargeIdx = (int)( pi[i].getCharge() < 0 );
 			int this_bin_Q2 = (int)( ( (e->getQ2() - Q2_min)/(Q2_max-Q2_min) )*nBinsQ2);
 			int this_bin_xB = (int)( ( (e->getXb() - xB_min)/(xB_max-xB_min) )*nBinsXb);
+			
 			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*nBinsZ);
 	
+			
+			//bool matching = anal.applyAcceptanceMatching(pi[i], 2);
+				//matching = isGoodPion[i]; }
+			
+			//if( !matching ){ continue; }
 
-			if( rhoWeight[i] <= 0 ){ continue; }
+
+			//if( rhoWeight[i] <= 0 || rhoWeight[i] > 20 ){ continue; }
 		
 			hMx_2pi[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*Mx_2pi) , rhoWeight[i] );
-			//hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , rhoWeight[i] );
-			if( *Mx_2pi > 1.15 && *Mx_2pi < 1.35 ) hM_rho_back[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , rhoWeight[i] );
-			if( *Mx_2pi < 1.15 ) hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , rhoWeight[i] );
+			if( *Mx_2pi > bounds->X() && *Mx_2pi < bounds->Y() ) hM_rho_back[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) );//, rhoWeight[i] );
+			if( *Mx_2pi < bounds->X() ) hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) );//, rhoWeight[i] );
 
 		}
 	}
@@ -141,7 +153,7 @@ int main( int argc, char** argv){
 		for( int q = 0; q < nBinsQ2; q++ ){
 			for( int z = 0; z <  nBinsZ; z++ ){				
 			
-				double bin_max= hM_rho[0][x][q][z]->FindBin( 0.525 );
+				double bin_max= hM_rho[0][x][q][z]->FindBin( bounds->Z() );
 				double back_num_pip = 0;
 				double back_num_pim = 0;
 				double rho_num_pip = 0;
@@ -174,6 +186,7 @@ int main( int argc, char** argv){
 	out_fits->Close();
 	
 	file_out->cd();
+	bounds->Write("bounds");
 	hNorms[0]->Write();
 	hNorms[1]->Write();
 	file_out->Close();

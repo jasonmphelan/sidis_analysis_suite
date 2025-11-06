@@ -538,9 +538,12 @@ bool analyzer::acceptance_match_2d( double theta, double p, int sector_i){
 		bool min_pip = (bool) ( theta > match2d[sector_i - 1][1][0]->Eval(p) );
 		bool min_pim = (bool) ( theta > match2d[sector_i - 1][1][1]->Eval(p) );
 		
-		return (max_pip && max_pim && min_pip && min_pim);
+		//Check acceptance map maxima as well
+		bool passMapThetaMax = (theta < mapFunc(1, sector_i-1, 5, p)) &&  (theta < mapFunc(2, sector_i-1, 5, p));
+	
 
-		//return (theta > acc_map_pip_min && theta > acc_map_pim_min );
+		return (max_pip && max_pim && min_pip && min_pim && passMapThetaMax);
+
 }
 
 //Discrete 3d accepance matching cut
@@ -634,7 +637,7 @@ void analyzer::loadMatchingFunctions3D( TString fileName ){
 }
 
 void analyzer::loadMatchingFunctions(){
-	loadMatchingFunctions("matchCut2D.root");
+	loadMatchingFunctions("matchCut2D_map.root");
 }
 void analyzer::loadMatchingFunctions3D(){
 	loadMatchingFunctions3D("matchCut3D.root");
@@ -762,7 +765,6 @@ int analyzer::checkAcceptance( double p, double phi, double theta, int particle 
 
 void analyzer::loadAcceptanceMapContinuous(TString fileName){
 	TFile f(fileName);
-
 	TString pars[3] = {"e", "pip", "pim"};
 	TString params[7] = {"lower_a","upper_a","lower_b", "upper_b","theta", "max", "mean"};
 	
@@ -778,14 +780,39 @@ void analyzer::loadAcceptanceMapContinuous(TString fileName){
 
 }
 
+double analyzer::returnElPhiMin(int sec, double p, double theta){
+	int particle = 0;
+	double phi_avg = mapFunc(particle, sec, 6, p);
+
+	double a_low = mapFunc(particle, sec, 0, p);
+	double b_low = mapFunc(particle, sec, 2, p);
+	double denom_low = (theta - theta_min)/b_low;
+
+	double phi_min = phi_avg - a_low*(1 - 1/( denom_low + 1 ));
+	return phi_min;
+
+}
+double analyzer::returnElPhiMax(int sec, double p, double theta){
+	int particle = 0;
+	double phi_avg = mapFunc(particle, sec, 6, p);
+
+	double a_up = mapFunc(particle, sec, 1, p);
+	double b_up = mapFunc(particle, sec, 3, p);
+
+	double denom_up = (theta - theta_min)/b_up;
+
+	double phi_max = phi_avg + a_up*(1 - 1/( denom_up + 1 ));
+	return phi_max;
+}
+
 int analyzer::applyAcceptanceMap( double p, double phi, double theta, int particle ){
 	int out_sec = -1;
 
 	for( int sec = 0; sec < 6; sec++ ){
 		double phi_temp = phi;
 		
-		if( particle == 0 && sec == 4 && phi < 100. ){ phi_temp += 360; }
-		if( particle > 0 && (sec == 3 || (sec == 4 && p > 1) ) && phi < 0. ){ phi_temp += 360; }
+		if( particle == 0 && sec == 3 && phi < 100. ){ phi_temp += 360; }
+		if( particle > 0 && (sec == 2 || (sec == 3 && p > 1) ) && phi < 0. ){ phi_temp += 360; }
 		double phi_avg = mapFunc(particle, sec, 6, p);
 		double theta_min = mapFunc(particle, sec, 4, p);
 		double theta_max = mapFunc(particle, sec, 5, p);
@@ -798,7 +825,7 @@ int analyzer::applyAcceptanceMap( double p, double phi, double theta, int partic
 		double denom_up = (theta - theta_min)/b_up;
 		double denom_low = (theta - theta_min)/b_low;
 
-		if(particle > 0){
+		if(particle == 1){
 			denom_up = exp( (theta - theta_min)/b_up );
 			denom_low = exp( (theta - theta_min)/b_low );
 		}
@@ -807,14 +834,7 @@ int analyzer::applyAcceptanceMap( double p, double phi, double theta, int partic
 		double phi_max = phi_avg + a_up*(1 - 1/( denom_up + 1 ));
 		double phi_min = phi_avg - a_low*(1 - 1/( denom_low + 1 ));
 
-		std::cout<<"Phi : "<<phi<<std::endl;
-		std::cout<<"Theta : "<<theta<<std::endl;
-		std::cout<<"P : "<<p<<std::endl;
-		std::cout<<"Sector : "<<sec<<std::endl;
-		std::cout<<"Phi Max: "<<phi_max<<std::endl;
-		std::cout<<"Phi Min: "<<phi_min<<std::endl;
-		std::cout<<"Theta min : "<<theta_min<<std::endl;
-		std::cout<<"Theta max : "<<theta_max<<std::endl;
+	
 
 		if ( phi_temp>phi_min && phi_temp < phi_max && theta > theta_min && theta < theta_max ) out_sec = sec;
 	}

@@ -35,7 +35,7 @@ using std::cerr;
 using std::isfinite;
 using std::cout;
 using std::ofstream;
-
+using std::isnan;
 using namespace cutVals;
 using namespace constants;
 

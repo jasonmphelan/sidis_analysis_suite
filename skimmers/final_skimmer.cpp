@@ -31,8 +31,6 @@
 #pragma link C++ class vector<TVector3>+;
 #pragma link C++ class std::vector<TLorentzVector>+;
 #pragma link C++ class vector<TLorentzVector>+;
-#pragma link C++ class std::vector<clashit>+;
-#pragma link C++ class vector<clashit>+;
 #endif
 
 using std::cerr;
@@ -104,8 +102,8 @@ int main( int argc, char** argv){
 		double lead_Z_3d_temp = -1;               
  
 		int lead_idx_temp = -1;
-                int lead_idx_no_acc_temp = -1;
-                int lead_idx_3d_temp = -1;
+        int lead_idx_no_acc_temp = -1;
+        int lead_idx_3d_temp = -1;
 		
 		std::vector<bool> isGoodPion_event;
 		std::vector<bool> isGoodPion_no_acc_event;
@@ -124,7 +122,14 @@ int main( int argc, char** argv){
 				lead_idx_no_acc_temp = i;
 			}	
 			isGoodPion_no_acc_event[i] = true;
+			
+			double p_pi = pi[i].get3Momentum().Mag();
+			double theta_pi = pi[i].get3Momentum().Theta();
+			double phi_pi = pi[i].get3Momentum().Phi();
 
+			if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 1 ) <0) continue;
+			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 1 ) < 0 ) continue;
+			
 			if ( anal.applyAcceptanceMatching(pi[i], 2) ){
 				if( pi[i].getZ() > lead_Z_temp ){
 					lead_Z_temp = pi[i].getZ();
@@ -133,7 +138,10 @@ int main( int argc, char** argv){
 			
 				isGoodPion_event[i] = true;
 			}
-			if ( anal.applyAcceptanceMatching(pi[i], 3) ){
+			
+
+			if ( anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 1 ) >= 0 &&
+							anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 2 ) >= 0 ){
 				if( pi[i].getZ() > lead_Z_3d_temp ){
 					lead_Z_3d_temp = pi[i].getZ();
 					lead_idx_3d_temp = i;

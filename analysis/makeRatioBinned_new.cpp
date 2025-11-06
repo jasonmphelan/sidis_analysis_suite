@@ -38,7 +38,7 @@ using std::cerr;
 using std::isfinite;
 using std::cout;
 using std::ofstream;
-
+using std::isnan;
 using namespace cutVals;
 using namespace constants;
 
@@ -66,9 +66,11 @@ int main( int argc, char** argv){
 	TString out_name = argv[2];
 	int matchType = atoi(argv[3]);
 	int applyCorr = atoi(argv[4]);
+	int map = atoi(argv[5]);
+	TString acc_name = argv[6];
+	TString rho_norm_name = argv[7];
 
-	TString acc_name = argv[5];
-
+	cout<<rho_norm_name<<std::endl;
 	cout<<"Create and Load files\n";
 
 	TFile * outFile = new TFile(out_name, "RECREATE");
@@ -89,7 +91,7 @@ int main( int argc, char** argv){
 			kChain->Add( base + "final_skims/kaons_10.2/final_skim.root");
 		}
 		if( applyCorr > 4 ){
-			rChain->Add( base + "rho_skims/rotated_10.2.root");
+			rChain->Add( base + "rho_skims/rotated_10.2_acc.root");
 		}
 	}
 	if( inBeam == 0 || inBeam == 10.4){
@@ -98,7 +100,7 @@ int main( int argc, char** argv){
 			kChain->Add( base + "final_skims/kaons_10.4/final_skim.root");
 		}
 		if( applyCorr > 4 ){
-			rChain->Add( base + "rho_skims/rotated_10.4.root");
+			rChain->Add( base + "rho_skims/rotated_10.4_acc.root");
 		}
 	}
 	if( inBeam == 0 || inBeam == 10.6){
@@ -107,9 +109,18 @@ int main( int argc, char** argv){
 			kChain->Add( base + "final_skims/kaons_10.6/final_skim.root");
 		}
 		if( applyCorr > 4 ){
-			rChain->Add( base + "rho_skims/rotated_10.6.root");
+			rChain->Add( base + "rho_skims/rotated_10.6_acc.root");
 		}
 	}
+
+	TFile * rho_norms = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/" + rho_norm_name);
+	TH3F * hNorms_pip = (TH3F*)rho_norms->Get("hNorm_pip");
+	TH3F * hNorms_pim = (TH3F*)rho_norms->Get("hNorm_pim");
+	TVector3 * bounds = (TVector3*)rho_norms->Get("bounds");
+	double Mx_min = bounds->X();
+	double Mx_max = bounds->Y();
+	
+	cout<<"Found rho norms\n";
 
 	//Declare counts and weight arrays
 
@@ -149,9 +160,9 @@ int main( int argc, char** argv){
 
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);//runType);
-	anal.loadMatchingFunctions();
+	anal.loadMatchingFunctions("matchCut2D_map.root");
 	anal.loadMatchingFunctions3D();
-	anal.loadAcceptanceMap( (TString)_DATA + (TString)"/acceptance_map/"+acc_name);//%.1f.root", energy));
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/"+acc_name);//%.1f.root", energy));
 
 	////////////////////////////
 	///////// Pions ////////////
@@ -165,7 +176,9 @@ int main( int argc, char** argv){
 	TTreeReaderValue<double> eBeam( reader_rec, "Ebeam" );
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
-	
+
+	TTreeReaderArray<bool> isGoodPion_no_acc(reader_rec, "isGoodPion_no_acc");
+
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
 	TTreeReaderArray<bool> isGoodPion3d(reader_rec, "isGoodPion_3d");
 
@@ -188,14 +201,15 @@ int main( int argc, char** argv){
 			beam_energy = *eBeam;
 		}
 		TVector3 e_mom = e->get3Momentum();
-		if(anal.checkAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0 ) continue;
-
+		if(map && anal.applyAcceptanceMap( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0 ) continue;
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			
 			int chargeIdx = (int)( pi[i].getCharge() < 1 );
 			double p_pi = pi[i].get3Momentum().Mag();
 
-			if(anal.checkAcceptance( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
+			if(!isGoodPion_no_acc[i]) continue;
+
+			if(map && anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
 
 			int this_bin_E = (int)( (beam_energy - 10.2)/.2 );
 			int this_bin_Q2 = (int)( ( (e->getQ2() - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
@@ -203,16 +217,28 @@ int main( int argc, char** argv){
 			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*bins_Z);
 			int kaon_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*bins_Z);
 
+		
+
+
 			int p_bin = -1;
 			for( int bin = 0; bin < 4; bin++ ){
 				if( p_pi > p_bin_edges[bin] && p_pi < p_bin_edges[bin+1] ) p_bin = bin;
 			}
 
 			bool matching = true;
-			if( matchType == 2 ){ matching = isGoodPion[i]; }
-			else if( matchType == 3 ){ matching = isGoodPion3d[i]; }
+			if( matchType == 2 ){ 
+				matching = anal.applyAcceptanceMatching(pi[i], 2);
+				//matching = isGoodPion[i]; }
+			}
+			else if( matchType == 3 ){ 
+				matching = anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 1 ) >= 0 &&
+							anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 2 ) >= 0;
+				//matching = isGoodPion3d[i];
+			}
+
 
 			if( !matching ){ continue; }
+
 			corrector.setKinematics( e->getXb(), e->getQ2(), pi[i].getZ(), p_pi );
 
 			double weight = 1;
@@ -275,13 +301,13 @@ int main( int argc, char** argv){
 				beam_energy = *eBeam_k;
 			}
 			TVector3 e_mom = e_k->get3Momentum();
-			if(anal.checkAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0) continue;
+			if(map && anal.applyAcceptanceMap( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0 ) continue;
 	
 			for( int i = 0; i < (int) ( k.end() - k.begin() ); i++ ){
 				
 				int chargeIdx = (int)( k[i].getCharge() < 1 );
 				double p_pi = k[i].get3Momentum().Mag();
-				if(anal.checkAcceptance( p_pi, rad_to_deg*k[i].get3Momentum().Phi(), rad_to_deg*k[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
+				if(map && anal.applyAcceptanceMap( p_pi, rad_to_deg*k[i].get3Momentum().Phi(), rad_to_deg*k[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
 
 
 				int this_bin_E = (int)( (beam_energy - 10.2)/.2 );
@@ -289,15 +315,23 @@ int main( int argc, char** argv){
 				int this_bin_Q2 = (int)( ( (e_k->getQ2() - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
 				int this_bin_xB = (int)( ( (e_k->getXb() - xB_min)/(xB_max-xB_min) )*bins_xB);
 				int this_bin_Z = (int)( ( (k[i].getZ() - .3)/(1.-.3) )*bins_Z);
-				int kaon_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*bins_Z);
+				int kaon_bin_Z = (int)( ( (k[i].getZ() - .3)/(1.-.3) )*bins_Z);
 				int p_bin = -1;
 				for( int bin = 0; bin < 4; bin++ ){
 					if( p_pi > p_bin_edges[bin] && p_pi < p_bin_edges[bin+1] ) p_bin = bin;
 				}
 
 				bool matching = true;
-				if( matchType == 2 ){ matching = isGoodKaon[i]; }
-				
+				//if( matchType == 2 ){ matching = isGoodKaon[i]; }
+				if( matchType == 2 ){ 
+					matching = anal.applyAcceptanceMatching(k[i], 2);
+					//matching = isGoodPion[i]; }
+				}
+				else if( matchType == 3 ){ 
+					matching = anal.applyAcceptanceMap( p_pi, rad_to_deg*k[i].get3Momentum().Phi(), rad_to_deg*k[i].get3Momentum().Theta(), 1 ) >= 0 &&
+								anal.applyAcceptanceMap( p_pi, rad_to_deg*k[i].get3Momentum().Phi(), rad_to_deg*k[i].get3Momentum().Theta(), 2 ) >= 0;
+					//matching = isGoodPion3d[i];
+				}
 				if( !matching ){ continue; }
 
 				corrector.setKinematics( e_k->getXb(), e_k->getQ2(), k[i].getZ(), p_pi );
@@ -368,31 +402,44 @@ int main( int argc, char** argv){
 			}
 
 			TVector3 e_mom = e_r->get3Momentum();
-			if(anal.checkAcceptance( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0) continue;
 
 			for( int i = 0; i < (int) ( r.end() - r.begin() ); i++ ){
 				
+				if( !isGoodRho[i] )continue;
 				int chargeIdx = (int)( r[i].getCharge() < 1 );
 				double p_pi = r[i].get3Momentum().Mag();
-				if(anal.checkAcceptance( p_pi, rad_to_deg*r[i].get3Momentum().Phi(), rad_to_deg*r[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
 
 				int this_bin_E = (int)( (beam_energy - 10.2)/.2 );
 				int this_bin_Q2 = (int)( ( (e_r->getQ2() - Q2_min)/(Q2_max-Q2_min) )*bins_Q2);
 				int this_bin_xB = (int)( ( (e_r->getXb() - xB_min)/(xB_max-xB_min) )*bins_xB);
 				int this_bin_Z = (int)( ( (r[i].getZ() - .3)/(1.-.3) )*bins_Z);
-				int kaon_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*bins_Z);
+				int kaon_bin_Z = (int)( ( (r[i].getZ() - .3)/(1.-.3) )*bins_Z);
 				int p_bin = -1;
 				for( int bin = 0; bin < 4; bin++ ){
 					if( p_pi > p_bin_edges[bin] && p_pi < p_bin_edges[bin+1] ) p_bin = bin;
 				}
 
 				bool matching = true;
-				if( matchType == 2 ){ matching = isGoodRho[i]; }
+				//if( matchType == 2 ){ 
+				//	matching = anal.applyAcceptanceMatching(pi[i], 2);
+					//matching = isGoodPion[i]; }
+				//}
+				//if( matchType == 2 ){ matching = isGoodRho[i]; }
+				//if( matchType == 2 ){ 
+				//	matching = anal.applyAcceptanceMatching(r[i], 2);
+					//matching = isGoodPion[i]; }
+				//}
+				if( matchType == 3 ){ 
+					matching = anal.applyAcceptanceMap( p_pi, rad_to_deg*r[i].get3Momentum().Phi(), rad_to_deg*r[i].get3Momentum().Theta(), 1 ) >= 0 &&
+								anal.applyAcceptanceMap( p_pi, rad_to_deg*r[i].get3Momentum().Phi(), rad_to_deg*r[i].get3Momentum().Theta(), 2 ) >= 0;
+					//matching = isGoodPion3d[i];
+				}
+
 				if( !matching ){ continue; }
 
 				corrector.setKinematics( e_r->getXb(), e_r->getQ2(), r[i].getZ(), p_pi );
-				double weight = rhoWeight[i];
-				if( rhoWeight[i] > 20 )continue;  
+				double weight = 1;// rhoWeight[i];
+				//if( rhoWeight[i] > 20 )continue;  
 				double eventWeightErr = 0;
 
 				double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
@@ -409,15 +456,15 @@ int main( int argc, char** argv){
 				}
 				if( applyCorr > 3 ){
 					if( p_bin < 0) continue;
-					weight *= k_weight;
+						weight *= k_weight;
 				}	
-				if( *Mx_2pi < 1.15 ){
+				if( *Mx_2pi < Mx_min ){
 					events_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]++;
 					weights_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]+= weight;
 					//events_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin]++;
 					//hZ_r[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
 				}
-				if( *Mx_2pi > 1.15 && *Mx_2pi < 1.35 ){
+				if( *Mx_2pi > Mx_min && *Mx_2pi < Mx_max ){
 					events_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]++;
 					weights_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]+= weight;
 					//events_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin]++;
@@ -440,10 +487,7 @@ int main( int argc, char** argv){
 	TH1F * helper_1 = new TH1F("helper1", "helper1", 14, .3, 1);
 	TH1F * helper_2 = new TH1F("helper2", "helper2", 14, .3, 1);
 		
-	TFile * rho_norms = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/rho_norms.root");
-	TH3F * hNorms_pip = (TH3F*)rho_norms->Get("hNorm_pip");
-	TH3F * hNorms_pim = (TH3F*)rho_norms->Get("hNorm_pim");
-	cout<<"Found rho norms\n";
+
 	
 	for( int i = 1; i <= bins_Z; i++ ){
 		helper_1->SetBinContent(i, -1.);
@@ -470,7 +514,7 @@ int main( int argc, char** argv){
 
 					setBin( hZ_k[i-1][j-1][0],  k, events_in_bin[1][0][i-1][j-1], weights_in_bin[1][0][i-1][j-1][k], corrector, 5, matchType, 0);
 					setBin( hZ_k[i-1][j-1][1],  k, events_in_bin[1][1][i-1][j-1], weights_in_bin[1][1][i-1][j-1][k], corrector, 5, matchType, 1);
-
+					
 					setBin( hZ_r[i-1][j-1][0],  k, events_in_bin[2][0][i-1][j-1], weights_in_bin[2][0][i-1][j-1][k], corrector, 3, matchType, 0);
 					setBin( hZ_r[i-1][j-1][1],  k, events_in_bin[2][1][i-1][j-1], weights_in_bin[2][1][i-1][j-1][k], corrector, 3, matchType, 1);
 
@@ -478,18 +522,6 @@ int main( int argc, char** argv){
 					setBin( hZ_r_bac[i-1][j-1][1],  k, events_in_bin[3][1][i-1][j-1], weights_in_bin[3][1][i-1][j-1][k], corrector, 3, matchType,1);
 
 				}
-				
-				//hZ[i-1][j-1][0]->SetBinError( k, sqrt( sumWeights[0][i-1][j-1][k-1][0] + sumWeightsErr[0][i-1][j-1][k-1][0]) );
-				//hZ[i-1][j-1][1]->SetBinError( k, sqrt( sumWeights[0][i-1][j-1][k-1][1] + sumWeightsErr[0][i-1][j-1][k-1][1]) );
-				
-				//hZ_k[i-1][j-1][0]->SetBinError( k, sqrt( sumWeights[1][i-1][j-1][k-1][0] + sumWeightsErr[1][i-1][j-1][k-1][0]) );
-				//hZ_k[i-1][j-1][1]->SetBinError( k, sqrt( sumWeights[1][i-1][j-1][k-1][1] + sumWeightsErr[1][i-1][j-1][k-1][1]) );
-	
-				//hZ_r[i-1][j-1][0]->SetBinError( k, sqrt( sumWeights[2][i-1][j-1][k-1][0] + sumWeightsErr[2][i-1][j-1][k-1][0]) );
-				//hZ_r[i-1][j-1][1]->SetBinError( k, sqrt( sumWeights[2][i-1][j-1][k-1][1] + sumWeightsErr[2][i-1][j-1][k-1][1]) );
-				
-				//hZ_r_bac[i-1][j-1][0]->SetBinError( k, sqrt( sumWeights[3][i-1][j-1][k-1][0] + sumWeightsErr[3][i-1][j-1][k-1][0]) );
-				//hZ_r_bac[i-1][j-1][1]->SetBinError( k, sqrt( sumWeights[3][i-1][j-1][k-1][1] + sumWeightsErr[3][i-1][j-1][k-1][1]) );
 
 			}
 
@@ -505,19 +537,25 @@ int main( int argc, char** argv){
 					double pip_err = hZ_r_bac[i-1][j-1][0]->GetBinError(k);
 					double pip_scale = hNorms_pip->GetBinContent(j, i, k);
 					double pip_scale_err = 0;//hNorms_pip->GetBinError(j, i, k);
+					double pip_bin_err = pip_cont*pip_scale*sqrt( pow( pip_err/pip_cont, 2) 	+ pow( pip_scale_err/pip_scale, 2) );
 
 					hZ_r_bac[i-1][j-1][0]->SetBinContent( k, pip_cont*pip_scale );
-					hZ_r_bac[i-1][j-1][0]->SetBinError( k, pip_cont*pip_scale*sqrt( pow( pip_err/pip_cont, 2) 
-											+ pow( pip_scale_err/pip_scale, 2) ) );
+					if( isnan(pip_bin_err) || !isfinite(pip_bin_err)){
+						cout<<"ERROR "<<std::endl;
+					}
+					else hZ_r_bac[i-1][j-1][0]->SetBinError( k, pip_bin_err );
 					
 					double pim_cont = hZ_r_bac[i-1][j-1][1]->GetBinContent(k);
 					double pim_err = hZ_r_bac[i-1][j-1][1]->GetBinError(k);
 					double pim_scale = hNorms_pim->GetBinContent(j, i, k);
 					double pim_scale_err = 0;//hNorms_pim->GetBinError(j, i, k);
+					double pim_bin_err = pim_cont*pim_scale*sqrt( pow( pim_err/pim_cont, 2) 	+ pow( pim_scale_err/pim_scale, 2) );
 					
-					hZ_r_bac[i-1][j-1][0]->SetBinContent( k, pip_cont*pim_scale );
-					hZ_r_bac[i-1][j-1][1]->SetBinError( k, pim_cont*pim_scale*sqrt( pow( pim_err/pim_cont, 2) 
-											+ pow( pim_scale_err/pim_scale, 2) ) );
+					hZ_r_bac[i-1][j-1][1]->SetBinContent( k, pim_cont*pim_scale );
+					if( isnan(pim_bin_err)|| !isfinite(pim_bin_err)){
+						cout<<"ERROR "<<pim_cont*pim_scale*sqrt( pow( pim_err/pim_cont, 2) 	+ pow( pim_scale_err/pim_scale, 2) )<<std::endl;
+					}
+					else hZ_r_bac[i-1][j-1][1]->SetBinError( k, pim_bin_err );
 					
 
 				}
@@ -741,11 +779,6 @@ void setBin( TH1F * h,  int z_bin, double events[bins_Z][bins_p][3], double weig
 	}
 	
 	error = sqrt( term_1 + term_2 + term_3);
-
-	cout<<"MC err : "<< term_1/(error*error)<<std::endl;
-	cout<<"K err : "<< term_2/(error*error)<<std::endl;
-	cout<<"Stat err : "<< term_3/(error*error)<<std::endl;
-	cout<<"//////////////////////////////////////////////////\n";
 
 	h->SetBinContent( z_bin +1, weights);
 	h->SetBinError(z_bin + 1, error);

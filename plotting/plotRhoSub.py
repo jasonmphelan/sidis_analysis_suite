@@ -117,7 +117,7 @@ for key in inFile.keys():
 		#values_pip = (values_pip_sig[np.where(binCenters==.45)[0]]/values_pip[np.where(binCenters==.45)[0]])*values_pip	
 		#values_pim = (values_pim_sig[np.where(binCenters==.45)[0]]/values_pim[np.where(binCenters==.45)[0]])*values_pim	
 
-		indices = np.where( binCenters < 0.55)
+		indices = np.where( binCenters < 0.525)
 
 		scale_pip = np.sum(values_pip_sig[indices[0]])/np.sum(values_pip[indices[0]])
 		scale_pim = np.sum(values_pim_sig[indices[0]])/np.sum(values_pim[indices[0]])
@@ -125,15 +125,15 @@ for key in inFile.keys():
 
 		fig, ax = plt.subplots(2, figsize=(12,6), layout='constrained', sharex=True, sharey=True)
 
-		pip_sub = values_pip_sig - values_pip*scale_pip
+		pip_sub = values_pip_sig - values_pip#values_pip*scale_pip
 		pip_sub[pip_sub <= 0] = np.nan
 
-		pim_sub = values_pim_sig - values_pim*scale_pim
+		pim_sub = values_pim_sig - values_pim#values_pim*scale_pim
 		pim_sub[pim_sub <= 0] = np.nan
 
 
 		ax[0].plot(binCenters, values_pip_sig, color='b', drawstyle='steps-mid', label = r'All')
-		ax[0].plot(binCenters, values_pip*scale_pip, color='r',drawstyle='steps-mid', label = r'Background')
+		ax[0].plot(binCenters, values_pip, color='r',drawstyle='steps-mid', label = r'Background')
 		ax[0].plot(binCenters, pip_sub, color='k',drawstyle='steps-mid', label='Signal')#, label = r'$\pi^-$')
 
 	
@@ -146,7 +146,7 @@ for key in inFile.keys():
 		ax[1].set_title(r'$(e, e^{\prime}\pi^-)$', fontsize=16)	
 
 		ax[1].plot(binCenters, values_pim_sig,  color='b', drawstyle='steps-mid')
-		ax[1].plot(binCenters, values_pim*scale_pip,  color='r', drawstyle='steps-mid')
+		ax[1].plot(binCenters, values_pim,  color='r', drawstyle='steps-mid')
 		ax[1].plot(binCenters, pim_sub, color='k',drawstyle='steps-mid')#, label = r'$\pi^-$')
 
 		#ax[1].plot(binCenters, values_pim_sub, color='k',drawstyle='steps-mid')#, label = r'$\pi^-$')

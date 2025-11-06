@@ -84,7 +84,7 @@ for q in range(12):
 		#plt.errorbar(binCenters, ratio, yerr=ratio_err, color=colorList[x], label=tit, linestyle='',marker='.', markersize=10, mec='black', capsize=2)
 		#plt.plot(binCenters, ratio, color=colorList[q], label=tit, linestyle='',marker='.', markersize=10, mec='black')
 		
-		ax[1].set_ylim( rat_min, rat_max )
+		#ax[1].set_ylim( rat_min, rat_max )
 		ax[0].legend()
 		#plt.text(.95, .5, r'%.2f $< x_B <$ %.2f'%( .1 + .04*x, .1 + .04*(x+1) ), fontsize=12)
 		#plt.title( r'%.1f $< Q^2 <$ %.1f [GeV$^2$]'%( 2 + 0.5*q, 2 + 0.5*(q+1) ), fontsize=16)
