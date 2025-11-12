@@ -218,12 +218,13 @@ int main( int argc, char** argv){
 			filledBins[sec]++;
 			
 		}
-		double xErr[filledBins[sec]] = {0};
+		double * xErr = new double[filledBins[sec]]();
 		gMeans[sec] = new TGraphErrors( filledBins[sec], bin_centers[sec], means[sec], xErr, means_err[sec] );
 		gSigmas[sec] = new TGraphErrors( filledBins[sec], bin_centers[sec], sigmas[sec], xErr, sigmas_err[sec] );
 	
 		gMeans[sec]->Fit(Form("fMean_SF_%i", sec), "");
 		gSigmas[sec]->Fit(Form("fSigma_SF_%i", sec), "");
+		delete[] xErr;
 	}
 
 	std::cout<<"Writing tree to file\n";

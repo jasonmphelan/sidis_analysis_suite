@@ -1,6 +1,6 @@
 # find source and header files, set paths, includes...
 SET(LIBNAME "clashit_tree")
-FILE(GLOB SRCS electron.cpp pion.cpp)
+FILE(GLOB SRCS electron.cpp pion.cpp genElectron.cpp genPion.cpp)
 
 FILE(GLOB HEADERS ${CMAKE_SOURCE_DIR}/include/electron.h ${CMAKE_SOURCE_DIR}/include/pion.h)
 set(INCLUDES ${ROOT_INCLUDE_DIR} "${CMAKE_SOURCE_DIR}/include/"  )

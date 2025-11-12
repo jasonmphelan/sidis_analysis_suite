@@ -104,14 +104,14 @@ int main( int argc, char** argv){
 	analyzer anal(0, -1);
 	anal.setAnalyzerLevel(1);
 	anal.loadMatchingFunctions();
-	anal.loadMatchingFunctions3D();
-	
+	anal.loadMatchingFunctions3D();	
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
 
     TTreeReader reader_rec(recChain);
 
         
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
-	TTreeReaderArray<bool> isGoodPion3d(reader_rec, "isGoodPion_3d");
+	//TTreeReaderArray<bool> isGoodPion3d(reader_rec, "isGoodPion_3d");
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderValue<genElectron> e_MC(reader_rec, "e_gen");
     TTreeReaderArray<pion> pi_vec(reader_rec, "pi");
@@ -120,7 +120,7 @@ int main( int argc, char** argv){
 	//Define good event list and additional variables for output branches
 
 	int event_total = recChain->GetEntries();
-
+/*
 	while (reader_rec.Next()) {
                 int event_count = reader_rec.GetCurrentEntry();
 
@@ -146,7 +146,7 @@ int main( int argc, char** argv){
 			bool matching = true;
 
 			if( matchType == 2 ){ matching = !isGoodPion[pi_count]; }
-			else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
+			//else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
 			else{ matching = false; }
 
 			if( matching ){ continue; }
@@ -167,7 +167,7 @@ int main( int argc, char** argv){
 			
 		}
 	}
-				
+*/				
 
 
     TTreeReader reader_gen(genChain);
@@ -225,14 +225,14 @@ int main( int argc, char** argv){
 			if( matchType == 2 ){
 				matching = anal.acceptance_match_2d( theta, p, sector_i );	
 			}
-			else if( matchType == 3 ){
-				phi = pi.get3Momentum().Phi()*rad_to_deg;
+			//else if( matchType == 3 ){
+			//	phi = pi.get3Momentum().Phi()*rad_to_deg;
 				//if( acceptance_match_3d( phi, theta, p, 0 ) && acceptance_match_3d( phi, theta, p, 1) ){
-				if( anal.acceptance_match_3d_cont( phi, theta, p, 0 ) > -1
-					&& anal.acceptance_match_3d_cont( phi, theta, p, 1 ) > -1   ){ matching = true; }
-				else{ matching = false; }
+			//	if( anal.acceptance_match_3d_cont( phi, theta, p, 0 ) > -1
+			//		&& anal.acceptance_match_3d_cont( phi, theta, p, 1 ) > -1   ){ matching = true; }
+			//	else{ matching = false; }
 			
-			}
+			//}
 			else{ matching = true ;}
 			
 			if( !matching ){ continue; }
