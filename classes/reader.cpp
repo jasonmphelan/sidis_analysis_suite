@@ -59,7 +59,7 @@ void reader::readRunFilesAllE(clas12root::HipoChain &fileList){
 void reader::setDataPaths(){
 
 	if(runType == 1 || runType == 2){
-    		dataPath = "/volatile/clas12/osg/jphelan/job_";
+    		dataPath = "/volatile/clas12/osg/jphelan/";
 	}
 	
 
@@ -139,7 +139,7 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 		for( int j = 0; j < nRuns[beamType]; j++ ){
 			for( int i = 0; i < 75000; i++){
 				if( nFiles != 0 && i >= nFiles ) break;
-				inFile = dataPath + Form("%i/output/%i-%i.hipo", monteCarloRuns[beamType][j], monteCarloRuns[beamType][j], i+1);
+				inFile = dataPath + Form("%i/%i-%i.hipo", monteCarloRuns[beamType][j], monteCarloRuns[beamType][j], i+1);
 				if( gSystem->AccessPathName(inFile) ) continue;
 				files.Add(inFile.Data());
 			}

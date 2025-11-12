@@ -70,6 +70,8 @@ int main( int argc, char** argv){
 	anal.setAnalyzerLevel(0);//runType);
 	anal.loadMatchingFunctions();
 	anal.loadMatchingFunctions3D();
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
+
 
 	//Load input tree
         //TTreeReader reader_rec("ePi", file_rec);
