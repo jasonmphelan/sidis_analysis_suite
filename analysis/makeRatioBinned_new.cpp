@@ -438,8 +438,8 @@ int main( int argc, char** argv){
 				if( !matching ){ continue; }
 
 				corrector.setKinematics( e_r->getXb(), e_r->getQ2(), r[i].getZ(), p_pi );
-				double weight = 1;// rhoWeight[i];
-				//if( rhoWeight[i] > 20 )continue;  
+				double weight = rhoWeight[i] - ((double)i==1);
+				if( rhoWeight[i] > 100 )continue;  
 				double eventWeightErr = 0;
 
 				double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
