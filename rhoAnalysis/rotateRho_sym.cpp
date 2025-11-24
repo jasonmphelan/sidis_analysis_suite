@@ -30,7 +30,7 @@
 using namespace constants;
 
 #define CORR_PATH _DATA
-const int thread_MAX = 50;
+const int thread_MAX = 500;
 
 using std::cerr;
 using std::isfinite;
@@ -90,6 +90,7 @@ int main( int argc, char** argv){
 	double corr_err_sym[2];
 	int trials;
 	int event_num;
+	int symmetry_type;
 
 	outTree->Branch("beam", &beam_out);
 	outTree->Branch("e", &e_out);
@@ -106,6 +107,7 @@ int main( int argc, char** argv){
 
 	outTree->Branch("trials", &trials);
 	outTree->Branch("event_num", &event_num);
+	outTree->Branch("symmetry_type", &symmetry_type);
 	std::ofstream txtFile;
 	txtFile.open( "../plotting/rho_data_points_one_pi.txt" );
 	
@@ -120,7 +122,7 @@ int main( int argc, char** argv){
 
 		event_num = event_count;
 		
-		if((event_count%500) == (0)){
+		if((event_count%50) == (0)){
 			cout<<"Thread "<<i_thread<<" : "<<100.*(double)(event_count - i_thread*chunkSize)/(double)chunkSize<<"%";
 			auto finish = std::chrono::high_resolution_clock::now();
     		std::chrono::duration<double> elapsed = finish - start;
@@ -210,6 +212,7 @@ int main( int argc, char** argv){
 		else if (symSec_1 >= 0 && symSec_0 < 0) symType = 1;
 		else{ symType = -1; }
 		//Find electron rotation angles that satisfy acceptance map for fixed p, theta
+		symmetry_type=symType;
 
 		std::vector<std::pair<double, double>> phi_ranges;
 		std::vector<double> cumulative_phi;
@@ -240,7 +243,7 @@ int main( int argc, char** argv){
 			//	( ( isGoodPion[0] && corr_err[0] > 900) || (isGoodPion[1] && corr_err[1] > 900 )
 			 //) ){ break; }
 			
-			double symType = 0;
+			//double symType = 0;
 
 			detectedPion[0] = false;
 		    detectedPion[1] = false;
@@ -300,7 +303,7 @@ int main( int argc, char** argv){
 
 				//Check Pion acceptance
 				int piType = (int)(pi[i].getCharge() < 0) + 1;
-			
+				int piTypeSym = piType + (int)(i == 0) - (int)(i==1);
 				
 				int new_sec = anal.applyAcceptanceMap( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piType ) ;
 				
@@ -319,15 +322,15 @@ int main( int argc, char** argv){
 
 
 				if( symType == 0 || symType == 1 )continue;
-				int new_sec_sym = anal.applyAcceptanceMap( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), !((bool)(piType - 1) ) + 1) ;			
-				//cout<<"Not one pi";
+				int new_sec_sym = anal.applyAcceptanceMap( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piTypeSym) ;			
 				if( new_sec_sym > -1 ) {
-					if( acc_match ) detectedPion_sym[i] = anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec + 1);
+					if( acc_match ) detectedPion_sym[i] = anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec_sym + 1);
 					else detectedPion_sym[i] = true;
 				}
+
 				if( new_sec_sym > -1 &&  isGoodPion[i] ){ 					
 					accPion_sym[i] = true;
-					goodPion_sym[i] =  anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec + 1);
+					goodPion_sym[i] =  anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec_sym + 1);
 				}
 			}
 
@@ -370,6 +373,7 @@ int main( int argc, char** argv){
 				corr_err_sym[0] = 0;
 				corr_err_sym[1] = 0;
 			}
+
 			double denom = 0;
 			if( symType == 2 ){ denom = twoPiEvents_sym; }
 			if( symType == -1 ){ denom = zeroPiEvents; }
