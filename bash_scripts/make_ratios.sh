@@ -16,7 +16,7 @@
 #./analysis/makeRatio 0 /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/ratios_2d_mc_map.root 2 3 1 acceptanceMap_allE_final.root &
 #./analysis/makeRatio 0 /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/ratios_3d_map.root 3 0 1 acceptanceMap_allE_final.root &
 ./analysis/makeRatio 0 /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/ratios_2d_rho_match_map.root 2 5 1 acceptanceMap_allE_final.root &
-./analysis/makeRatio 0 /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/ratios_2d_k_map.root 2 4 1 acceptanceMap_allE_final.root &
+#./analysis/makeRatio 0 /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/ratios_2d_k_map.root 2 4 1 acceptanceMap_allE_final.root &
 
 
 #./analysis/makeRatio 0 /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/ratios_2d_mc_none.root 2 3 acceptanceMap_allE_none.root &
