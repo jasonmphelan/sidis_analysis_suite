@@ -74,148 +74,155 @@ int main( int argc, char** argv){
 
 
 	//Load input tree
-        //TTreeReader reader_rec("ePi", file_rec);
-        TTreeReader reader_rec( chain );
-	TTreeReaderValue<electron> e(reader_rec, "e");
-        TTreeReaderArray<pion> pi(reader_rec, "pi");
+        
+        //TTreeReader reader_rec( chain );
+	//TTreeReaderValue<electron> e(reader_rec, "e");
+        //TTreeReaderArray<pion> pi(reader_rec, "pi");
+		
+		// Pointers to branch objects
+	electron* e = nullptr;
+	std::vector<pion>* pi = nullptr;
+
+	genElectron* e_gen = nullptr;
+	std::vector<genPion>* pi_gen = nullptr;
+
+	chain->SetBranchAddress("e", &e);
+	chain->SetBranchAddress("pi", &pi);
+	if( runType == 1 ){
+		chain->SetBranchAddress("e_gen", &e_gen);
+		chain->SetBranchAddress("pi_gen", &pi_gen);
+	}
+	double event_total = chain->GetEntries();
 
 	//Define good event list and additional variables for output branches
-        TEventList * good_events = new TEventList();
+    TEventList * good_events = new TEventList();
         
-	std::vector<int> leadIdx_vec;
-	std::vector<int> leadIdx_no_acc_vec;
-	std::vector<int> leadIdx_3d_vec;
+	//std::vector<int> leadIdx_vec;
+	//std::vector<int> leadIdx_no_acc_vec;
+	//std::vector<int> leadIdx_3d_vec;
 	std::vector<std::vector<bool>> isGoodPion_temp;
+	std::vector<std::vector<bool>> isGoodGenPion_temp;
 	std::vector<std::vector<bool>> isGoodPion_no_acc_temp;
 	std::vector<std::vector<bool>> isGoodPion_3d_temp;
 
-	int event_total = reader_rec.GetEntries();
+	//int event_total = reader_rec.GetEntries();
 
-	while (reader_rec.Next()) {
-                int event_count = reader_rec.GetCurrentEntry();
+	for ( int event_count = 0; event_count < event_total; event_count++ ){
+		chain->GetEntry(event_count);
+	//while (reader_rec.Next()) {
+    	//int event_count = reader_rec.GetCurrentEntry();
 
 		if(event_count%10000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
 		}
-
-
-		double lead_Z_temp = -1;
-		double lead_Z_no_acc_temp = -1;               
-		double lead_Z_3d_temp = -1;               
- 
-		int lead_idx_temp = -1;
-        int lead_idx_no_acc_temp = -1;
-        int lead_idx_3d_temp = -1;
 		
 		std::vector<bool> isGoodPion_event;
 		std::vector<bool> isGoodPion_no_acc_event;
 		std::vector<bool> isGoodPion_3d_event;
+		std::vector<bool> isGoodGenPion_event;
+		bool e_pass = anal.applyElectronKinematicCuts( *e );
+		bool e_gen_pass = true;
+		if( runType == 1 ) e_gen_pass = anal.applyElectronKinematicCuts( *e_gen );
 
-		if( !anal.applyElectronKinematicCuts( *e ) ){ continue; }
+		if( !e_pass && !e_gen_pass ){ continue; }
 
-		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
+		for( int i = 0; i < (int) ( pi->end() - pi->begin() ); i++ ){
 			isGoodPion_event.push_back(false);
-			isGoodPion_no_acc_event.push_back(false);;
-			isGoodPion_3d_event.push_back(false);;
-		     	
-            if(!anal.applyPionKinematicCuts(pi[i])){ continue; }
-			if( pi[i].getZ() > lead_Z_no_acc_temp ){
-				lead_Z_no_acc_temp = pi[i].getZ();
-				lead_idx_no_acc_temp = i;
-			}	
-			isGoodPion_no_acc_event[i] = true;
+			isGoodGenPion_event.push_back(false);
+			isGoodPion_no_acc_event.push_back(false);
+			isGoodPion_3d_event.push_back(false);
+		     
+			bool pi_pass = anal.applyPionKinematicCuts((*pi)[i]);
+			bool pi_gen_pass = true;
+			if(runType == 1 ) pi_gen_pass = anal.applyPionKinematicCuts((*pi_gen)[i]);
+
+			if( !pi_pass && !pi_gen_pass ) continue;
+
+			isGoodPion_no_acc_event[i] = (pi_pass && e_pass);
+			isGoodGenPion_event[i] = (pi_gen_pass && e_gen_pass);
 			
-			double p_pi = pi[i].get3Momentum().Mag();
-			double theta_pi = pi[i].get3Momentum().Theta();
-			double phi_pi = pi[i].get3Momentum().Phi();
+			double p_pi = (*pi)[i].get3Momentum().Mag();
+			double theta_pi = (*pi)[i].get3Momentum().Theta();
+			double phi_pi = (*pi)[i].get3Momentum().Phi();
 
 			if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 1 ) <0) continue;
-			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 1 ) < 0 ) continue;
+			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), 1 ) < 0 ) continue;
 			
-			if ( anal.applyAcceptanceMatching(pi[i], 2) ){
-				if( pi[i].getZ() > lead_Z_temp ){
-					lead_Z_temp = pi[i].getZ();
-					lead_idx_temp = i;
-				}	
+			if ( anal.applyAcceptanceMatching((*pi)[i], 2) ){
 			
 				isGoodPion_event[i] = true;
 			}
 			
 
-			if ( anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 1 ) >= 0 &&
-							anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 2 ) >= 0 ){
-				if( pi[i].getZ() > lead_Z_3d_temp ){
-					lead_Z_3d_temp = pi[i].getZ();
-					lead_idx_3d_temp = i;
-				}	
+			if ( anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), 1 ) >= 0 &&
+							anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), 2 ) >= 0 ){
+				
 		
 				isGoodPion_3d_event[i] = true;
 			}
 			
 
 		}
+
+		bool hasGoodReco = std::any_of(isGoodPion_no_acc_event.begin(),
+                                   isGoodPion_no_acc_event.end(),
+                                   [](bool v){ return v; });
+
+    	bool hasGoodGen  = std::any_of(isGoodGenPion_event.begin(),
+                                   isGoodGenPion_event.end(),
+                                   [](bool v){ return v; });
 		
-		if(lead_idx_no_acc_temp > -1){
+		if(hasGoodReco || hasGoodGen){
 			good_events->Enter(event_count);
 	
 			isGoodPion_no_acc_temp.push_back(isGoodPion_no_acc_event);
 			isGoodPion_temp.push_back(isGoodPion_event);
 			isGoodPion_3d_temp.push_back(isGoodPion_3d_event);
-
-			leadIdx_no_acc_vec.push_back( lead_idx_no_acc_temp );
-			leadIdx_vec.push_back( lead_idx_temp );
-			leadIdx_3d_vec.push_back( lead_idx_3d_temp );
 		}
 	}
 	
 	cout<<"Completed good event list... \n";
-        //cout<<"Number of event (no acc) : "<< isGoodPion
+    //cout<<"Number of event (no acc) : "<< isGoodPion
 	//Define out tree and files
-	TTree * old_tree_upd = (TTree *) reader_rec.GetTree();
-        TFile * outFile = new TFile(out_name, "RECREATE");
+	TTree * old_tree_upd = (TTree *) chain->GetTree();
+    TFile * outFile = new TFile(out_name, "RECREATE");
 
 	cout<<"Created new tree and outfile\n";
 
-        int nLeadIdx;
-        int nLeadIdx_no_acc;
-       	int nLeadIdx_3d;
 
  	std::vector<bool> isGoodPion;
  	std::vector<bool> isGoodPion_no_acc;
  	std::vector<bool> isGoodPion_3d;
+ 	std::vector<bool> isGoodGenPion;
 
 
 	TTree * outTree = old_tree_upd->CloneTree(0);
 
-	TBranch * branch = outTree->Branch("nLeadIdx", &nLeadIdx, "nLeadIdx/I" );
-        TBranch * branch_2 = outTree->Branch("isGoodPion", &isGoodPion );
+    TBranch * branch_1 = outTree->Branch("isGoodPion", &isGoodPion );
+    TBranch * branch_2 = outTree->Branch("isGoodG", &isGoodGenPion );
         
-	TBranch * branch_3 = outTree->Branch("nLeadIdx_no_acc", &nLeadIdx_no_acc, "nLeadIdx_no_acc/I" );
-        TBranch * branch_4 = outTree->Branch("isGoodPion_no_acc", &isGoodPion_no_acc);
+    TBranch * branch_3 = outTree->Branch("isGoodPion_no_acc", &isGoodPion_no_acc);
         
-	TBranch * branch_5 = outTree->Branch("nLeadIdx_3d", &nLeadIdx_3d, "nLeadIdx_3d/I" );
-        TBranch * branch_6 = outTree->Branch("isGoodPion_3d", &isGoodPion_3d);
+    TBranch * branch_4 = outTree->Branch("isGoodPion_3d", &isGoodPion_3d);
 
-        int nEvents = good_events->GetN();
+    int nEvents = good_events->GetN();
 
 	cout<<"Starting event loop\n";
 
         for(int ev = 0; ev < nEvents; ev++){
 
-                if( ev %10000 == 0 ){cout <<ev<<" / "<<nEvents<<std::endl;}
+            if( ev %10000 == 0 ){cout <<ev<<" / "<<nEvents<<std::endl;}
 				
-                int entry  = good_events->GetEntry(ev);
-                old_tree_upd->GetEntry(entry);
+            int entry  = good_events->GetEntry(ev);
+            old_tree_upd->GetEntry(entry);
                 
-		nLeadIdx = leadIdx_vec[ev];
-                nLeadIdx_no_acc = leadIdx_no_acc_vec[ev];
-                nLeadIdx_3d = leadIdx_3d_vec[ev];
+		
+			isGoodGenPion = isGoodGenPion_temp[ev];
+			isGoodPion_no_acc = isGoodPion_no_acc_temp[ev]; 
+			isGoodPion_3d = isGoodPion_3d_temp[ev]; 
+			isGoodPion = isGoodPion_temp[ev];
 
-		isGoodPion_no_acc = isGoodPion_no_acc_temp[ev]; 
-		isGoodPion_3d = isGoodPion_3d_temp[ev]; 
-		isGoodPion = isGoodPion_temp[ev];
-
-                outTree->Fill();
+            outTree->Fill();
         }
 
         cout<<"Writing to file\n";
