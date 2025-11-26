@@ -151,7 +151,6 @@ int main( int argc, char** argv){
 			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), 1 ) < 0 ) continue;
 			
 			if ( anal.applyAcceptanceMatching((*pi)[i], 2) ){
-			
 				isGoodPion_event[i] = true;
 			}
 			
