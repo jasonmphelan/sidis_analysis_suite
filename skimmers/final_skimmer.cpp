@@ -23,6 +23,8 @@
 #include "cut_values.h"
 #include "electron.h"
 #include "pion.h"
+#include "genElectron.h"
+#include "genPion.h"
 #include "analyzer.h"
 #include "reader.h"
 
@@ -174,7 +176,7 @@ int main( int argc, char** argv){
 		
 		if(hasGoodReco || hasGoodGen){
 			good_events->Enter(event_count);
-	
+			isGoodGenPion_temp.push_back(isGoodGenPion_event);	
 			isGoodPion_no_acc_temp.push_back(isGoodPion_no_acc_event);
 			isGoodPion_temp.push_back(isGoodPion_event);
 			isGoodPion_3d_temp.push_back(isGoodPion_3d_event);
@@ -199,7 +201,7 @@ int main( int argc, char** argv){
 	TTree * outTree = old_tree_upd->CloneTree(0);
 
     TBranch * branch_1 = outTree->Branch("isGoodPion", &isGoodPion );
-    TBranch * branch_2 = outTree->Branch("isGoodG", &isGoodGenPion );
+    TBranch * branch_2 = outTree->Branch("isGoodGenPion", &isGoodGenPion );
         
     TBranch * branch_3 = outTree->Branch("isGoodPion_no_acc", &isGoodPion_no_acc);
         
@@ -215,13 +217,11 @@ int main( int argc, char** argv){
 				
             int entry  = good_events->GetEntry(ev);
             old_tree_upd->GetEntry(entry);
-                
 		
-			isGoodGenPion = isGoodGenPion_temp[ev];
-			isGoodPion_no_acc = isGoodPion_no_acc_temp[ev]; 
-			isGoodPion_3d = isGoodPion_3d_temp[ev]; 
-			isGoodPion = isGoodPion_temp[ev];
-
+		isGoodGenPion = isGoodGenPion_temp[ev];
+		isGoodPion_no_acc = isGoodPion_no_acc_temp[ev]; 
+		isGoodPion_3d = isGoodPion_3d_temp[ev]; 
+		isGoodPion = isGoodPion_temp[ev];
             outTree->Fill();
         }
 

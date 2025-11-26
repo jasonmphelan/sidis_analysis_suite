@@ -181,8 +181,8 @@ int main( int argc, char** argv){
 		clas12reader c12(files.GetFileName(i).Data());
 		auto mcparts = c12.mcparts();		
 		
-		c12.scalerReader();
-		accCharge = c12.getRunBeamCharge();
+		//c12.scalerReader();
+		//accCharge = c12.getRunBeamCharge();
 		
 		int NeventsTotal = c12.getReader().getEntries();       
     	   	int event = 0;	
