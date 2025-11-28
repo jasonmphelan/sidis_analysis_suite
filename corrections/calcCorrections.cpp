@@ -126,7 +126,7 @@ int main( int argc, char** argv){
 	while (reader_rec.Next()) {
 		int event_count = reader_rec.GetCurrentEntry();
 		
-		if(event_count%100000 == 0){
+		if(event_count%1 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
 		}
 		
@@ -157,7 +157,8 @@ int main( int argc, char** argv){
 			
 				//if( matching ){ continue; }
 			
-			
+				cout<<"Xb "<<xB<<std::endl;
+
 				//Fill reco pions
 				recHists[this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
 			}
