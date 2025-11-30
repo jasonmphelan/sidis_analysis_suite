@@ -151,15 +151,26 @@ int main( int argc, char** argv){
 			double phi_pi = (*pi)[i].get3Momentum().Phi();
 
 			if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) <0) continue;
+<<<<<<< HEAD
 			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), 1 ) < 0 ) continue;
+=======
+			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), chargeIdx+1) < 0 ) continue;
+>>>>>>> 64c148d (fix to final skimmer)
 			
-			if ( anal.applyAcceptanceMatching((*pi)[i], 2) ){
+			
+			if ( anal.applyAcceptanceMatching((*pi)[i], 2) && (pi_pass && e_pass)){
 				isGoodPion_event[i] = true;
 			}
 			
 
+<<<<<<< HEAD
 			if ( anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), chargeIdx + 1 ) >= 0 &&
 							anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), chargeIdx + 1 ) >= 0 ){
+=======
+			if ( anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), 1 ) >= 0 &&
+							anal.applyAcceptanceMap( p_pi, rad_to_deg*(*pi)[i].get3Momentum().Phi(), rad_to_deg*(*pi)[i].get3Momentum().Theta(), 2 ) >= 0 &&
+							(pi_pass && e_pass) ){
+>>>>>>> 64c148d (fix to final skimmer)
 				
 		
 				isGoodPion_3d_event[i] = true;
