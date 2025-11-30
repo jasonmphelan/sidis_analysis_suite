@@ -126,7 +126,7 @@ int main( int argc, char** argv){
 	while (reader_rec.Next()) {
 		int event_count = reader_rec.GetCurrentEntry();
 		
-		if(event_count%1 == 0){
+		if(event_count%100000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
 		}
 		
@@ -150,15 +150,13 @@ int main( int argc, char** argv){
 			if( abs( pi.getPID() ) != 211 ){continue;}
 
 			bool matching = true;
-			if( (matchType==2 && isGoodPion[pi_count]) || (matchType==3 && isGoodPion3d[pi_count])){
+			if( (matchType==2 && isGoodPion[pi_count]) ){//|| (matchType==3 && isGoodPion3d[pi_count])){
 				//if( matchType == 2 ){ matching = !isGoodPion[pi_count]; }
 				//else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
 				//else{ matching = false; }
 			
 				//if( matching ){ continue; }
 			
-				cout<<"Xb "<<xB<<std::endl;
-
 				//Fill reco pions
 				recHists[this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
 			}

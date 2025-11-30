@@ -453,8 +453,8 @@ bool analyzer::applyPionDetectorCuts( pion pi, electron e ){
 bool analyzer::applyElectronKinematicCuts( electron e ){
 		if( sqrt(e.getW2()) < mod_W*W_min ) { return false; }
 		if( e.getQ2() < mod_Q2[0]* Q2_min || e.getQ2() > mod_Q2[1]*Q2_max ) { return false; }
-                if( e.getXb() < xB_min || e.getXb() > xB_max ) { return false; }
-                if( e.getY() > mod_y*y_max ) { return false; }
+        if( e.getXb() < xB_min || e.getXb() > xB_max ) { return false; }
+        if( e.getY() > mod_y*y_max ) { return false; }
                 
 		double p = e.get3Momentum().Mag();
 		if( p < mod_pe[0]*P_e_min || p > mod_pe[1]*P_e_max ) { return false; }

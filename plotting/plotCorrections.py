@@ -94,7 +94,8 @@ def makePlots( corrType, hist, ext):
 		yMin = 0.75
 		yMax = 1.25
 		textHeight = 1.2
-	outDir = f'/volatile/clas12/users/jphelan/SIDIS/analysis_note/corrections_{corrType}/'
+	#outDir = f'/volatile/clas12/users/jphelan/SIDIS/analysis_note/corrections_{corrType}/'
+	outDir = f'../plotting/analysis_note/corrections/corrections_{corrType}/'
     
 
 	fig, axs = plt.subplots( 4, 3,figsize=(18, 10))
