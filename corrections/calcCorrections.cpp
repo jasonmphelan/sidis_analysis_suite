@@ -170,6 +170,9 @@ int main( int argc, char** argv){
 					matching = anal.acceptance_match_2d( theta_gen, p_gen, pi.getDC_sector() );	
 				}
 				if( matching ){
+					if(anal.applyAcceptanceMap( e_MC->get3Momentum().Mag(), rad_to_deg*e_MC->get3Momentum().Phi(), rad_to_deg*e_MC->get3Momentum().Theta(), 0 ) <0) continue;
+					if(anal.applyAcceptanceMap( p_gen, rad_to_deg*pi_match[pi_count].get3Momentum().Phi(),theta_gen, chargeIdx + 1 ) < 0 ) continue;
+			
 				//if( pi_match[pi_count].getZ() < .3 || pi_match[pi_count].getZ() > 1 ){ continue; }
 				//if( this_bin_Q2_MC < 0 || this_bin_Q2_MC >= nQ2Bins ){ continue; }
 				//if( this_bin_xB_MC < 0 || this_bin_xB_MC >= nXbBins ){ continue; }
@@ -201,6 +204,7 @@ int main( int argc, char** argv){
 		int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nQ2Bins);
 		int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nXbBins);
 		
+		if(anal.applyAcceptanceMap( e_gen->get3Momentum().Mag(), rad_to_deg*e_gen->get3Momentum().Phi(), rad_to_deg*e_gen->get3Momentum().Theta(), 0 ) <0) continue;
 		
 		int pi_count = -1;
 		for( auto pi : pi_gen ){
@@ -212,6 +216,12 @@ int main( int argc, char** argv){
 			double charge = pi.getCharge();
 			bool matching = true;
 			double sector_i = -1;	
+			
+
+			int chargeIdx = (int)( pi.getCharge() < 1 );
+			sector_i = anal.applyAcceptanceMap( p, phi, theta, chargeIdx + 1 ) + 1;
+			if( sector_i < 1 )continue;
+			/*
 			if( charge > 0 ){    
 				if( phi > -0.8 && phi < 0.25 ){ sector_i = 1; }
 				else if( phi >= 0.25 && phi < 1.3 ){ sector_i = 2; }
@@ -228,6 +238,7 @@ int main( int argc, char** argv){
 				else if( phi > -2.4 && phi < -1.25){ sector_i = 5; }
 				else{ sector_i = 6; }
 			}
+				*/
 			
 			//if( matchType == 2 ){ matching = !isGoodPion_gen[pi_count]; }
 			//else if( matchType == 3 ){ matching = !isGoodPion3d_MC[pi_count]; }
@@ -247,8 +258,6 @@ int main( int argc, char** argv){
 			else{ matching = true ;}
 			
 			if( !matching ){ continue; }
-			
-			int chargeIdx = (int)( pi.getCharge() < 1 );
 			
 			//Fill reco pions
 			genHists[this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
