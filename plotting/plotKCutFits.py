@@ -115,7 +115,7 @@ for charge in chargeSt:
 				if makePlot:
 					#fig.savefig(f"kaon_fits/fits_k2pi_{charge}_p_{p}_xB_{x}_q2_{q}.pdf")
 					if 'pi2k' in fileName:
-						fig.savefig(outBase+f"/fits_pi2k_{charge}_p_{p}_xB_{x}_q2_{q}.pdf")
+						fig.savefig(outBase+f"/fits_pi2k_{charge}_p_{p}_xB_{x}_q2_{q}.png")
 					else:
-						fig.savefig(outBase+f"/fits_k2pi_{charge}_p_{p}_xB_{x}_q2_{q}.pdf")
+						fig.savefig(outBase+f"/fits_k2pi_{charge}_p_{p}_xB_{x}_q2_{q}.png")
 				plt.close(fig)

@@ -73,6 +73,13 @@ int main( int argc, char** argv){
 
 	cout<<"Loaded skims\n";
 
+	analyzer anal( 0, -1 );
+	anal.setAnalyzerLevel(0);//runType);
+	anal.loadMatchingFunctions();
+	anal.loadMatchingFunctions3D();
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
+
+
 	TString data_type[2] = {"pip", "pim"};
 	TH1F* h_W[2];    
 	TH1F* h_Xb[2];    
@@ -136,8 +143,7 @@ int main( int argc, char** argv){
 		hPt_Mx[i]		= new TH2F("hPt_Mx_"+data_type[i], ";p_{#pi}^{#perp} [GeV];M_{X} [GeV]", 50, 0, 1.3, 50, 1.5 ,3.5 );
 	}
 
-	analyzer anal( 0, -1 );
-	anal.setAnalyzerLevel(0);
+
 
 	//Load input tree
         TTreeReader reader_rec( chain );
@@ -159,7 +165,11 @@ int main( int argc, char** argv){
 
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			int idx = (int)( pi[i].getCharge() < 0 );
-	
+			
+			double p_pi = pi[i].get3Momentum().Mag();
+			if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) <0) continue;
+			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*(pi)[i].get3Momentum().Phi(), rad_to_deg*(pi)[i].get3Momentum().Theta(), 1 ) < 0 ) continue;
+			
 
 
 			hQ2_W[idx]->Fill( e->getQ2(), sqrt( e->getW2() ) );

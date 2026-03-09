@@ -5,6 +5,7 @@ import matplotlib.colors as LogNorm
 import matplotlib.ticker as ticker
 import math
 import sys
+import re
 plt.rcParams["font.family"] = "sans-serif"
 colorList = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080']
 colorList = ['r','b','o']
@@ -131,19 +132,29 @@ for key in inFile.keys():
 		pim_sub = values_pim_sig - values_pim*scale_pim
 		pim_sub[pim_sub <= 0] = np.nan
 
-		ax[0].plot(binCenters, pip_sub, color='b',drawstyle='steps-mid', label = r'$\pi^+$')
-		ax[0].plot(binCenters, pim_sub, color='r',drawstyle='steps-mid', label = r'$\pi^-$')
+		ax[0].plot(binCenters, values_pip_sig, color='b',drawstyle='steps-mid', label = r'$(e, e^{\prime}\pi^+ )$')
+		ax[0].plot(binCenters, values_pim_sig, color='r',drawstyle='steps-mid', label = r'$(e, e^{\prime}\pi^- )$')
 
-		ratio = (pip_sub)/ (pim_sub)
+		ratio = (values_pip_sig)/ (values_pim_sig)
 	
+		nums = list(map(int, re.findall(r'\d+', key)))
 
+		qmin = 2.0 + 0.5*(nums[1])
+		qmax = qmin+0.5
+
+		xmin = .1 + .04*(nums[0])
+		xmax = .04 + xmin
+
+		zmin = 0.3 + 0.05*(nums[2])
+		zmax = zmin+0.05
+
+		title = fr'{qmin:.2f} < $Q^2$ < {qmax:.2f} [GeV], {xmin:.3f} < $x_B$ < {xmax:.3f}, {zmin:.3f} < $z$ < {zmax:.3f}'
 
 		#ax[0].set_title(rf"$d(e, e'\pi^+)$", fontsize=16)
 		ax[0].set_ylabel('Counts [a.u.]', fontsize=16)
-		ax[1].set_ylabel('Counts [a.u.]', fontsize=16)
+		ax[1].set_ylabel(r'$Y^{(e,e^{\prime}\pi^+)}/Y^{(e,e^{\prime}\pi^-)}$', fontsize=16)
 		ax[1].set_xlabel(r'$M^{\pi+\pi-}$ [GeV]', fontsize=16)
-		ax[0].set_title(r'$(e, e^{\prime}\pi^+)$', fontsize=16)	
-		ax[1].set_title(r'$\pi^-$', fontsize=16)	
+		ax[0].set_title(title, fontsize=16)	
 
 		ax[1].plot(binCenters, ratio,  color='k', linestyle=' ',marker='o')
 		ax[1].axhline(y=1, linestyle='--',c='k', linewidth=2)
@@ -173,5 +184,5 @@ for key in inFile.keys():
 
 	pdfName = hName.replace("_pip", "")
 	fig.legend(fontsize=16)
-	fig.savefig(f"{out_names}/{pdfName}.pdf")
+	fig.savefig(f"{out_names}/{pdfName}.png")
 	plt.close(fig)

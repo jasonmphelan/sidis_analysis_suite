@@ -30,7 +30,7 @@
 using namespace constants;
 
 #define CORR_PATH _DATA
-const int thread_MAX = 500;
+const int thread_MAX = 100;
 
 using std::cerr;
 using std::isfinite;
@@ -103,7 +103,7 @@ int main( int argc, char** argv){
 	outTree->Branch("rhoWeight_sym", rhoWeight_sym, "rhoWeight_sym[2]/D");
 
 	outTree->Branch("rhoErr", corr_err, "rhoErr[2]/D");
-	outTree->Branch("rhoErr_sym", corr_err_sym, "rhoErr[2]/D");
+	outTree->Branch("rhoErr_sym", corr_err_sym, "rhoErr_sym[2]/D");
 
 	outTree->Branch("trials", &trials);
 	outTree->Branch("event_num", &event_num);
@@ -234,7 +234,7 @@ int main( int argc, char** argv){
 
 		//Keep rotating while (err > input) for each pion.  Also set a mininum number of trials
 		//f( event_count >500 )break;
-		while( (isGoodPion[0] && (corr_err[0] > err_level/100. || corr_err_sym[0] > err_level/100.)) || (isGoodPion[1] && ( corr_err[1] > err_level/100. || corr_err_sym[1] > err_level/100. )) || trials < 1000){
+		while( (isGoodPion[0] && (corr_err[0] > err_level/100.)) || (isGoodPion[1] && ( corr_err[1] > err_level/100. )) || trials < 1000){
 			trials++;
 
 			if ( trials >500000  )break;
@@ -278,7 +278,7 @@ int main( int argc, char** argv){
 			}
 
 			double deltaPhi_lab =  (newPhi_lab - phi_e)/rad_to_deg;//2*TMath::Pi()*(gen.Rndm());//(newPhi_lab - phi_e)/rad_to_deg;//
-			double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm()); 
+			double deltaPhi_q = 0;//2*TMath::Pi()*(gen.Rndm()); 
 			
 			TVector3 e_mom = e->get3Momentum();
 			TVector3 pi_mom[2];

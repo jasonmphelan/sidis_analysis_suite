@@ -232,7 +232,9 @@ int main( int argc, char** argv){
 				genPi_dummy.setMomentum( mcparts );
 				genPi_dummy.setKinematicInformation( e_gen.getQ(),e_gen.get4Momentum(), mcparts );
 				if( !anal.applyPionKinematicCuts( genPi_dummy ) ) {continue;}
-				
+				if (genPi_dummy.getZ() < Z_min || genPi_dummy.getZ() > Z_max) {
+					std::cerr << "BAD Z PASSED CUT: Z=" << genPi_dummy.getZ() << std::endl;
+				}
 				pi_gen.push_back(genPi_dummy);
 					
 			}

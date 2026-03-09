@@ -13,11 +13,17 @@ def ff(z):
 
 def getVar(name):
 	if name in ['pT', 'Pt', 'pt', 'PT']:
-		return r'$p_T$', 4, 0, 1.2, 'GeV'
+		return r'$p_T$', 4, 0, 1.6, 'GeV'
 	if name in ['pi_sector', 'sector_pi']:
 		return '', 6, 0, 6, ''
 	if name in ['e_sector', 'sector_e']:
 		return '', 6, 0, 6, ''
+	if name in ['phi_q']:
+		return '$\phi_q$', 6, 0, 360, '[deg.]'
+	if name in ['eta']:
+		return '', 4, 1, 5, ''
+	if name in  ['W2']:
+		return '', 5, 6.25, 13.75, ''
 
 #python makeRatios.py outfile file_1 title_1 file_2 title_2 ...
 outFileName = sys.argv[1]
@@ -29,32 +35,40 @@ delta = (max - min)/nBins
 colorList = ['red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray']
 
 for x in range(14):
+	
 	for q in range(12):
 		fig, ax = plt.subplots(2, 1, figsize=(12,6), height_ratios=[3,1], sharex='col', layout='constrained')
 		ax[1].set_ylim( [0.8, 1.2] )
 		ax[0].set_ylim( [0, 1] )
 		ax[1].set_xlim( [.3, .8] )
 		
+		ax[0].tick_params(axis='both', which='major', labelsize=14)
+		ax[1].tick_params(axis='both', which='major', labelsize=14)
+
+
 		z = np.linspace( .3, 1, 500 )
 		ax[0].plot( z, np.asarray(ff(z)), color = 'black', linestyle = '--')
 		ax[1].axhline( y=1, xmin=0, xmax=1 , color = 'black', linestyle = '--')
 	
-		ax[1].set_xlabel(r'$z$')
-		ax[1].set_ylabel(rf'$r(z, Q^2)/$FF(z))')
-		ax[0].set_ylabel(r'$r(z)$')
+		ax[1].set_xlabel(r'$z$', fontsize=18)
+		ax[1].set_ylabel(rf'$r(z, Q^2)/$FF(z))', fontsize=18)
+		ax[0].set_ylabel(r'$r(z)$', fontsize=18)
 	
 
 	
-		ax[0].text(.7, .7, r'%.2f $< x_B <$ %.2f'%( .1 + .04*x, .1 + .04*(x+1)), fontsize=12)
-		ax[0].text(.7, .65, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q), 2+.5*(q+1)), fontsize=12)
+		ax[0].text(.7, .7, r'%.2f $< x_B <$ %.2f'%( .1 + .04*x, .1 + .04*(x+1)), fontsize=18)
+		ax[0].text(.7, .625, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q), 2+.5*(q+1)), fontsize=18)
+
+		makePlot=False
 		for bin in range(nBins):
 
-			hist = inFile[f'hRatio_{q+1}_{x+1}_{bin+1}']
+			hist = inFile[f'hRatio_{bin}_{q+1}_{x+1}_1']
 		
 			values =np.array( hist.values() )
 			values[values <= 0] = np.nan
 			if( np.isnan(values).all() ):
 				continue
+			makePlot=True
 			errors = np.array(hist.errors())
 
 			xEdges = hist.axis().edges()
@@ -71,21 +85,22 @@ for x in range(14):
 				else:
 					label = rf'Sector {bin+1}'
 			else:
-				label = rf'${bin + delta*bin} < ${lab} $< {bin + delta*(bin+1)}$ {unit}'
+				label = rf'${min + delta*bin:.2f} < ${lab} $< {min + delta*(bin+1):.2f}$ {unit}'
 
 			ax[0].errorbar( binCenters, values, errors, marker='o', label=label,
-						color = colorList[q], linestyle = '',capsize = 2, lw = 1, capthick = 1)
+						color = colorList[bin], linestyle = '',capsize = 2, lw = 1, capthick = 1, mec='black')
 
-			ratio = np.asarray(ff(binCenters))/values
+			ratio = values/np.asarray(ff(binCenters))
 			ratio_err =  ratio*np.sqrt( (errors/values)**2)
 			ratio_err[ratio_err<=0] = np.nan
 
 			ax[1].errorbar( binCenters, ratio, ratio_err, marker='o',
-							color = colorList[q], linestyle = '',capsize = 2, lw = 1, capthick = 1)
+							color = colorList[bin], linestyle = '',capsize = 2, lw = 1, capthick = 1, mec='black')
 
 		
 
-    	ax[0].legend()
-		fig.savefig('{0}/ratio_{1}_{2}.pdf'.format(outFileName, q+1, x+1))
-		
+		ax[0].legend()
+		if makePlot == True:
+			fig.savefig('{0}/ratio_{1}_{2}.png'.format(outFileName, q+1, x+1))
+
 		plt.close()

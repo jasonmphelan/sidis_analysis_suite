@@ -9,8 +9,8 @@ wait
 
 #./analysis/mergeEnergy ../histograms/analysis_note/selection_plots ../histograms/analysis_note/selection_plots
 
-#python ../plotting/plotCuts.py ../histograms/analysis_note/selection_plots_allE.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/selection_plots
-#python ../plotting/plotSF.py ../histograms/analysis_note/selection_plots_allE.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/selection_plots pip
-#python ../plotting/plotSF.py ../histograms/analysis_note/selection_plots_allE.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/selection_plots pim
-#python ../plotting/plotFiducials.py ../histograms/analysis_note/selection_plots_allE.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/selection_plots
-python ../plotting/plotBeta.py ../histograms/analysis_note/selection_plots_allE.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/beta_plots
+python ../plotting/plotCuts.py ../histograms/analysis_note/selection_plots_allE.root ../plotting/analysis_note/selection_plots
+python ../plotting/plotSF.py ../histograms/analysis_note/selection_plots_allE.root ../plotting/analysis_note/selection_plots pip
+python ../plotting/plotSF.py ../histograms/analysis_note/selection_plots_allE.root ../plotting/analysis_note/selection_plots pim
+python ../plotting/plotFiducials.py ../histograms/analysis_note/selection_plots_allE.root ../plotting/analysis_note/selection_plots
+python ../plotting/plotBeta.py ../histograms/analysis_note/selection_plots_allE.root ../plotting/analysis_note/beta_plots

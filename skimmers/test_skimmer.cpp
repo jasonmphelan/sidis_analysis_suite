@@ -90,6 +90,7 @@ int main( int argc, char** argv){
 	
 	// Set output variables
 	int Ne,Npi, Npips, Npims, runnum, evnum;
+	bool isDIS;
 	double torus_setting;
 	TLorentzVector beam( 0, 0, Ebeam, Ebeam );
 	double accCharge = 0;
@@ -136,6 +137,7 @@ int main( int argc, char** argv){
 		if( RunType == 1 ){
 			outTree->Branch("e_gen", &e_gen);
 			outTree->Branch("pi_gen", &pi_gen);
+			outTree->Branch("isDIS", &isDIS);
 		}
 	}
 	
@@ -174,6 +176,7 @@ int main( int argc, char** argv){
 			if( RunType == 1 ){
 				outTree->Branch("e_gen", &e_gen);
 				outTree->Branch("pi_gen", &pi_gen);
+				outTree->Branch("isDIS", &isDIS);
 			}
 		}
 
@@ -224,7 +227,7 @@ int main( int argc, char** argv){
 			pi_gen.clear();
 
 			Ne = Npi = Npips = Npims = 0;
-
+			isDIS = false;
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
 			
 			// Get Particles By PID
@@ -270,6 +273,7 @@ int main( int argc, char** argv){
 					if( mcId == -211 || mcId == -321 ){
 						pimsMC.push_back(i);
 					}
+					if( abs(mcId) ==91 || abs(mcId) == 92 || abs(mcId) == 1 || abs(mcId) == 2) isDIS == true;
 				}
 				pionsMC.push_back(pipsMC);
 				pionsMC.push_back(pimsMC);

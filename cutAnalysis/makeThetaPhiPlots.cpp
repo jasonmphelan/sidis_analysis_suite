@@ -146,7 +146,7 @@ int main( int argc, char** argv){
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta()*rad_to_deg;
 			double phi_pi = pi[i].get3Momentum().Phi()*rad_to_deg;
-			if( (pi[i].getSector() == 3 || (pi[i].getSector() == 4 && pi[i].get3Momentum().Mag() > 1) ) && phi_pi < 0. ){ phi_pi += 360; }
+			if( (pi[i].getSector() == 3 || (pi[i].getSector() == 4 && pi[i].get3Momentum().Mag() > .5) ) && phi_pi < 0. ){ phi_pi += 360; }
 			
 			int chargeIdx = (int)( pi[i].getCharge() < 0 ) + 1;
 			

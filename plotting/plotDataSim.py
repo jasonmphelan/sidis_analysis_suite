@@ -26,6 +26,12 @@ def setTitle1D( ax, key):
 		ax.set_xlabel(r"$\theta_e$ [deg.]", fontsize=16)
 	if "Theta_pi" in key:
 		ax.set_xlabel(r"$\theta_{\pi} [deg.]$", fontsize=16)
+	if "Phi_e" in key:
+		ax.set_xlabel(r"$\phi_e$ [deg.]", fontsize=16)
+	if "Phi_pi" in key:
+		ax.set_xlabel(r"$\phi_{\pi} [deg.]$", fontsize=16)
+	if "Phi_q" in key:
+		ax.set_xlabel(r"$\phi_{q} [deg.]$", fontsize=16)
 	if "Q2" in key:
 		ax.set_xlabel(r"$Q^2$ [GeV$^2$]", fontsize=16)
 	if "P_pi" in key:
@@ -36,7 +42,14 @@ def setTitle1D( ax, key):
 		ax.set_xlabel(r"$M_X$ [GeV]", fontsize=16)
 	if "Omega" in key:
 		ax.set_xlabel(r"$\omega$ [GeV]", fontsize=16)
-
+	if "Eta" in key:
+		ax.set_xlabel(r"$\eta$", fontsize=16)
+	if "Pt" in key:
+		ax.set_xlabel(r"$p_{\perp}$ [GeV]", fontsize=16)
+	if "Xb" in key:
+		ax.set_xlabel(r"$x_B$", fontsize=16)
+	if "Xf" in key:
+		ax.set_xlabel(r"$x_F$", fontsize=16)
 #inFile_names = ['../histograms/analysis_note/kinematics_data_10.4_p_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_p_cut.root', '../histograms/analysis_note/kinematics_data_10.4_beta_cut.root', '../histograms/analysis_note/kinematics_kaons_10.2_beta_cut.root']
 
 dat_name = sys.argv[1]
@@ -129,5 +142,5 @@ for key in inFile[0].keys():
 
 		pdfName = hName.replace("_pip", "")
 		fig.legend(fontsize=16)
-		fig.savefig(f"{out_names}/{pdfName}.pdf")
+		fig.savefig(f"{out_names}/{pdfName}.png")
 		plt.close(fig)

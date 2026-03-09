@@ -45,7 +45,7 @@ using namespace constants;
 
 void zeroSuppress( TH1F * h);
 double getVarVal( electron e, pion pi ); 
-void setBin( TH1F * h,  int z_bin, double events[bins_Z][bins_p][3],  double weights, correctionTools corr, int corrType, int matchType, int chargeIdx);
+void setBin( TH1F * h,  int z_bin, double events[bins_Z][bins_p][3],  double errors[bins_Z][bins_p][3], double weights, correctionTools corr, int corrType, int matchType, int chargeIdx);
 
 int main( int argc, char** argv){
 
@@ -68,7 +68,8 @@ int main( int argc, char** argv){
 	int applyCorr = atoi(argv[4]);
 	int map = atoi(argv[5]);
 	TString acc_name = argv[6];
-	TString rho_norm_name = argv[7];
+	TString rho_file_name = argv[7];
+	TString rho_norm_name = argv[8];
 
 	cout<<rho_norm_name<<std::endl;
 	cout<<"Create and Load files\n";
@@ -81,9 +82,7 @@ int main( int argc, char** argv){
 	TChain * rChain = new TChain( "ePi" );
 
 	//Add files
-	std::cout<<"test\n";
-
-	TString base = "/volatile/clas12/users/jphelan/SIDIS/data/";
+	TString base = "../trees/"; //"/volatile/clas12/users/jphelan/SIDIS/data/";
 
 	if( inBeam == 0 || inBeam == 10.2){
 		dChain->Add( base + "final_skims/10.2/final_skim.root");
@@ -91,7 +90,7 @@ int main( int argc, char** argv){
 			kChain->Add( base + "final_skims/kaons_10.2/final_skim.root");
 		}
 		if( applyCorr > 4 ){
-			rChain->Add( base + "rho_skims/rotated_10.2_acc.root");
+			rChain->Add( base + "final_skims/rho_skims/rotated_10.2_" + rho_file_name + ".root");
 		}
 	}
 	if( inBeam == 0 || inBeam == 10.4){
@@ -100,7 +99,7 @@ int main( int argc, char** argv){
 			kChain->Add( base + "final_skims/kaons_10.4/final_skim.root");
 		}
 		if( applyCorr > 4 ){
-			rChain->Add( base + "rho_skims/rotated_10.4_acc.root");
+			rChain->Add( base + "final_skims/rho_skims/rotated_10.4_"+ rho_file_name+".root");
 		}
 	}
 	if( inBeam == 0 || inBeam == 10.6){
@@ -109,11 +108,11 @@ int main( int argc, char** argv){
 			kChain->Add( base + "final_skims/kaons_10.6/final_skim.root");
 		}
 		if( applyCorr > 4 ){
-			rChain->Add( base + "rho_skims/rotated_10.6_acc.root");
+			rChain->Add( base + "final_skims/rho_skims/rotated_10.6_"+rho_file_name+"root");
 		}
 	}
 
-	TFile * rho_norms = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/" + rho_norm_name);
+	TFile * rho_norms = new TFile((TString) _DATA + (TString)"/correctionFiles/" + rho_norm_name);
 	TH3F * hNorms_pip = (TH3F*)rho_norms->Get("hNorm_pip");
 	TH3F * hNorms_pim = (TH3F*)rho_norms->Get("hNorm_pim");
 	TVector3 * bounds = (TVector3*)rho_norms->Get("bounds");
@@ -126,6 +125,7 @@ int main( int argc, char** argv){
 
 	double events_in_bin[4][2][bins_Q2][bins_xB][bins_Z][bins_p][3] = {0}; //[sample][charge][q2][xb][z][p][Ebeam]
 	double weights_in_bin[4][2][bins_Q2][bins_xB][bins_Z] = {0}; 
+	double errors_in_bin[4][2][bins_Q2][bins_xB][bins_Z][bins_p][3] = {0};
 
 	TH1F * hZ[bins_Q2][bins_xB][2];
 	TH1F * hZ_k[bins_Q2][bins_xB][2];
@@ -195,7 +195,7 @@ int main( int argc, char** argv){
 
 		if( *eBeam != beam_energy ){
 			if( matchType == 3 ) corrector.setWeightName( Form("corrections_%0.1f_3d_AN.root", *eBeam));
-			else corrector.setWeightName( Form("corrections_%0.1f_AN.root", *eBeam));
+			else corrector.setWeightName( Form("corrections_%0.1f_AN_test.root", *eBeam));
 
 			corrector.loadHistograms();	
 			beam_energy = *eBeam;
@@ -262,6 +262,7 @@ int main( int argc, char** argv){
 			}	
 			events_in_bin[0][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]++;
 			weights_in_bin[0][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]+= weight;
+			errors_in_bin[0][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][p_bin][this_bin_E]++;
 			
 			//hZ[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( pi[i].getZ(), weight );
 			//events_in_bin[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]++;
@@ -295,7 +296,7 @@ int main( int argc, char** argv){
 			}
 			if( *eBeam_k != beam_energy ){
 				if( matchType == 3 ) corrector.setWeightName( Form("corrections_%0.1f_3d_AN.root", *eBeam_k));
-				else corrector.setWeightName( Form("corrections_%0.1f_AN.root", *eBeam_k));
+				else corrector.setWeightName( Form("corrections_%0.1f_AN_test.root", *eBeam_k));
 				corrector.loadHistograms();
 				//corrector.loadNewEnergy( *eBeam_k );
 				beam_energy = *eBeam_k;
@@ -359,6 +360,7 @@ int main( int argc, char** argv){
 			}	
 			events_in_bin[1][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]++;
 			weights_in_bin[1][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z] += weight;
+			errors_in_bin[1][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][p_bin][this_bin_E] ++;
 
 			//events_in_bin[1][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin]++;
 			//hZ_k[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( k[i].getZ(), weight );
@@ -392,11 +394,11 @@ int main( int argc, char** argv){
 			int event_count = reader_r.GetCurrentEntry();
 
 			if(event_count%100000 == 0){
-				cout<<"Events Analyzed: "<<event_count<< " / "<<event_total<<std::endl;
+				cout<<"Events Analyzed in old exe: "<<event_count<< " / "<<event_total<<std::endl;
 			}
 			if( beam->E() != beam_energy ){
 				if( matchType == 3 ) corrector.setWeightName( Form("corrections_%0.1f_3d_AN.root", beam->E()));
-				else corrector.setWeightName( Form("corrections_%0.1f_AN.root",beam->E()));
+				else corrector.setWeightName( Form("corrections_%0.1f_AN_test.root",beam->E()));
 				corrector.loadHistograms();
 				beam_energy = beam->E();
 			}
@@ -420,15 +422,10 @@ int main( int argc, char** argv){
 				}
 
 				bool matching = true;
-				//if( matchType == 2 ){ 
-				//	matching = anal.applyAcceptanceMatching(pi[i], 2);
-					//matching = isGoodPion[i]; }
-				//}
-				//if( matchType == 2 ){ matching = isGoodRho[i]; }
-				//if( matchType == 2 ){ 
-				//	matching = anal.applyAcceptanceMatching(r[i], 2);
-					//matching = isGoodPion[i]; }
-				//}
+			
+				if( matchType == 2 ){ 
+					matching = anal.applyAcceptanceMatching(r[i], 2);
+				}
 				if( matchType == 3 ){ 
 					matching = anal.applyAcceptanceMap( p_pi, rad_to_deg*r[i].get3Momentum().Phi(), rad_to_deg*r[i].get3Momentum().Theta(), 1 ) >= 0 &&
 								anal.applyAcceptanceMap( p_pi, rad_to_deg*r[i].get3Momentum().Phi(), rad_to_deg*r[i].get3Momentum().Theta(), 2 ) >= 0;
@@ -438,9 +435,8 @@ int main( int argc, char** argv){
 				if( !matching ){ continue; }
 
 				corrector.setKinematics( e_r->getXb(), e_r->getQ2(), r[i].getZ(), p_pi );
-				double weight = rhoWeight[i] - ((double)i==1);
+				double weight = rhoWeight[i];// - (double)(i==1);
 				if( rhoWeight[i] > 100 )continue;  
-				double eventWeightErr = 0;
 
 				double bin_weight = corrector.getCorrectionFactor(0, chargeIdx);
 				double acc_weight = corrector.getCorrectionFactor(1, chargeIdx);
@@ -450,7 +446,7 @@ int main( int argc, char** argv){
 			
 				
 				if( applyCorr == 1 ) weight *= bin_weight;
-				if( applyCorr >= 2 ) weight *= acc_weight;
+				if( applyCorr == 2 ) weight *= acc_weight;
 				if( applyCorr > 2 ){
 					weight *= mc_weight;
 				}
@@ -459,14 +455,16 @@ int main( int argc, char** argv){
 						weight *= k_weight;
 				}	
 				if( *Mx_2pi < Mx_min ){
-					events_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]++;
+					events_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]+=rhoWeight[i];
 					weights_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]+= weight;
+					errors_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]+= pow(rhoWeight[i],2) + pow(rhoError[i],2);
 					//events_in_bin[2][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin]++;
 					//hZ_r[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
 				}
 				if( *Mx_2pi > Mx_min && *Mx_2pi < Mx_max ){
-					events_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]++;
+					events_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]+=rhoWeight[i];	
 					weights_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]+= weight;
+					errors_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin][this_bin_E]+= pow(rhoWeight[i],2) + pow(rhoError[i],2);
 					//events_in_bin[3][chargeIdx][this_bin_Q2][this_bin_xB][kaon_bin_Z][p_bin]++;
 					//hZ_r_bac[this_bin_Q2][this_bin_xB][chargeIdx]->Fill( r[i].getZ(), weight );
 				}				
@@ -505,25 +503,39 @@ int main( int argc, char** argv){
 											Q2_min + (i-1)*.5 + 0.25,
 											hZ[i-1][j-1][0]->GetXaxis()->GetBinCenter(k+1), 1.5);
 				if( applyCorr <= 3){
-					setBin( hZ[i-1][j-1][0],  k, events_in_bin[0][0][i-1][j-1], weights_in_bin[0][0][i-1][j-1][k], corrector, applyCorr, matchType, 0);
-					setBin( hZ[i-1][j-1][1],  k, events_in_bin[0][1][i-1][j-1], weights_in_bin[0][1][i-1][j-1][k], corrector, applyCorr, matchType, 1);
+					setBin( hZ[i-1][j-1][0],  k, events_in_bin[0][0][i-1][j-1], errors_in_bin[0][0][i-1][j-1], weights_in_bin[0][0][i-1][j-1][k], corrector, applyCorr, matchType, 0);
+					setBin( hZ[i-1][j-1][1],  k, events_in_bin[0][1][i-1][j-1], errors_in_bin[0][1][i-1][j-1], weights_in_bin[0][1][i-1][j-1][k], corrector, applyCorr, matchType, 1);
 				}
 				else{
-					setBin( hZ[i-1][j-1][0],  k, events_in_bin[0][0][i-1][j-1], weights_in_bin[0][0][i-1][j-1][k], corrector, 4, matchType, 0);
-					setBin( hZ[i-1][j-1][1],  k, events_in_bin[0][1][i-1][j-1], weights_in_bin[0][1][i-1][j-1][k], corrector, 4, matchType, 1);
+					setBin( hZ[i-1][j-1][0],  k, events_in_bin[0][0][i-1][j-1], errors_in_bin[0][0][i-1][j-1], weights_in_bin[0][0][i-1][j-1][k], corrector, 4, matchType, 0);
+					setBin( hZ[i-1][j-1][1],  k, events_in_bin[0][1][i-1][j-1], errors_in_bin[0][1][i-1][j-1],weights_in_bin[0][1][i-1][j-1][k], corrector, 4, matchType, 1);
 
-					setBin( hZ_k[i-1][j-1][0],  k, events_in_bin[1][0][i-1][j-1], weights_in_bin[1][0][i-1][j-1][k], corrector, 5, matchType, 0);
-					setBin( hZ_k[i-1][j-1][1],  k, events_in_bin[1][1][i-1][j-1], weights_in_bin[1][1][i-1][j-1][k], corrector, 5, matchType, 1);
+					setBin( hZ_k[i-1][j-1][0],  k, events_in_bin[1][0][i-1][j-1], errors_in_bin[1][0][i-1][j-1],weights_in_bin[1][0][i-1][j-1][k], corrector, 5, matchType, 0);
+					setBin( hZ_k[i-1][j-1][1],  k, events_in_bin[1][1][i-1][j-1], errors_in_bin[1][1][i-1][j-1],weights_in_bin[1][1][i-1][j-1][k], corrector, 5, matchType, 1);
 					
-					setBin( hZ_r[i-1][j-1][0],  k, events_in_bin[2][0][i-1][j-1], weights_in_bin[2][0][i-1][j-1][k], corrector, 3, matchType, 0);
-					setBin( hZ_r[i-1][j-1][1],  k, events_in_bin[2][1][i-1][j-1], weights_in_bin[2][1][i-1][j-1][k], corrector, 3, matchType, 1);
+					setBin( hZ_r[i-1][j-1][0],  k, events_in_bin[2][0][i-1][j-1], errors_in_bin[2][0][i-1][j-1],weights_in_bin[2][0][i-1][j-1][k], corrector, 4, matchType, 0);
+					setBin( hZ_r[i-1][j-1][1],  k, events_in_bin[2][1][i-1][j-1], errors_in_bin[2][1][i-1][j-1],weights_in_bin[2][1][i-1][j-1][k], corrector, 4, matchType, 1);
 
-					setBin( hZ_r_bac[i-1][j-1][0],  k, events_in_bin[3][0][i-1][j-1], weights_in_bin[3][0][i-1][j-1][k], corrector, 3, matchType, 0);
-					setBin( hZ_r_bac[i-1][j-1][1],  k, events_in_bin[3][1][i-1][j-1], weights_in_bin[3][1][i-1][j-1][k], corrector, 3, matchType,1);
+					setBin( hZ_r_bac[i-1][j-1][0],  k, events_in_bin[3][0][i-1][j-1], errors_in_bin[3][0][i-1][j-1],weights_in_bin[3][0][i-1][j-1][k], corrector, 4, matchType, 0);
+					setBin( hZ_r_bac[i-1][j-1][1],  k, events_in_bin[3][1][i-1][j-1], errors_in_bin[3][1][i-1][j-1],weights_in_bin[3][1][i-1][j-1][k], corrector, 4, matchType,1);
 
 				}
 
 			}
+
+			outFile->cd();
+			
+			hZ[i-1][j-1][0]->Write();
+			hZ[i-1][j-1][1]->Write();
+
+			hZ_k[i-1][j-1][0]->Write();
+			hZ_k[i-1][j-1][1]->Write();
+
+			hZ_r[i-1][j-1][0]->Write();
+			hZ_r[i-1][j-1][1]->Write();
+
+			hZ_r_bac[i-1][j-1][0]->Write();
+			hZ_r_bac[i-1][j-1][1]->Write();
 
 			
 			if( applyCorr > 3 ){
@@ -537,11 +549,11 @@ int main( int argc, char** argv){
 					double pip_err = hZ_r_bac[i-1][j-1][0]->GetBinError(k);
 					double pip_scale = hNorms_pip->GetBinContent(j, i, k);
 					double pip_scale_err = 0;//hNorms_pip->GetBinError(j, i, k);
-					double pip_bin_err = pip_cont*pip_scale*sqrt( pow( pip_err/pip_cont, 2) 	+ pow( pip_scale_err/pip_scale, 2) );
+					double pip_bin_err = pip_cont*pip_scale*sqrt( pow( pip_err/pip_cont, 2) + pow( pip_scale_err/pip_scale, 2) );
 
 					hZ_r_bac[i-1][j-1][0]->SetBinContent( k, pip_cont*pip_scale );
 					if( isnan(pip_bin_err) || !isfinite(pip_bin_err)){
-						cout<<"ERROR "<<std::endl;
+						//cout<<"ERROR "<<std::endl;
 					}
 					else hZ_r_bac[i-1][j-1][0]->SetBinError( k, pip_bin_err );
 					
@@ -550,10 +562,9 @@ int main( int argc, char** argv){
 					double pim_scale = hNorms_pim->GetBinContent(j, i, k);
 					double pim_scale_err = 0;//hNorms_pim->GetBinError(j, i, k);
 					double pim_bin_err = pim_cont*pim_scale*sqrt( pow( pim_err/pim_cont, 2) 	+ pow( pim_scale_err/pim_scale, 2) );
-					
 					hZ_r_bac[i-1][j-1][1]->SetBinContent( k, pim_cont*pim_scale );
 					if( isnan(pim_bin_err)|| !isfinite(pim_bin_err)){
-						cout<<"ERROR "<<pim_cont*pim_scale*sqrt( pow( pim_err/pim_cont, 2) 	+ pow( pim_scale_err/pim_scale, 2) )<<std::endl;
+						//cout<<"ERROR "<<pim_cont*pim_scale*sqrt( pow( pim_err/pim_cont, 2) 	+ pow( pim_scale_err/pim_scale, 2) )<<std::endl;
 					}
 					else hZ_r_bac[i-1][j-1][1]->SetBinError( k, pim_bin_err );
 					
@@ -571,6 +582,8 @@ int main( int argc, char** argv){
 			
 			}
 
+			
+			
 			hZ[i-1][j-1][0]->Divide(hZ[i-1][j-1][1]);
 
 			TH1F * helper_3 = (TH1F *)hZ[i-1][j-1][0]->Clone();
@@ -585,9 +598,9 @@ int main( int argc, char** argv){
 			//hZ[i-1][j-1][0]->Print("ALL");
 			hZ[i-1][j-1][0]->SetDirectory(outFile);
 			hZ[i-1][j-1][1]->SetDirectory(outFile);
-			outFile->cd();
-			hZ[i-1][j-1][0]->Write();
-			hZ[i-1][j-1][1]->Write();
+			
+			//hZ[i-1][j-1][0]->Write();
+			//hZ[i-1][j-1][1]->Write();
 		
 		}
 	}		
@@ -615,6 +628,7 @@ double getVarVal(TString var,  electron * e, pion pi ){
 	if( var == "p_e" ) return e->get3Momentum().Mag();
 	if( var == "theta_e" ) return e->get3Momentum().Theta()*rad_to_deg;
 	if( var == "phi_e" ) return e->get3Momentum().Phi()*rad_to_deg;
+	if( var == "sector_e" ) { double phi_deg = e->get3Momentum().Phi()*rad_to_deg + 20.; if (phi_deg < 0.) phi_deg += 360.; return (int)(phi_deg / 60.) + 1; }
 	if( var == "W2" ) return e->getW2();
 	if( var == "Q2" ) return e->getQ2();
 	if( var == "xB" ) return e->getXb();
@@ -630,15 +644,8 @@ double getVarVal(TString var,  electron * e, pion pi ){
 	return 0;
 }
 
-void setBin( TH1F * h,  int z_bin, double events[bins_Z][bins_p][3], double weights, correctionTools corr, int corrType, int matchType, int chargeIdx){
+void setBin( TH1F * h,  int z_bin, double events[bins_Z][bins_p][3], double errors[bins_Z][bins_p][3], double weights, correctionTools corr, int corrType, int matchType, int chargeIdx){
 	
-	
-	double z_min = h->GetXaxis()->GetBinLowEdge(z_bin+1)+0.01;
-	double z_max = h->GetXaxis()->GetBinUpEdge(z_bin+1);
-
-	int zBinMin = (int)( ( (z_min - .3)/(1.-.3) )*bins_Z);
-	int zBinMax = zBinMin+1;
-
 	if ( weights == 0 )return;
 
 	double error = 0;
@@ -654,10 +661,10 @@ void setBin( TH1F * h,  int z_bin, double events[bins_Z][bins_p][3], double weig
 	double k_err = 0;//corr.getCorrectionError(1, chargeIdx); 
 
 
-	for( int E = 0; E < 3; E++){
+	for( int E = 0; E < 1; E++){
 
 		if( matchType == 3 ) corr.setWeightName( Form("corrections_%0.1f_3d_AN.root", (10.2 + E*.2)));
-		else corr.setWeightName( Form("corrections_%0.1f_AN.root",(10.2 + E*.2)));
+		else corr.setWeightName( Form("corrections_%0.1f_AN_test.root",(10.2 + E*.2)));
 		corr.loadHistograms();
 		//corr.testHists();
 
@@ -685,99 +692,36 @@ void setBin( TH1F * h,  int z_bin, double events[bins_Z][bins_p][3], double weig
 		}
 		
 
-		double term_0 = 0;
+		double term_0 = 0; //temp term
 		for( int i = 0; i < 4; i++ ){
 			double p = (p_bin_edges[i] + p_bin_edges[i+1])/2.;
-			for( int j = zBinMin; j < zBinMax; j++){
-				
-				double z = 0.3 + 0.05*j + 0.05/2.;
-				corr.setKinematics(corr.getX(), corr.getQ2(), z, p);
-
-				switch ( corrType ){
-					case 4:
-						k_weight = corr.getCorrectionFactor(3, chargeIdx);
-						k_err = corr.getCorrectionError(3, chargeIdx);
-						break;
-					case 5:
-						k_weight = corr.getCorrectionFactor(4, chargeIdx);
-						k_err = corr.getCorrectionError(4, chargeIdx);
-						break;
-				}
-			
-				term_0 += k_weight*events[j][i][E];
-				term_3 += pow( mc_weight*k_weight, 2)*events[j][i][E];
-			}
-		}
-		//cout<<"TERM 0 "<<term_0<<std::endl;
-		term_1 += pow( mc_err*term_0, 2);
-		//cout<<"MC ERR : "<<term_1<<std::endl;
-	}
-
-	
-	double term_0 = 0;
-	for( int i = 0; i < 4; i++ ){
-		double p = (p_bin_edges[i] + p_bin_edges[i+1])/2.;
-		for( int j = zBinMin; j < zBinMax; j++){
-			double z = 0.3 + 0.05*j + 0.05/2.;
-			corr.setKinematics(corr.getX(), corr.getQ2(), z, p);
-
+			corr.setKinematics( corr.getX(), 
+											corr.getQ2(),
+											corr.getZ(), corr.getP());
 			switch ( corrType ){
 				case 4:
-					mc_weight = corr.getCorrectionFactor(2, chargeIdx);
-					mc_err = corr.getCorrectionError(2, chargeIdx);
 					k_weight = corr.getCorrectionFactor(3, chargeIdx);
 					k_err = corr.getCorrectionError(3, chargeIdx);
 					break;
 				case 5:
-					mc_weight = corr.getCorrectionFactor(2, chargeIdx);
-					mc_err = corr.getCorrectionError(2, chargeIdx);
 					k_weight = corr.getCorrectionFactor(4, chargeIdx);
 					k_err = corr.getCorrectionError(4, chargeIdx);
 					break;
-					
-			}
-			double term_0 = 0;
-			for( int E = 0; E < 3; E++){
-
-				if( matchType == 3 ) corr.setWeightName( Form("corrections_%0.1f_3d_AN.root", (10.2 + E*.2)));
-				else corr.setWeightName( Form("corrections_%0.1f_AN.root",(10.2 + E*.2)));
-				corr.loadHistograms();
-				switch ( corrType ){
-					case 1:
-						mc_weight = corr.getCorrectionFactor(0, chargeIdx);
-						mc_err = corr.getCorrectionError(0, chargeIdx);
-						break;
-					case 2:
-						mc_weight = corr.getCorrectionFactor(1, chargeIdx);
-						mc_err = corr.getCorrectionError(1, chargeIdx);
-						break;
-					case 3:
-						mc_weight = corr.getCorrectionFactor(2, chargeIdx);
-						mc_err = corr.getCorrectionError(2, chargeIdx);
-						break;
-					case 4:
-						mc_weight = corr.getCorrectionFactor(2, chargeIdx);
-						mc_err = corr.getCorrectionError(2, chargeIdx);
-						k_weight = corr.getCorrectionFactor(3, chargeIdx);
-						k_err = corr.getCorrectionError(3, chargeIdx);
-						break;
-					case 5:
-						mc_weight = corr.getCorrectionFactor(2, chargeIdx);
-						mc_err = corr.getCorrectionError(2, chargeIdx);
-						k_weight = corr.getCorrectionFactor(4, chargeIdx);
-						k_err = corr.getCorrectionError(4, chargeIdx);
-						break;
-				}
-
-				term_0 += mc_weight*events[j][i][E];
-				
-			}
-			term_2 += pow( term_0*k_err, 2);
 			
-
+			}
+			term_1 += pow( mc_weight*k_weight, 2)*errors[z_bin][i][E];
+			term_2 += pow( mc_weight*events[z_bin][i][E]*k_err, 2 );
+			term_0 += k_weight*events[z_bin][i][E];
+			//term_0 += k_weight*events[j][i][E];
+			//term_3 += pow( mc_weight*k_weight, 2)*events[j][i][E];
+			
 		}
+		term_3 += pow(term_0*mc_err, 2);
+		//cout<<"TERM 0 "<<term_0<<std::endl;
+		//term_1 += pow( mc_err*term_0, 2);
+		//cout<<"MC ERR : "<<term_1<<std::endl;
 	}
-	
+
 	error = sqrt( term_1 + term_2 + term_3);
 
 	h->SetBinContent( z_bin +1, weights);

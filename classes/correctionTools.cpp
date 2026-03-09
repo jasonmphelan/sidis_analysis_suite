@@ -2,6 +2,8 @@
 #include "TFile.h"
 #include "TF1.h"
 #include "TH3F.h"
+#include "TParameter.h"
+#include "TNamed.h"
 #include "constants.h"
 #include "cut_values.h"
 #define CORR_PATH _DATA
@@ -17,6 +19,8 @@ correctionTools::~correctionTools(){}
 	
 void correctionTools::printFilePaths(){
 	std::cout<< (TString) _DATA + "/correctionFiles/"+ weight_name<<std::endl;
+	std::cout<< (TString) _DATA + "/correctionFiles/"+ weight_name_4D<<std::endl;
+
 	std::cout<< (TString) _DATA + "/correctionFiles/"+ kaon_To_pi_name<<std::endl;
 	std::cout<< (TString) _DATA + "/correctionFiles/"+ pi_To_kaon_name<<std::endl;
 }
@@ -28,7 +32,10 @@ void correctionTools::loadHistograms(){
 	//weightFile->Close();
 	//pi2kFile->Close();
 	//k2piFile->Close();
+	
 	TFile * weightFile = new TFile((TString) _DATA + "/correctionFiles/"+ weight_name);
+	TFile * weightFile_4d = new TFile((TString) _DATA + "/correctionFiles/"+ weight_name_4D);
+
 	TFile * pi2kFile = new TFile((TString) _DATA + "/correctionFiles/"+ kaon_To_pi_name);
 	TFile * k2piFile = new TFile((TString) _DATA + "/correctionFiles/"+ pi_To_kaon_name);
 	
@@ -38,6 +45,7 @@ void correctionTools::loadHistograms(){
 	binMigration[1] = (TH3F*)weightFile->Get( "hBinMigrationM" );
 	mcCorrection[0] = (TH3F*)weightFile->Get( "hMcCorrectionP" );
 	mcCorrection[1] = (TH3F*)weightFile->Get( "hMcCorrectionM" );
+
 
 	accCorrection[0]->SetDirectory(0);
 	accCorrection[1]->SetDirectory(0);
@@ -50,6 +58,7 @@ void correctionTools::loadHistograms(){
 	
 
 	for( int i = 0; i < 4; i++ ){
+	
 		k_to_pi_Correction[0][i] = (TH3F*)pi2kFile->Get( Form( "hKaonCorrP_%i", i) );
 		k_to_pi_Correction[1][i] = (TH3F*)pi2kFile->Get( Form( "hKaonCorrM_%i", i) );
 		pi_to_k_Correction[0][i] = (TH3F*)k2piFile->Get( Form( "hKaonCorrP_%i", i) );
@@ -61,13 +70,39 @@ void correctionTools::loadHistograms(){
 		pi_to_k_Correction[1][i]->SetDirectory(0);
 	}
 
+	for( int i = 0; i < nBins_4d; i++ ){
+		mcCorrection4D[0][i] = (TH3F*)weightFile_4d->Get( Form( "hMcCorrP_%i",i ) );
+		mcCorrection4D[1][i] = (TH3F*)weightFile_4d->Get( Form( "hMcCorrM_%i",i ) );
+		mcCorrection4D[0][i]->SetDirectory(0);
+		mcCorrection4D[1][i]->SetDirectory(0);
+	}
+
 	//delete weightFile;
 	//delete pi2kFile;
 	//delete k2piFile;
 	delete weightFile;
+	delete weightFile_4d;
+
 	delete pi2kFile;
 	delete k2piFile;
 
+}
+
+int correctionTools::probeN4dBins(){
+	TFile * f = new TFile((TString) _DATA + "/correctionFiles/" + weight_name_4D);
+	if( !f || f->IsZombie() ){ delete f; return 0; }
+	int count = 0;
+	while( f->Get( Form("hMcCorrP_%d", count) ) ) count++;
+	if( count > 0 ){
+		auto* pMin  = (TParameter<double>*)f->Get("var_min");
+		auto* pMax  = (TParameter<double>*)f->Get("var_max");
+		auto* pName = (TNamed*)f->Get("var_name");
+		if( pMin  ) corr_var_min  = pMin->GetVal();
+		if( pMax  ) corr_var_max  = pMax->GetVal();
+		if( pName ) corr_var_name = pName->GetTitle();
+	}
+	delete f;
+	return count;
 }
 
 void correctionTools::loadNewEnergy( double energy ){
@@ -209,127 +244,53 @@ double correctionTools::getCorrectionFactor( int type, int charge ){
 			this_bin_p = j;
 		}
 	}
-
 	
-	if(mode == 0){
-		double weight = 0;
-		double pi_To_k = 0;	
-		double k_To_pi = 0;	
-		
-		for( int i = 0; i < 4; i++ ){
-			double b = 0;
-			for( int j = 0; j < 3; j++ ){
-				double c = 0;
-			
-				for( int k = 0; k < 4; k++ ){
+	int x_bin_w = (mode == 4) ? mcCorrection4D[charge][0]->GetXaxis()->FindBin(x) : binMigration[1]->GetXaxis()->FindBin(x);
+	int y_bin_w = (mode == 4) ? mcCorrection4D[charge][0]->GetYaxis()->FindBin(q) : binMigration[1]->GetYaxis()->FindBin(q);
+	int z_bin_w = (mode == 4) ? mcCorrection4D[charge][0]->GetZaxis()->FindBin(z) : binMigration[1]->GetZaxis()->FindBin(z);
+	int x_bin_k = pi_to_k_Correction[charge][0]->GetXaxis()->FindBin(x);
+	int y_bin_k = pi_to_k_Correction[charge][0]->GetYaxis()->FindBin(q);
+	int z_bin_k = pi_to_k_Correction[charge][0]->GetZaxis()->FindBin(z);
+	double binWeight = binMigration[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
+	double accWeight = accCorrection[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
+	double mcWeight = (mode == 4) ? mcCorrection4D[charge][bin_4d]->GetBinContent( x_bin_w, y_bin_w, z_bin_w) : mcCorrection[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
+	double pi2kWeight = pi_to_k_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
+	double k2piWeight = k_to_pi_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
+	double kWeight = 0;
 
-			
-					c += weight_Parameters[charge][i][j][k]*pow( x, k );
-				}
-				
-				b+= c*pow(q, j);
-			}
-			weight+= b*pow(z, i);
-		}
-				
-		if( type == 1 ) return weight;
-
-		if( type != 1 && this_bin_p < 2 ){
-			std::cout<<"Entered momentum p = "<<p<<std::endl;
-			std::cout<<"Returned bin : " <<this_bin_p<<std::endl;
-			std::cout<<"Invalid momentum bin\n";
-			return 1; 
-		}
-
-		for( int i = 0; i < 4; i++ ){
-			double b = 0;
-			for( int j = 0; j < 4; j++ ){
-				double c = 0;
-			
-				for( int k = 0; k < 4; k++ ){
-					c += pi_To_k_Parameters[charge][this_bin_p][i][j][k]*pow( x, k );
-				}
-				
-				b+= c*pow(q, j);
-			}
-			pi_To_k+= b*pow(z, i);
-		}
-
-		if( type == 2 ) return pi_To_k;
-		
-		for( int i = 0; i < 4; i++ ){
-			double b = 0;
-			for( int j = 0; j < 4; j++ ){
-				double c = 0;
-			
-				for( int k = 0; k < 4; k++ ){
-					c += k_To_pi_Parameters[charge][this_bin_p][i][j][k]*pow( x, k );
-				}
-				
-				b+= c*pow(q, j);
-			}
-			k_To_pi+= b*pow(z, i);
-		}
-
-		if( type == 3 ) return k_To_pi;
-
-		if( type > 3 ){
-			std::cout<<"Invalid argument... returning 0\n";
-			return 0;
-		}
-		
-		return weight*pi_To_k;
-	}
-
+	if( type == 0 ) return binWeight;
+	if( type == 1 ) return accWeight;
+	if( type == 2 ) return mcWeight;
+	if( type == 3 ) kWeight = pi2kWeight; 
+	if( type == 4 ) kWeight = k2piWeight;
+	if( type > 4 ){ return 0; }	
 	
+	//Check if in correction phase space       
+	double badBinVals[2] = {1, 0}; //Don't correct "bad" pi2k bins, kill "bad" k2pi bins
+
+	if( kWeight <= 0 || kWeight > 1 || this_bin_p < 2){return badBinVals[type - 3];}
 	else{
-		
-		int x_bin_w = binMigration[1]->GetXaxis()->FindBin(x);
-		int y_bin_w = binMigration[1]->GetYaxis()->FindBin(q);
-		int z_bin_w = binMigration[1]->GetZaxis()->FindBin(z);
-		int x_bin_k = pi_to_k_Correction[charge][0]->GetXaxis()->FindBin(x);
-		int y_bin_k = pi_to_k_Correction[charge][0]->GetYaxis()->FindBin(q);
-		int z_bin_k = pi_to_k_Correction[charge][0]->GetZaxis()->FindBin(z);
-		double binWeight = binMigration[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
-		double accWeight = accCorrection[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
-		double mcWeight = mcCorrection[charge]->GetBinContent( x_bin_w, y_bin_w, z_bin_w);
-		double pi2kWeight = pi_to_k_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
-		double k2piWeight = k_to_pi_Correction[charge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
-		double kWeight = 0;
+		double kWeightTemp;
+		int tempCharge;
+		if( charge == 0 ){ tempCharge = 1; }
+		if( charge == 1 ){ tempCharge = 0; }
 
-		if( type == 0 ) return binWeight;
-		if( type == 1 ) return accWeight;
-		if( type == 2 ) return mcWeight;
-		if( type == 3 ) kWeight = pi2kWeight; 
-		if( type == 4 ) kWeight = k2piWeight;
-		if( type > 4 ){ return 0; }	
-		
-		//Check if in correction phase space       
-		double badBinVals[2] = {1, 0}; //Don't correct "bad" pi2k bins, kill "bad" k2pi bins
-
-		if( kWeight <= 0 || kWeight > 1 || this_bin_p < 1){return badBinVals[type - 3];}
-		else{
-			double kWeightTemp;
-			int tempCharge;
-			if( charge == 0 ){ tempCharge = 1; }
-			if( charge == 1 ){ tempCharge = 0; }
-
-			if(type == 3){
-				kWeightTemp = pi_to_k_Correction[tempCharge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
-			}
-			if( type == 4 ){
-				kWeightTemp = k_to_pi_Correction[tempCharge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
-			}
-
-			if( kWeightTemp <= 0 || kWeightTemp > 1 ){
-				return badBinVals[type-3];
-			}
-			return kWeight;
+		if(type == 3){
+			kWeightTemp = pi_to_k_Correction[tempCharge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
 		}
-		
-		return 1;
+		if( type == 4 ){
+			kWeightTemp = k_to_pi_Correction[tempCharge][this_bin_p]->GetBinContent( x_bin_k, y_bin_k, z_bin_k );
+		}
 
+		if( kWeightTemp <= 0 || kWeightTemp > 1 ){
+			return badBinVals[type-3];
+		}
+		return kWeight;
 	}
+	
+	return 1;
+
+	
 
 }		
 

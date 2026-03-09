@@ -103,7 +103,7 @@ for key in inFile.keys():
 		keyBase = 'hMx_Zpip_'
 	if 'Q2' in hName:
 		keyBase = 'hMx_Q2pip_'
-	ran = [3,2,1,0]
+	ran = [4,3,2,1,0]
 
 	for b in ran:
 		pip = inFile[keyBase+f'{b};1']
@@ -153,9 +153,9 @@ for key in inFile.keys():
 
 	cuts = []
 	if "Z" in key:
-		cuts = [.3,.4,.5,.6,.8]
+		cuts = [0,.3,.4,.5,.6,.8]
 	else:
-		cuts = [2,3,4,6,8]
+		cuts = [0,2,3,4,6,8]
 
 	for line in ran:
 		ax[0,0].axvspan( cuts[line], cuts[line+1], alpha = .5, color = colorList[line] )
@@ -169,5 +169,5 @@ for key in inFile.keys():
 
 	pdfName = hName.replace("_pip", "")
 	pdfName = pdfName.replace(";1", "")
-	fig.savefig(f"{out_dir}/{pdfName}.pdf")
+	fig.savefig(f"{out_dir}/{pdfName}.png")
 	plt.close(fig)

@@ -5,7 +5,10 @@ add_executable(makeKaonPlots makeKaonPlots.cpp ${CMAKE_SOURCE_DIR}/classes/elect
 target_link_libraries(makeKaonPlots ${ROOT_LIBRARIES} clashit_tree) 
 
 add_executable(calcKaonCorr calcKaonCuts.cpp  )
-target_link_libraries(calcKaonCorr ${ROOT_LIBRARIES} ) 
+target_link_libraries(calcKaonCorr ${ROOT_LIBRARIES} )
+
+add_executable(calcKaonCorrP calcKaonCutsP.cpp  )
+target_link_libraries(calcKaonCorrP ${ROOT_LIBRARIES} )
 
 add_executable(fitKaonCorr fitKaonCorrection.cpp  )
 target_link_libraries(fitKaonCorr ${ROOT_LIBRARIES} ) 

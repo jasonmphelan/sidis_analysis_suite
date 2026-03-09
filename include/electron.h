@@ -24,18 +24,18 @@ class electron{// : public TObject {
 		void setCharge		(int	iCharge		)		{Charge		= iCharge	; return;}
 		void setStatus		(int	iStatus		)		{Status		= iStatus	; return;}
 		
-		int	getSector	(void)		{return Sector		;}
-		int	getPID		(void)		{return PID		;}
-		int	getCharge	(void)		{return Charge		;}
-		int	getStatus	(void)		{return Status		;}
+		int	getSector	(void) const		{return Sector		;}
+		int	getPID		(void) const		{return PID		;}
+		int	getCharge	(void) const		{return Charge		;}
+		int	getStatus	(void) const		{return Status		;}
 
 		void setTime		(double	iTime		)		{Time		= iTime		; return;}
 		void setBeta		(double	iBeta		)		{Beta		= iBeta		; return;}
 		void setChi2		(double	iChi2		)		{Chi2		= iChi2		; return;}
 		
-		double	getTime		(void)		{return Time		;}
-		double	getBeta		(void)		{return Beta		;}
-		double	getChi2		(void)		{return Chi2		;}
+		double	getTime		(void) const		{return Time		;}
+		double	getBeta		(void) const		{return Beta		;}
+		double	getChi2		(void) const		{return Chi2		;}
 		
 		// Calorimeter
 		void setEtot		(double	iEtot		)		{Etot		= iEtot		; return;}
@@ -52,29 +52,29 @@ class electron{// : public TObject {
 		void setPCal_Y		(double	iY		)		{PCal_Y		= iY		; return;}
 		void setPCal_Z		(double	iZ		)		{PCal_Z		= iZ		; return;}
 		
-		double	getEtot		(void)		{return Etot		;}
-		double	getEpcal	(void)		{return Epcal		;}
-		double	getEecin	(void)		{return Eecin		;}
-		double	getEecout	(void)		{return Eecout		;}
-		double	getEoP		(void)		{return EoP		;}
-		double	getTimeScint	(void)		{return TimeScint	;}
-		double	getPathScint	(void)		{return PathScint	;}
-		double	getU		(void)		{return U		;}
-		double	getV		(void)		{return V		;}
-		double	getW		(void)		{return W		;}
-		double	getPCal_X	(void)		{return PCal_X		;}
-		double	getPCal_Y	(void)		{return PCal_Y		;}
-		double	getPCal_Z	(void)		{return PCal_Z		;}
+		double	getEtot		(void) const		{return Etot		;}
+		double	getEpcal	(void) const		{return Epcal		;}
+		double	getEecin	(void) const		{return Eecin		;}
+		double	getEecout	(void) const		{return Eecout		;}
+		double	getEoP		(void) const		{return EoP		;}
+		double	getTimeScint	(void) const		{return TimeScint	;}
+		double	getPathScint	(void) const		{return PathScint	;}
+		double	getU		(void) const		{return U		;}
+		double	getV		(void) const		{return V		;}
+		double	getW		(void) const		{return W		;}
+		double	getPCal_X	(void) const		{return PCal_X		;}
+		double	getPCal_Y	(void) const		{return PCal_Y		;}
+		double	getPCal_Z	(void) const		{return PCal_Z		;}
 		
 		//Kinematics
 		void setMomentum	(clas12::region_part_ptr rp);	
 		void setVt		(clas12::region_part_ptr rp);
 		void setQ		(TLorentzVector iQ){ q = iQ; };
 		
-		TLorentzVector get4Momentum (void)	{return e4		;}
-		TVector3	get3Momentum (void)	{return e3		;}	
-		TLorentzVector getQ (void)		{return q		;}
-		TVector3	getVt (void)		{return vt		;}
+		TLorentzVector get4Momentum (void) const	{return e4		;}
+		TVector3	get3Momentum (void) const	{return e3		;}	
+		TLorentzVector getQ (void) const		{return q		;}
+		TVector3	getVt (void) const		{return vt		;}
 
 		void setQ2		(double	iQ2		)		{Q2		= iQ2		; return;}
 		void setOmega		(double	iOmega		)		{Omega		= iOmega	; return;}
@@ -82,11 +82,11 @@ class electron{// : public TObject {
 		void setW2		(double	iW2		)		{W2		= iW2		; return;}
 		void setY		(double iY		)		{y		= iY		; return;}
 
-		double	getQ2		(void)		{return Q2		;}
-		double	getOmega	(void)		{return Omega		;}
-		double	getXb		(void)		{return Xb		;}
-		double	getW2		(void)		{return W2		;}
-		double	getY		(void)		{return y		;}
+		double	getQ2		(void) const		{return Q2		;}
+		double	getOmega	(void) const		{return Omega		;}
+		double	getXb		(void) const		{return Xb		;}
+		double	getW2		(void) const		{return W2		;}
+		double	getY		(void) const		{return y		;}
 
 	
 		// Drift Chamber
@@ -106,23 +106,23 @@ class electron{// : public TObject {
 		void setDC_y3		(double iDC_y3		)		{DC_y3   	= iDC_y3   	; return;}
 		void setDC_z3		(double iDC_z3		)		{DC_z3   	= iDC_z3   	; return;}
 		void setEdge		( double iEdge, int layer		)		{edge[layer]		= iEdge		; return;}
-		double getEdge		(int layer	)		{return edge[layer]		;}
+		double getEdge		(int layer	) const		{return edge[layer]		;}
 		
-		double  getDC_chi2      (void)          {return DC_chi2         ;}
-		int     getDC_NDF       (void)          {return DC_NDF          ;}
-		int     getDC_sector    (void)          {return DC_sector       ;}
+		double  getDC_chi2      (void) const          {return DC_chi2         ;}
+		int     getDC_NDF       (void) const          {return DC_NDF          ;}
+		int     getDC_sector    (void) const          {return DC_sector       ;}
 
-		double  getDC_x1        (void)          {return DC_x1           ;}
-		double  getDC_y1        (void)          {return DC_y1           ;}
-		double  getDC_z1        (void)          {return DC_z1           ;}
+		double  getDC_x1        (void) const          {return DC_x1           ;}
+		double  getDC_y1        (void) const          {return DC_y1           ;}
+		double  getDC_z1        (void) const          {return DC_z1           ;}
 
-		double  getDC_x2        (void)          {return DC_x2           ;}
-		double  getDC_y2        (void)          {return DC_y2           ;}
-		double  getDC_z2        (void)          {return DC_z2           ;}
+		double  getDC_x2        (void) const          {return DC_x2           ;}
+		double  getDC_y2        (void) const          {return DC_y2           ;}
+		double  getDC_z2        (void) const          {return DC_z2           ;}
 
-		double  getDC_x3        (void)          {return DC_x3           ;}
-		double  getDC_y3        (void)          {return DC_y3           ;}
-		double  getDC_z3        (void)          {return DC_z3           ;}
+		double  getDC_x3        (void) const          {return DC_x3           ;}
+		double  getDC_y3        (void) const          {return DC_y3           ;}
+		double  getDC_z3        (void) const          {return DC_z3           ;}
 	/*
 		// Cherenkov banks
 		void setNphe		(double iNphe		)		{Nphe		= iNphe		; return;}
@@ -136,16 +136,16 @@ class electron{// : public TObject {
 		void setKov_sector	(int    iKov_sec	)		{Kov_sec	= iKov_sec	; return;}
 		void setKov_status	(int    iKov_status	)		{Kov_status	= iKov_status	; return;}
 		
-		double getNphe		(void)		{return Nphe		;}
-		double getKov_x		(void)		{return Kov_x		;}
-		double getKov_y		(void)		{return Kov_y		;}
-		double getKov_z		(void)		{return Kov_z		;}
-		double getKov_chi2	(void)		{return Kov_chi2	;}
-		double getKov_time	(void)		{return Kov_time	;}
-		double getKov_path	(void)		{return Kov_path	;}
-		int    getKov_det	(void)		{return Kov_det		;}
-		int    getKov_sector	(void)		{return Kov_sec		;}
-		int    getKov_status	(void)		{return Kov_status	;}
+		double getNphe		(void) const		{return Nphe		;}
+		double getKov_x		(void) const		{return Kov_x		;}
+		double getKov_y		(void) const		{return Kov_y		;}
+		double getKov_z		(void) const		{return Kov_z		;}
+		double getKov_chi2	(void) const		{return Kov_chi2	;}
+		double getKov_time	(void) const		{return Kov_time	;}
+		double getKov_path	(void) const		{return Kov_path	;}
+		int    getKov_det	(void) const		{return Kov_det		;}
+		int    getKov_sector	(void) const		{return Kov_sec		;}
+		int    getKov_status	(void) const		{return Kov_status	;}
 	
 		// Scintillator banks
 		void setScint_status	(int    iScint_status		)	{Scint_status		.push_back( iScint_status	)	; return; }
@@ -160,27 +160,27 @@ class electron{// : public TObject {
 		void setScint_y		(double iScint_y		)	{Scint_y		.push_back( iScint_y		)	; return; }
 		void setScint_z		(double iScint_z		)	{Scint_z		.push_back( iScint_z		)	; return; }
 		
-		std::vector<int>    getScint_status		(void)		{return Scint_status	;}
-		std::vector<int>    getScint_sector		(void)		{return Scint_sector	;}
-		std::vector<int>    getScint_layer		(void)		{return Scint_layer	;}
-		std::vector<int>    getScint_component		(void)		{return Scint_component	;}
-		std::vector<double> getScint_Edep		(void)		{return Scint_Edep	;}
-		std::vector<double> getScint_time		(void)		{return Scint_time	;}
-		std::vector<double> getScint_path		(void)		{return Scint_path	;}
-		std::vector<double> getScint_chi2		(void)		{return Scint_chi2	;}
-		std::vector<double> getScint_x			(void)		{return Scint_x		;}
-		std::vector<double> getScint_y			(void)		{return Scint_y		;}
-		std::vector<double> getScint_z			(void)		{return Scint_z		;}
+		std::vector<int>    getScint_status		(void) const		{return Scint_status	;}
+		std::vector<int>    getScint_sector		(void) const		{return Scint_sector	;}
+		std::vector<int>    getScint_layer		(void) const		{return Scint_layer	;}
+		std::vector<int>    getScint_component		(void) const		{return Scint_component	;}
+		std::vector<double> getScint_Edep		(void) const		{return Scint_Edep	;}
+		std::vector<double> getScint_time		(void) const		{return Scint_time	;}
+		std::vector<double> getScint_path		(void) const		{return Scint_path	;}
+		std::vector<double> getScint_chi2		(void) const		{return Scint_chi2	;}
+		std::vector<double> getScint_x			(void) const		{return Scint_x		;}
+		std::vector<double> getScint_y			(void) const		{return Scint_y		;}
+		std::vector<double> getScint_z			(void) const		{return Scint_z		;}
 	*/
 
 		//Rich
 		void setBeta_rich 	(double iBeta			)	{Beta_rich = iBeta		; return;}
 
-		double getBeta_rich	(void)		{return Beta_rich	;}
+		double getBeta_rich	(void) const		{return Beta_rich	;}
 		
 		// etc
 		void setSelection	(bool	iSelection		)	{Selection = iSelection		; return;}
-		bool getSelection 	(void)		{return Selection	;}	
+		bool getSelection 	(void) const		{return Selection	;}	
 
 		void setDetectorInformation	(clas12::region_part_ptr);
 		void setKinematicInformation( double EBeam, clas12::region_part_ptr rp);

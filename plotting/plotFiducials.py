@@ -50,4 +50,4 @@ for par in parList:
 			axs[reg, ch].set_title(rf"$(e, e'{stList[ch]})$, Region {reg+1}")
 
 	#plt.show()
-	fig.savefig(f"{out_dir}/hFid_{par}.pdf")
+	fig.savefig(f"{out_dir}/hFid_{par}.png")

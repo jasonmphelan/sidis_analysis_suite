@@ -177,7 +177,7 @@ for key in inFile.keys():
 
 		pdfName = hName.replace(";1", "")
 		pdfName = pdfName.replace("_pip", "")
-		fig.savefig(f"{out_dir}/{pdfName}.pdf")
+		fig.savefig(f"{out_dir}/{pdfName}.png")
 		plt.close(fig)
 
 	if isinstance( hist, uproot.models.TH.Model_TH1F_v3): 
@@ -222,5 +222,5 @@ for key in inFile.keys():
 
 		pdfName = hName.replace("_pip", "")
 		pdfName = pdfName.replace(";1", "")
-		fig.savefig(f"{out_dir}/{pdfName}.pdf")
+		fig.savefig(f"{out_dir}/{pdfName}.png")
 		plt.close(fig)

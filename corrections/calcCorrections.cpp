@@ -103,7 +103,7 @@ int main( int argc, char** argv){
 	
 	analyzer anal(0, -1);
 	anal.setAnalyzerLevel(1);
-	anal.loadMatchingFunctions();
+	anal.loadMatchingFunctions("matchCut2D_map.root");
 	anal.loadMatchingFunctions3D();	
 	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
 	
@@ -111,6 +111,8 @@ int main( int argc, char** argv){
 	
 	
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
+	TTreeReaderArray<bool> isGoodPion_no_acc(reader_rec, "isGoodPion_no_acc");
+
 	TTreeReaderArray<bool> isGoodGenPion(reader_rec, "isGoodGenPion");
 
 	TTreeReaderArray<bool> isGoodPion3d(reader_rec, "isGoodPion_3d");
@@ -150,29 +152,41 @@ int main( int argc, char** argv){
 			if( abs( pi.getPID() ) != 211 ){continue;}
 
 			bool matching = true;
-			if( (matchType==2 && isGoodPion[pi_count]) ){//|| (matchType==3 && isGoodPion3d[pi_count])){
+			if( (matchType==0 && isGoodPion_no_acc[pi_count])|| (matchType==2 && isGoodPion[pi_count]) || (matchType==3 && isGoodPion3d[pi_count]) ){//|| (matchType==3 && isGoodPion3d[pi_count])){
+				double p_pi = pi.get3Momentum().Mag();
+				if(anal.applyAcceptanceMap( e->get3Momentum().Mag(),rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) >= 0 && 
+					anal.applyAcceptanceMap( p_pi, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), chargeIdx + 1 ) >= 0) {
+
 				//if( matchType == 2 ){ matching = !isGoodPion[pi_count]; }
 				//else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
 				//else{ matching = false; }
 			
 				//if( matching ){ continue; }
-			
 				//Fill reco pions
-				recHists[this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
+						recHists[this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
+					
+				}
 			}
 			
 			//Fill matched pions
 			if( isGoodGenPion[pi_count] ){
 				double theta_gen = pi_match[pi_count].get3Momentum().Theta()*rad_to_deg;
 				double p_gen = pi_match[pi_count].get3Momentum().Mag();
+				
 				bool matching = true;
 				if( matchType == 2 ){
 					matching = anal.acceptance_match_2d( theta_gen, p_gen, pi.getDC_sector() );	
 				}
+				else if( matchType == 3 ){
+					matching = (anal.applyAcceptanceMap( p_gen, rad_to_deg*pi_match[pi_count].get3Momentum().Phi(),theta_gen, 1 ) >= 0 && 
+									anal.applyAcceptanceMap( p_gen, rad_to_deg*pi_match[pi_count].get3Momentum().Phi(),theta_gen, 2 ) >= 0 );
+
+				}
+				
 				if( matching ){
 					if(anal.applyAcceptanceMap( e_MC->get3Momentum().Mag(), rad_to_deg*e_MC->get3Momentum().Phi(), rad_to_deg*e_MC->get3Momentum().Theta(), 0 ) <0) continue;
 					if(anal.applyAcceptanceMap( p_gen, rad_to_deg*pi_match[pi_count].get3Momentum().Phi(),theta_gen, chargeIdx + 1 ) < 0 ) continue;
-			
+		
 				//if( pi_match[pi_count].getZ() < .3 || pi_match[pi_count].getZ() > 1 ){ continue; }
 				//if( this_bin_Q2_MC < 0 || this_bin_Q2_MC >= nQ2Bins ){ continue; }
 				//if( this_bin_xB_MC < 0 || this_bin_xB_MC >= nXbBins ){ continue; }
@@ -204,7 +218,7 @@ int main( int argc, char** argv){
 		int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nQ2Bins);
 		int this_bin_xB = (int)( ( (xB - xB_min)/(xB_max-xB_min) )*nXbBins);
 		
-		if(anal.applyAcceptanceMap( e_gen->get3Momentum().Mag(), rad_to_deg*e_gen->get3Momentum().Phi(), rad_to_deg*e_gen->get3Momentum().Theta(), 0 ) <0) continue;
+		//if(anal.applyAcceptanceMap( e_gen->get3Momentum().Mag(), rad_to_deg*e_gen->get3Momentum().Phi(), rad_to_deg*e_gen->get3Momentum().Theta(), 0 ) <0) continue;
 		
 		int pi_count = -1;
 		for( auto pi : pi_gen ){
@@ -217,35 +231,44 @@ int main( int argc, char** argv){
 			bool matching = true;
 			double sector_i = -1;	
 			
+			//if( pi.getZ() < 0.3 )cout<<"Low pi\n";
+
+			//if( !anal.applyPionKinematicCuts(pi) ){continue;}
+			//if( pi.getZ() < 0.3 )cout<<pi.getZ()<<std::endl;
+
 
 			int chargeIdx = (int)( pi.getCharge() < 1 );
 			sector_i = anal.applyAcceptanceMap( p, phi, theta, chargeIdx + 1 ) + 1;
-			if( sector_i < 1 )continue;
-			/*
-			if( charge > 0 ){    
-				if( phi > -0.8 && phi < 0.25 ){ sector_i = 1; }
-				else if( phi >= 0.25 && phi < 1.3 ){ sector_i = 2; }
-				else if( phi >= 1.3 && phi <= 2.35 ){ sector_i = 3; }
-				else if( phi > 2.35 || phi < -2.9  ){ sector_i = 4; }
-				else if( phi > -2.9 && phi < -1.85){ sector_i = 5; }
-				else{ sector_i = 6; }
-			}
-			if( charge < 0 ){
-				if( phi > -0.25 && phi < 0.8 ){ sector_i = 1; }
-				else if( phi >= 0.8 && phi < 1.85 ){ sector_i = 2; }
-				else if( phi >= 1.85 && phi <= 2.9 ){ sector_i = 3; }
-				else if( phi > 2.9 || phi < -2.4  ){ sector_i = 4; }
-				else if( phi > -2.4 && phi < -1.25){ sector_i = 5; }
-				else{ sector_i = 6; }
-			}
-				*/
+			if( sector_i < 1 ){
+			
+				if( charge > 0 ){    
+					if( phi > -0.8 && phi < 0.25 ){ sector_i = 1; }
+					else if( phi >= 0.25 && phi < 1.3 ){ sector_i = 2; }
+					else if( phi >= 1.3 && phi <= 2.35 ){ sector_i = 3; }
+					else if( phi > 2.35 || phi < -2.9  ){ sector_i = 4; }
+					else if( phi > -2.9 && phi < -1.85){ sector_i = 5; }
+					else{ sector_i = 6; }
+				}
+				if( charge < 0 ){
+					if( phi > -0.25 && phi < 0.8 ){ sector_i = 1; }
+					else if( phi >= 0.8 && phi < 1.85 ){ sector_i = 2; }
+					else if( phi >= 1.85 && phi <= 2.9 ){ sector_i = 3; }
+					else if( phi > 2.9 || phi < -2.4  ){ sector_i = 4; }
+					else if( phi > -2.4 && phi < -1.25){ sector_i = 5; }
+					else{ sector_i = 6; }
+				}
+			}	
 			
 			//if( matchType == 2 ){ matching = !isGoodPion_gen[pi_count]; }
 			//else if( matchType == 3 ){ matching = !isGoodPion3d_MC[pi_count]; }
 			//else{ matching = false; }
-			
 			if( matchType == 2 ){
 				matching = anal.acceptance_match_2d( theta, p, sector_i );	
+			}
+			else if( matchType == 3 ){
+				matching = (anal.applyAcceptanceMap( p, rad_to_deg*pi.get3Momentum().Phi(),theta, 1 ) >= 0 && 
+								anal.applyAcceptanceMap( p, rad_to_deg*pi.get3Momentum().Phi(),theta, 2 ) >= 0 );
+
 			}
 			//else if( matchType == 3 ){
 			//	phi = pi.get3Momentum().Phi()*rad_to_deg;

@@ -26,18 +26,18 @@ class pion{// : public TObject {
 		void setCharge		(int	iCharge		)		{Charge		= iCharge	; return;}
 		void setStatus		(int	iStatus		)		{Status		= iStatus	; return;}
 		
-		int	getSector	(void)		{return Sector		;}
-		int	getPID		(void)		{return PID		;}
-		int	getCharge	(void)		{return Charge		;}
-		int	getStatus	(void)		{return Status		;}
+		int	getSector	(void) const		{return Sector		;}
+		int	getPID		(void) const		{return PID		;}
+		int	getCharge	(void) const		{return Charge		;}
+		int	getStatus	(void) const		{return Status		;}
 
 		void setTime		(double	iTime		)		{Time		= iTime		; return;}
 		void setBeta		(double	iBeta		)		{Beta		= iBeta		; return;}
 		void setChi2		(double	iChi2		)		{Chi2		= iChi2		; return;}
 		
-		double	getTime		(void)		{return Time		;}
-		double	getBeta		(void)		{return Beta		;}
-		double	getChi2		(void)		{return Chi2		;}
+		double	getTime		(void) const		{return Time		;}
+		double	getBeta		(void) const		{return Beta		;}
+		double	getChi2		(void) const		{return Chi2		;}
 		
 		// Calorimeter
 		void setEtot		(double	iEtot		)		{Etot		= iEtot		; return;}
@@ -54,19 +54,19 @@ class pion{// : public TObject {
 		void setPCal_Y		(double	iY		)		{PCal_Y		= iY		; return;}
 		void setPCal_Z		(double	iZ		)		{PCal_Z		= iZ		; return;}
 		
-		double	getEtot		(void)		{return Etot		;}
-		double	getEpcal	(void)		{return Epcal		;}
-		double	getEecin	(void)		{return Eecin		;}
-		double	getEecout	(void)		{return Eecout		;}
-		double	getEoP		(void)		{return EoP		;}
-		double	getTimeScint	(void)		{return TimeScint	;}
-		double	getPathScint	(void)		{return PathScint	;}
-		double	getU		(void)		{return U		;}
-		double	getV		(void)		{return V		;}
-		double	getW		(void)		{return W		;}
-		double	getPCal_X	(void)		{return PCal_X		;}
-		double	getPCal_Y	(void)		{return PCal_Y		;}
-		double	getPCal_Z	(void)		{return PCal_Z		;}
+		double	getEtot		(void) const		{return Etot		;}
+		double	getEpcal	(void) const		{return Epcal		;}
+		double	getEecin	(void) const		{return Eecin		;}
+		double	getEecout	(void) const		{return Eecout		;}
+		double	getEoP		(void) const		{return EoP		;}
+		double	getTimeScint	(void) const		{return TimeScint	;}
+		double	getPathScint	(void) const		{return PathScint	;}
+		double	getU		(void) const		{return U		;}
+		double	getV		(void) const		{return V		;}
+		double	getW		(void) const		{return W		;}
+		double	getPCal_X	(void) const		{return PCal_X		;}
+		double	getPCal_Y	(void) const		{return PCal_Y		;}
+		double	getPCal_Z	(void) const		{return PCal_Z		;}
 		
 		//Kinematics
 		void setMomentum	(clas12::region_part_ptr rp);	
@@ -74,20 +74,20 @@ class pion{// : public TObject {
 		void setVt		(clas12::region_part_ptr rp);
 		void setPi_q ( TLorentzVector q, TLorentzVector e4 );
 		
-		TLorentzVector get4Momentum (void)	{return pi4		;}
-		TVector3	get3Momentum (void)	{return pi3		;}	
-		TLorentzVector getPi_q (void)		{return pi_q		;}
-		TVector3	getVt (void)		{return vt_pi		;}
+		TLorentzVector get4Momentum (void) const	{return pi4		;}
+		TVector3	get3Momentum (void) const	{return pi3		;}	
+		TLorentzVector getPi_q (void) const		{return pi_q		;}
+		TVector3	getVt (void) const		{return vt_pi		;}
 
 		void setZ		(double	iZ		)		{Z		= iZ		; return;}
 		void setMx		(double iMx		)		{Mx		= iMx		; return;}
 		void setXf		(double	iXf		)		{xF		= iXf		; return;}
 		void setEta		(double iEta		)		{eta		= iEta		; return;}
 
-		double	getZ		(void)		{return Z		;}
-		double	getMx		(void)		{return Mx		;}
-		double	getXf		(void)		{return xF		;}
-		double	getEta		(void)		{return eta		;}
+		double	getZ		(void) const		{return Z		;}
+		double	getMx		(void) const		{return Mx		;}
+		double	getXf		(void) const		{return xF		;}
+		double	getEta		(void) const		{return eta		;}
 
 
 		// Drift Chamber
@@ -108,23 +108,23 @@ class pion{// : public TObject {
 		void setDC_z3		(double iDC_z3		)		{DC_z3   	= iDC_z3   	; return;}
 		void setEdge		( double iEdge, int layer		)		{edge[layer]		= iEdge		; return;}
 
-		double  getDC_chi2      (void)          {return DC_chi2         ;}
-		int     getDC_NDF       (void)          {return DC_NDF          ;}
-		int     getDC_sector    (void)          {return DC_sector       ;}
+		double  getDC_chi2      (void) const          {return DC_chi2         ;}
+		int     getDC_NDF       (void) const          {return DC_NDF          ;}
+		int     getDC_sector    (void) const          {return DC_sector       ;}
 
-		double  getDC_x1        (void)          {return DC_x1           ;}
-		double  getDC_y1        (void)          {return DC_y1           ;}
-		double  getDC_z1        (void)          {return DC_z1           ;}
+		double  getDC_x1        (void) const          {return DC_x1           ;}
+		double  getDC_y1        (void) const          {return DC_y1           ;}
+		double  getDC_z1        (void) const          {return DC_z1           ;}
 
-		double  getDC_x2        (void)          {return DC_x2           ;}
-		double  getDC_y2        (void)          {return DC_y2           ;}
-		double  getDC_z2        (void)          {return DC_z2           ;}
+		double  getDC_x2        (void) const          {return DC_x2           ;}
+		double  getDC_y2        (void) const          {return DC_y2           ;}
+		double  getDC_z2        (void) const          {return DC_z2           ;}
 
-		double  getDC_x3        (void)          {return DC_x3           ;}
-		double  getDC_y3        (void)          {return DC_y3           ;}
-		double  getDC_z3        (void)          {return DC_z3           ;}
+		double  getDC_x3        (void) const          {return DC_x3           ;}
+		double  getDC_y3        (void) const          {return DC_y3           ;}
+		double  getDC_z3        (void) const          {return DC_z3           ;}
 
-		double getEdge		(int layer	)		{return edge[layer]		;}
+		double getEdge		(int layer	) const		{return edge[layer]		;}
 		/*	
 		// Cherenkov banks
 		void setNphe		(double iNphe		)		{Nphe		= iNphe		; return;}
@@ -138,16 +138,16 @@ class pion{// : public TObject {
 		void setKov_sector	(int    iKov_sec	)		{Kov_sec	= iKov_sec	; return;}
 		void setKov_status	(int    iKov_status	)		{Kov_status	= iKov_status	; return;}
 		
-		double getNphe		(void)		{return Nphe		;}
-		double getKov_x		(void)		{return Kov_x		;}
-		double getKov_y		(void)		{return Kov_y		;}
-		double getKov_z		(void)		{return Kov_z		;}
-		double getKov_chi2	(void)		{return Kov_chi2	;}
-		double getKov_time	(void)		{return Kov_time	;}
-		double getKov_path	(void)		{return Kov_path	;}
-		int    getKov_det	(void)		{return Kov_det		;}
-		int    getKov_sector	(void)		{return Kov_sec		;}
-		int    getKov_status	(void)		{return Kov_status	;}
+		double getNphe		(void) const		{return Nphe		;}
+		double getKov_x		(void) const		{return Kov_x		;}
+		double getKov_y		(void) const		{return Kov_y		;}
+		double getKov_z		(void) const		{return Kov_z		;}
+		double getKov_chi2	(void) const		{return Kov_chi2	;}
+		double getKov_time	(void) const		{return Kov_time	;}
+		double getKov_path	(void) const		{return Kov_path	;}
+		int    getKov_det	(void) const		{return Kov_det		;}
+		int    getKov_sector	(void) const		{return Kov_sec		;}
+		int    getKov_status	(void) const		{return Kov_status	;}
 	
 		// Scintillator banks
 		void setScint_status	(int    iScint_status		)	{Scint_status		.push_back( iScint_status	)	; return; }
@@ -162,27 +162,27 @@ class pion{// : public TObject {
 		void setScint_y		(double iScint_y		)	{Scint_y		.push_back( iScint_y		)	; return; }
 		void setScint_z		(double iScint_z		)	{Scint_z		.push_back( iScint_z		)	; return; }
 		
-		std::vector<int>    getScint_status		(void)		{return Scint_status	;}
-		std::vector<int>    getScint_sector		(void)		{return Scint_sector	;}
-		std::vector<int>    getScint_layer		(void)		{return Scint_layer	;}
-		std::vector<int>    getScint_component		(void)		{return Scint_component	;}
-		std::vector<double> getScint_Edep		(void)		{return Scint_Edep	;}
-		std::vector<double> getScint_time		(void)		{return Scint_time	;}
-		std::vector<double> getScint_path		(void)		{return Scint_path	;}
-		std::vector<double> getScint_chi2		(void)		{return Scint_chi2	;}
-		std::vector<double> getScint_x			(void)		{return Scint_x		;}
-		std::vector<double> getScint_y			(void)		{return Scint_y		;}
-		std::vector<double> getScint_z			(void)		{return Scint_z		;}
+		std::vector<int>    getScint_status		(void) const		{return Scint_status	;}
+		std::vector<int>    getScint_sector		(void) const		{return Scint_sector	;}
+		std::vector<int>    getScint_layer		(void) const		{return Scint_layer	;}
+		std::vector<int>    getScint_component		(void) const		{return Scint_component	;}
+		std::vector<double> getScint_Edep		(void) const		{return Scint_Edep	;}
+		std::vector<double> getScint_time		(void) const		{return Scint_time	;}
+		std::vector<double> getScint_path		(void) const		{return Scint_path	;}
+		std::vector<double> getScint_chi2		(void) const		{return Scint_chi2	;}
+		std::vector<double> getScint_x			(void) const		{return Scint_x		;}
+		std::vector<double> getScint_y			(void) const		{return Scint_y		;}
+		std::vector<double> getScint_z			(void) const		{return Scint_z		;}
 	*/
 
 		//Rich
 		void setBeta_rich 	(double iBeta			)	{Beta_rich = iBeta		; return;}
 
-		double getBeta_rich	(void)		{return Beta_rich	;}
+		double getBeta_rich	(void) const		{return Beta_rich	;}
 		
 		// etc
 		void setSelection	(bool	iSelection		)	{Selection = iSelection		; return;}
-		bool getSelection 	(void)		{return Selection	;}	
+		bool getSelection 	(void) const		{return Selection	;}	
 
 		void setDetectorInformation	(clas12::region_part_ptr);
 		void setKinematicInformation( TLorentzVector q, TLorentzVector pe, clas12::region_part_ptr rp);
@@ -190,7 +190,10 @@ class pion{// : public TObject {
 
 		void setMCPion( bool i ){ isMC = i; }
 		void setPID_eb(int i){PID_eb=i;}
-		int getPID_eb(){return PID_eb;}
+		int getPID_eb() const {return PID_eb;}
+
+		void setParent(int i){ parent=i;}
+		int getParent() const {return parent;}
 
 		double getVariableByName(TString name);
 		//ClassDef(clashit,7);
@@ -272,6 +275,7 @@ class pion{// : public TObject {
 		bool	 Selection	;
 		double	Beta_rich	;
 		bool isMC = false;
+		int parent;
 };
 
 

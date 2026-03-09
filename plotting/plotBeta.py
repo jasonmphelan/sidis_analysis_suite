@@ -92,8 +92,8 @@ for key in inFile.keys():
 
 		pdfName = eName.replace(";2", "")
 		pdfName = pdfName.replace("_pip", "")
-		print(f"{out_dir}/{pdfName}.pdf")
-		fig.savefig(f"{out_dir}/{pdfName}.pdf")
+		print(f"{out_dir}/{pdfName}.png")
+		fig.savefig(f"{out_dir}/{pdfName}.png")
 		plt.close(fig)
 		
 '''

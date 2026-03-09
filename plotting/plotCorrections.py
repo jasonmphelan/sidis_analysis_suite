@@ -42,6 +42,10 @@ def makePlots( corrType, hist, ext):
 		xBins=7
 	qBins = 12 
 
+	if 'Rho' in hist.name:
+		xBins=7
+		qBins=6
+
 	zEdges = hist.axis(2).edges()
 	zBinCenters = (zEdges[:-1]+zEdges[1:])/2
 
@@ -78,6 +82,13 @@ def makePlots( corrType, hist, ext):
 		textHeight = 5 
 		if wType == 'w+/w-':
 			textHeight = 1.2
+	if corrType == 'rho':
+		outDir = 'rho_corrections/'
+		textHeight = 5 
+		if wType == 'w+/w-':
+			textHeight = 1.2
+		yMin = 0.5
+		yMax = 1.5
 	if corrType == 'k2pi':
 		outDir = 'k_to_pi_corrections/'
 		textHeight = .75
@@ -104,7 +115,7 @@ def makePlots( corrType, hist, ext):
 	for q in range(qBins):
 		for x in range(xBins):
 			axs[math.floor(q/3), q%3].text(.75, textHeight, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q), 2+.5*(q+1)), fontsize=12)
-				
+			print(zBinCenters)
 			axs[math.floor(q/3), q%3].plot( zBinCenters, values[x][q], colorList[x], marker = '.', linestyle='none', label = r'%0.2f $< x_B <$ %0.2f'%(.1+deltaX*x, .1 + deltaX*(x+1)), ms=10, mec='black' )
 			axs[math.floor(q/3), q%3].errorbar(zBinCenters, values[x][q], yerr=errors[x][q], color = colorList[x], linestyle = '',capsize = 2, lw = 1, capthick = 1)
 
@@ -124,6 +135,10 @@ def makePlots( corrType, hist, ext):
 
 		ax.set_ylim( [yMin, yMax] )
 		ax.set_xlim( [0.3, 1] )
+		#ax.set_xlim( [2.5,  5] )
+		ax.set_ylim( [0,  1.01] )
+
+
 
 	axs[0,1].legend(loc='upper center', bbox_to_anchor=(0.5, 1.5), ncol=7, fancybox=True, shadow=True)	
 	print('Writing : ' + outDir+hist.name+ext)	
@@ -150,32 +165,42 @@ if corrType == 'bin':
 	keyList = ['hBinMigration', 'hBinMigrationP', 'hBinMigrationM']
 if corrType == 'acc':
 	keyList = ['hAccCorrection', 'hAccCorrectionP', 'hAccCorrectionM']
-if corrType == 'k2pi' or corrType == 'pi2k':
+if corrType == 'k2pi' or corrType == 'pi2k' or corrType == 'pi2k_p' or corrType=='k2pi_p':
 	keyList = ['hKaonCorr', 'hKaonCorrP', 'hKaonCorrM']
 if corrType == 'mc':
 	keyList = ['hMcCorrection', 'hMcCorrectionP', 'hMcCorrectionM']
+if corrType == 'rho':
+	keyList = ['hRhoCorrection', 'hRhoCorrectionP', 'hRhoCorrectionM']
+if corrType == '4D':
+	keyList = ['hMcCorr', 'hMcCorrP', 'hMcCorrM']
 
 energy = '_'
 if '3d' in inFile_name:
 	energy = energy + '3d_'
 if 'no_match' in inFile_name:
-	energy = energy + 'no_match.pdf'
+	energy = energy + 'no_match_'
+if '4D' in inFile_name:
+	energy = energy + '4D_'
+if 'phi_q' in inFile_name:
+	energy = energy + 'phi_q_'
+if 'pT' in inFile_name:
+	energy = energy + 'pT'
 if 'ratio' in inFile_name:
-	energy = energy + 'ratio.pdf'
+	energy = energy + 'ratio.png'
 if '10.2' in inFile_name:
-	energy = energy + '10.2.pdf'
+	energy = energy + '10.2.png'
 elif '10.4' in inFile_name:
-	energy = energy + '10.4.pdf'
+	energy = energy + '10.4.png'
 elif '10.6' in inFile_name:
-	energy = energy + '10.6.pdf'
+	energy = energy + '10.6.png'
 if energy == '_':
-	energy = '.pdf'
+	energy = '.png'
 
 print( energy )
 
 for key in keyList:
-	if 'k2pi' in inFile_name or 'pi2k' in inFile_name:
-		for p in range(4):
+	if 'k2pi' in inFile_name or 'pi2k' in inFile_name or '4D' in inFile_name or 'phi_q' or 'pT' or 'sector_pi' in inFile_name:
+		for p in range(6):
 			hist = inFile[key+f'_{p};1']
 			makePlots( corrType, hist, energy)
 			

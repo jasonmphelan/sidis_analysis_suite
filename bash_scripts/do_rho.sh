@@ -25,13 +25,19 @@ wait
 
 
 
-./rhoAnalysis/norms "" /work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/rho_norms
+./../build/rhoAnalysis/norms_sym "_sym" ../data/correctionFiles/rho_norms_sym_allE 10.2 1.125 1.5 .525 &
+#./../build/rhoAnalysis/norms_sym "_sym" ../data/correctionFiles/rho_norms_sym_10.4 10.4 1.125 1.5 .525 &
+#./../build/rhoAnalysis/norms_sym "_sym" ../data/correctionFiles/rho_norms_sym_10.6 10.6 1.125 1.5 .525 &
+
+
+#./../build/rhoAnalysis/norms "_sym" ../data/correctionFiles/rho_norms_10.2 10.2 1.125 1.5 .525 &
+
 #./rhoAnalysis/norms "" /work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/rho_norms &
 #./rhoAnalysis/norms _loose /work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/rho_norms_loose &
 
 wait
 
-#./rhoAnalysis/studyBack /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/rho_back.root &
+./../build/rhoAnalysis/studyBack ../histograms/analysis_note/rho_back.root _sym &
 #./rhoAnalysis/studyBack /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/rho_back_acc.root _acc &
 #./rhoAnalysis/studyBack /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/rho_back_loose.root _loose &
 
@@ -39,9 +45,9 @@ wait
 
 wait
 
-#python ../plotting/plotRhoBac.py ../histograms/analysis_note/rho_back.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/rho_background &
-#python ../plotting/plotRhoFits.py ../histograms/analysis_note/rho_fits.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/rho_scaling &
-#python ../plotting/plotRhoSub.py ../histograms/analysis_note/rho_back.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/rho_subtraction &
+python ../plotting/plotRhoBac.py ../histograms/analysis_note/rho_back.root ../plotting/analysis_note/rho_background &
+python ../plotting/plotRhoFits.py ../histograms/analysis_note/rho_fits.root /volatile/clas12/users/jphelan/SIDIS/analysis_note/rho_scaling &
+python ../plotting/plotRhoSub.py ../histograms/analysis_note/rho_back.root ../plotting/analysis_note/rho_subtraction &
 
 #./analysis/makeKinematics /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_rho_10.2.root 1 0 /volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.2_acc.root &
 #./analysis/makeKinematics /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_plots_rho_10.4.root 1 0 /volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.4_acc.root &

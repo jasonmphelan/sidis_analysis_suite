@@ -83,8 +83,8 @@ int main( int argc, char** argv){
 						h_Beta[i][j][k][l][m]             = new TH1F("hBeta_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_%i_%i;#beta;Counts [a.u.]", j, k), 135, -.1, 1.25);
 						h_Beta_rich[i][j][k][l][m]             = new TH1F("hBeta_rich_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i_p_%i", j, k, l, m), Form("Beta_rich_%i_%i;#beta;Counts [a.u.]", j, k), 135, -.1, 1.25);
 					}
-					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, .9 ,1.05 );
-					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 500, 0.9 ,1.05 );
+					hBeta_p[i][j][k][l]		= new TH2F("hBeta_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 100, 1.25, 5, 135, -.1 ,1.25 );
+					hBeta_rich_p[i][j][k][l]		= new TH2F("hBeta_rich_p_"+data_type[i]+Form("_Q2_%i_xB_%i_Z_%i", j, k, l), "", 20, 3, 5, 135, -.1 ,1.25 );
 			
 				}
 			}
@@ -96,15 +96,15 @@ int main( int argc, char** argv){
 	//TFile * file = new TFile(in_name);
 	TChain * file = new TChain("ePi");
 	if(type == 0){
-		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
-		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
-		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
+		file->Add("../trees/final_skims/10.2/final_skim.root");
+		file->Add("../trees/final_skims/10.4/final_skim.root");
+		file->Add("../trees/final_skims/10.6/final_skim.root");
 	}
 	if(type == 1){
 		cout<<"Adding kaon files"<<std::endl;
-		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/kaons_10.2/final_skim.root");
-		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/kaons_10.4/final_skim.root");
-		file->Add("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/kaons_10.6/final_skim.root");
+		file->Add("../trees/final_skims/kaons_10.2/final_skim.root");
+		file->Add("../trees/final_skims/kaons_10.4/final_skim.root");
+		file->Add("../trees/final_skims/kaons_10.6/final_skim.root");
 	}
 		//TTreeReader reader("ePi", file);
 	TTreeReader reader( file);
@@ -119,12 +119,16 @@ int main( int argc, char** argv){
 
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
+
+	anal.setAnalyzerLevel(0);//runType);
+
 	if( type == 0 ){
-		anal.loadMatchingFunctions("matchCutPi2K.root");
+		anal.loadMatchingFunctions("matchCutPi2K_map.root");
 	}
 	if( type == 1 ){
-		anal.loadMatchingFunctions("matchCutK2Pi.root");
+		anal.loadMatchingFunctions("matchCutK2Pi_map.root");
 	}
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
 	int event_count = 0;
 	while (reader.Next()) {
                 if(event_count%100000 == 0){cout<<"Events Analyzed: "<<event_count<<std::endl;}
@@ -145,7 +149,11 @@ int main( int argc, char** argv){
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta();
+			double phi_pi = pi[i].get3Momentum().Phi();
 			double Z = pi[i].getZ();
+			//if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) <0) continue;
+			//if(anal.applyAcceptanceMap( p_pi, rad_to_deg*phi_pi, theta_pi*rad_to_deg, chargeIdx + 1 ) < 0 ) continue;
+			
 			
 			if( theta_cut > 0 && !anal.acceptance_match_2d(theta_pi*rad_to_deg, p_pi, 1) ){continue;}
 			int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nBinsQ2) + 1;
@@ -166,16 +174,16 @@ int main( int argc, char** argv){
 			h_Beta[chargeIdx][0][0][0][0]->Fill(m2_TOF);
 			h_Beta_rich[chargeIdx][0][0][0][0]->Fill(m2_RICH);
 			hBeta_p[chargeIdx][0][0][0]->Fill(p_pi, pi[i].getBeta());
-			hBeta_rich_p[chargeIdx][0][0][0]->Fill(p_pi, pi[i].getBeta_rich());
+			hBeta_rich_p[chargeIdx][0][0][0]->Fill(p_pi, m2_RICH);
 			
 			h_Beta[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m2_TOF);
 			h_Beta_rich[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z][this_bin_p]->Fill(m2_RICH);
 			hBeta_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, pi[i].getBeta());
-			hBeta_rich_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, pi[i].getBeta_rich());
+			hBeta_rich_p[chargeIdx][this_bin_Q2][this_bin_xB][this_bin_Z]->Fill(p_pi, m2_RICH);
 			
 		}
 	}
-	
+
 
 	outFile->cd();
 	

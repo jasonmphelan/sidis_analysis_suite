@@ -8,7 +8,7 @@ import math
 import sys 
 in_name = sys.argv[1]
 inFile = uproot.open(in_name)
-inFile_R = ROOT.TFile.Open('/work/clas12/users/jphelan/sidis_analysis_suite/data/SF_fits.root', "READ")
+inFile_R = ROOT.TFile.Open('../data/SF_fits.root', "READ")
 out_dir = sys.argv[2]
 ch_type = sys.argv[3]
 
@@ -69,4 +69,4 @@ for sec in range(6):
 	axs[reg, ch].set_title(reac_lab + f", Sector {sec + 1}")
 
 #plt.show()
-fig.savefig(f"{out_dir}/hSF_{ch_type}.pdf")
+fig.savefig(f"{out_dir}/hSF_{ch_type}.png")

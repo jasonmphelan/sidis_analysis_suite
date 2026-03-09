@@ -59,9 +59,9 @@ int main( int argc, char** argv){
 
 	std::cout<<"loading files\n";
 	if( ebeam == 0 ){
-		inFiles->Add( "/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.2/final_skim.root");
-		inFiles->Add( "/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.4/final_skim.root");
-		inFiles->Add( "/volatile/clas12/users/jphelan/SIDIS/data/final_skims/10.6/final_skim.root");
+		inFiles->Add( "../trees/final_skims/10.2/final_skim.root");
+		inFiles->Add( "../trees/final_skims/10.4/final_skim.root");
+		inFiles->Add( "../trees/final_skims/10.6/final_skim.root");
 	}
 	else{ 
 		inFiles->Add( Form("/volatile/clas12/users/jphelan/SIDIS/data/final_skims/%.1f/final_skim.root", ebeam ) );

@@ -31,7 +31,7 @@ namespace cutVals{
 	const double P_e_min=3.0;
 	const double P_e_max=10.6;
 
-	const double Mx_min = 1.7;
+	const double Mx_min = 1.5;
 	const double Mx_max = 5.0;
 	
 	const double Vz_e_min_inbending = -7;//-4.0;

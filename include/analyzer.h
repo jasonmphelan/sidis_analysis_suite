@@ -87,6 +87,8 @@ public:
 	void loadAcceptanceMapContinuous(TString fileName);
 	int applyAcceptanceMap( double p, double phi, double theta, int particle );
 	double mapFunc(int particle, int sector, int param, double p) {return mapParameters[particle][sector][param]->Eval(p);}
+	double getMinTheta(double p, int particle);
+	double getMaxTheta(double p, int particle);
 	double returnElPhiMin(int sector, double p, double theta);
 	double returnElPhiMax(int sector, double p, double theta);
 private:

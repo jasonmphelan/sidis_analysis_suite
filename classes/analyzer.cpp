@@ -494,9 +494,9 @@ bool analyzer::applyPionKinematicCuts( pion pi ){
 bool analyzer::applyPionKinematicCuts( genPion pi ){
 
 
-	if ( ( pi.getMx() < Mx_min || pi.getMx() > Mx_max) ) { return false; }
+	if ( ( pi.getMx() < mod_Mx*Mx_min || pi.getMx() > Mx_max) ) { return false; }
 	double p = pi.get3Momentum().Mag();
-	if ( p < P_pi_min || p > P_pi_max ) { return false; }
+	if ( p < mod_ppi[0]*P_pi_min || p > mod_ppi[1]*P_pi_max ) { return false; }
 	if ( pi.getZ() < Z_min  ||  pi.getZ() > Z_max ) { return false; }
 	double theta = pi.get3Momentum().Theta()*rad_to_deg;
 	if ( theta < theta_min || theta > theta_max ){ return false; }
@@ -780,6 +780,24 @@ void analyzer::loadAcceptanceMapContinuous(TString fileName){
 
 }
 
+double analyzer::getMinTheta(double p, int particle){
+	double min = mapFunc(particle, 0, 4, p);
+	for( int sec = 1; sec < 6; sec++ ){
+		double t = mapFunc(particle, sec, 4, p);
+		if( t < min ) min = t;
+	}
+	return min;
+}
+
+double analyzer::getMaxTheta(double p, int particle){
+	double max = mapFunc(particle, 0, 5, p);
+	for( int sec = 1; sec < 6; sec++ ){
+		double t = mapFunc(particle, sec, 5, p);
+		if( t > max ) max = t;
+	}
+	return max;
+}
+
 double analyzer::returnElPhiMin(int sec, double p, double theta){
 	int particle = 0;
 	double phi_avg = mapFunc(particle, sec, 6, p);
@@ -812,7 +830,7 @@ int analyzer::applyAcceptanceMap( double p, double phi, double theta, int partic
 		double phi_temp = phi;
 		
 		if( particle == 0 && sec == 3 && phi < 100. ){ phi_temp += 360; }
-		if( particle > 0 && (sec == 2 || (sec == 3 && p > 1) ) && phi < 0. ){ phi_temp += 360; }
+		if( particle > 0 && (sec == 2 || (sec == 3 && p > .5) ) && phi < 0. ){ phi_temp += 360; }
 		double phi_avg = mapFunc(particle, sec, 6, p);
 		double theta_min = mapFunc(particle, sec, 4, p);
 		double theta_max = mapFunc(particle, sec, 5, p);

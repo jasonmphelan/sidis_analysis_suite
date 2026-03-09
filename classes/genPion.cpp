@@ -4,7 +4,7 @@
 
 //ClassImp(clashit);
 
-genPion::genPion(){}	// Empty constructor
+genPion::genPion(){Clear();}	// Empty constructor
 genPion::~genPion(){}	// Empty destructor
 
 using namespace constants;

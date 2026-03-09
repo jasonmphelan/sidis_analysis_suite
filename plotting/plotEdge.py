@@ -59,4 +59,4 @@ for par in range(3):
 
 		#plt.show()
 		plt.legend()
-		fig.savefig(f"{out_dir}/hFid_{par}{stList[par]}_reg_{reg}.pdf")
+		fig.savefig(f"{out_dir}/hFid_{par}{stList[par]}_reg_{reg}.png")

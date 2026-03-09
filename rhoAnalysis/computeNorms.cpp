@@ -47,9 +47,10 @@ int main( int argc, char** argv){
 
 	TString in_name = argv[1];
     TString out_name = argv[2];
-	double Mx_low = atof(argv[3]);
-	double Mx_high = atof(argv[4]);
-	double norm_bound = atof(argv[5]);
+	double eBeam = atof(argv[3]);
+	double Mx_low = atof(argv[4]);
+	double Mx_high = atof(argv[5]);
+	double norm_bound = atof(argv[6]);
 
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);//runType);
@@ -94,9 +95,15 @@ int main( int argc, char** argv){
 		}
 	}
 	TChain * file_rec = new TChain("ePi");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.2" + in_name + ".root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.4" + in_name + ".root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.6" + in_name + ".root");
+
+	
+	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.2" + in_name + ".root");
+	if(eBeam == 10.2 || eBeam == 0 )file_rec->Add("../trees/final_skims/rho_skims/rotated_10.2" + in_name + ".root");
+	if(eBeam == 10.4 || eBeam == 0 )file_rec->Add("../trees/final_skims/rho_skims/rotated_10.4" + in_name + ".root");
+	if(eBeam == 10.6 || eBeam == 0 )file_rec->Add("../trees/final_skims/rho_skims/rotated_10.6" + in_name + ".root");
+
+	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.4" + in_name + ".root");
+	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.6" + in_name + ".root");
 	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_skim_10.2.root");
 	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_skim_10.4.root");
 	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_skim_10.6.root");
@@ -130,17 +137,17 @@ int main( int argc, char** argv){
 			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*nBinsZ);
 	
 			
-			//bool matching = anal.applyAcceptanceMatching(pi[i], 2);
+			bool matching = anal.applyAcceptanceMatching(pi[i], 2);
 				//matching = isGoodPion[i]; }
 			
-			//if( !matching ){ continue; }
+			if( !matching ){ continue; }
 
 
-			//if( rhoWeight[i] <= 0 || rhoWeight[i] > 20 ){ continue; }
+			if(  rhoWeight[i] > 100 ){ continue; }
 		
 			hMx_2pi[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*Mx_2pi) , rhoWeight[i] );
-			if( *Mx_2pi > bounds->X() && *Mx_2pi < bounds->Y() ) hM_rho_back[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) );//, rhoWeight[i] );
-			if( *Mx_2pi < bounds->X() ) hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) );//, rhoWeight[i] );
+			if( *Mx_2pi > bounds->X() && *Mx_2pi < bounds->Y() ) hM_rho_back[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , rhoWeight[i] );
+			if( *Mx_2pi < bounds->X() ) hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , rhoWeight[i] );
 
 		}
 	}
@@ -172,7 +179,7 @@ int main( int argc, char** argv){
 				if( norm_pip < 0 || isnan(norm_pip) || !isfinite(norm_pip) ) norm_pip = 0;
 				if( norm_pim < 0 || isnan(norm_pim) || !isfinite(norm_pim) ) norm_pim = 0;
 				
-				if( norm_pip > 0 && !isnan(norm_pip) && isfinite(norm_pip) )cout<<"Norm pip "<<norm_pip<<std::endl;
+				if( norm_pip > 0 && !isnan(norm_pip) && isfinite(norm_pip) )cout<<"Norm pip bin "<<z*0.05+.3<<" : "<<norm_pip<<std::endl;
 
 				hNorms[0]->SetBinContent( x+1, q+1, z+1, norm_pip );
 				hNorms[1]->SetBinContent( x+1, q+1, z+1, norm_pim );

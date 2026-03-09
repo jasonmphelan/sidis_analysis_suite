@@ -5,3 +5,40 @@ plotting/*.pdf
 plotting/*.root
 plotting/*/*.pdf
 plotting/*.cpp
+
+# macOS metadata
+.DS_Store
+
+# Vim swap files
+*.swp
+
+# Large data/output ROOT files
+trees/
+data/trees/
+correctionFiles/
+test.root
+detector_plots_10.4.root
+data/run_skim_6421.root
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# CMake build artifacts
+plotting/CMakeFiles/
+plotting/Makefile
+plotting/cmake_install.cmake
+
+# Nested git repos (use submodules if needed)
+gemc/clas12AnaTools/
+gemc/claspyth/
+sidis_plotter/
+
+# Slide/figure output
+slide_plots/
+plotting/analysis_note/
+
+# Keynote/presentation files
+*.key
+
+# Large PDF files
+papers/*.pdf

@@ -133,7 +133,7 @@ int main( int argc, char** argv){
 					
 				 	if( pip_fit_mean < -0.05 || pip_fit_mean > 0.075 || fitProb_pip <= 0 || fitProb_pip >= 1 || hBeta[0][j+1][k+1][l+1][m+1]->Integral() <= 120 ||
 							 pip_fit_mean + sigma*pip_fit_std > .2){	
-						pip_bin_max= hBeta[0][j+1][k+1][l+1][m+1]->FindBin( 0.1 );
+						pip_bin_max= hBeta[0][j+1][k+1][l+1][m+1]->FindBin( 0.1*sigma/2.5 );
 					}
 					else{
 						pip_bin_max = hBeta[0][j+1][k+1][l+1][m+1]->FindBin( pip_fit_mean + sigma*pip_fit_std );
@@ -159,7 +159,7 @@ int main( int argc, char** argv){
 				 	
 					if( pim_fit_mean < 0 || pim_fit_mean > 0.05 || fitProb_pim <= 0 || fitProb_pim >= 1 || hBeta[1][j+1][k+1][l+1][m+1]->Integral() <= 150||
 					pim_fit_mean + sigma*pim_fit_std > .2){	
-						pim_bin_max= hBeta[1][j+1][k+1][l+1][m+1]->FindBin( 0.1 );
+						pim_bin_max= hBeta[1][j+1][k+1][l+1][m+1]->FindBin( 0.1 * sigma/2.5 );
 					}
 					else{
 						pim_bin_max = hBeta[1][j+1][k+1][l+1][m+1]->FindBin( pim_fit_mean + sigma*pim_fit_std );

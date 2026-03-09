@@ -26,6 +26,7 @@
 #include "analyzer.h"
 #include "constants.h"
 #include "cut_values.h"
+#include "correctionTools.h"
 
 using std::cerr;
 using std::isfinite;
@@ -36,6 +37,12 @@ using std::ofstream;
 using namespace cutVals;
 using namespace constants;
 
+bool updateCorrectionsForBeam(
+    double eBeam,
+    double& beam_energy,
+    int matchType,
+    correctionTools& corrector
+);
 
 int main( int argc, char** argv){
 
@@ -66,7 +73,7 @@ int main( int argc, char** argv){
 
 	cout<<"NORM FILE : "<<"/work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/rho_norms"+in_name+".root"<<std::endl;
 
-	TFile * rho_norms = new TFile("/work/clas12/users/jphelan/sidis_analysis_suite/data/correctionFiles/rho_norms"+in_name+".root");
+	TFile * rho_norms = new TFile("../data/correctionFiles/rho_norms_sym_10.2"+in_name+".root");
 	TH3F * hNorms[2];
 	hNorms[0] = (TH3F*)rho_norms->Get("hNorm_pip");
 	hNorms[1] = (TH3F*)rho_norms->Get("hNorm_pim");
@@ -85,9 +92,9 @@ int main( int argc, char** argv){
 		}
 	}
 	TChain * file_rec = new TChain("ePi");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.2" + in_name + ".root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.4" + in_name + ".root");
-	file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rotated_10.6" + in_name + ".root");
+	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.2" + in_name + ".root");
+	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.4" + in_name + ".root");
+	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.6" + in_name + ".root");
 	TTreeReader reader( file_rec);
 
 	analyzer anal( 0, -1 );
@@ -95,6 +102,12 @@ int main( int argc, char** argv){
 	anal.loadMatchingFunctions("matchCut2D_map.root");
 	anal.loadMatchingFunctions3D();
 	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
+
+	correctionTools corrector(2);
+
+	corrector.setK2piName( "corrections_k2pi_AN.root");
+	corrector.setPi2kName( "corrections_pi2k_AN.root");
+	corrector.loadHistograms();	
 
 	//Load input tree
     TTreeReader reader_rec(file_rec);
@@ -105,6 +118,10 @@ int main( int argc, char** argv){
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
 	TTreeReaderArray<double> rhoWeight(reader_rec, "rhoWeight");
+	TTreeReaderArray<double> rhoWeight_sym(reader_rec, "rhoWeight_sym");
+	TTreeReaderValue<TLorentzVector> eBeam( reader_rec, "beam" );
+
+	double beam_energy = 10.2;
 
 	//Fill histograms
 	while (reader_rec.Next()) {
@@ -114,36 +131,47 @@ int main( int argc, char** argv){
 			cout<<"Events Analyzed: "<<event_count<<std::endl;
 		}
 	
-		
+		updateCorrectionsForBeam(eBeam->E(), beam_energy, 2, corrector);
+
 		for( int i = 0; i < (int)(pi.end() - pi.begin());i++ ){
 			if( !isGoodPion[i] ){continue;}
 			//if( !isGoodPion[0] || !isGoodPion[1]){continue;}
 			
-			//if ( !anal.applyAcceptanceMatching(pi[i], 2) ) continue;
+			if ( !anal.applyAcceptanceMatching(pi[i], 2) ) continue;
 
 			int chargeIdx = (int)( pi[i].getCharge() < 0 );
 			int this_bin_Q2 = (int)( ( (e->getQ2() - Q2_min)/(Q2_max-Q2_min) )*nBinsQ2);
 			int this_bin_xB = (int)( ( (e->getXb() - xB_min)/(xB_max-xB_min) )*nBinsXb);
 			int this_bin_Z = (int)( ( (pi[i].getZ() - .3)/(1.-.3) )*nBinsZ);
 	
-			//bool matching = anal.applyAcceptanceMatching(pi[i], 2);
-				//matching = isGoodPion[i]; }
-			
-			//if( !matching ){ continue; }
-
-
-			//if( rhoWeight[i] > 10 ){ continue; }
 			
 
 			double scaling = hNorms[chargeIdx]->GetBinContent(this_bin_xB+1, this_bin_Q2+1, this_bin_Z+1);
+			corrector.setKinematics( e->getXb(), e->getQ2(), pi[i].getZ(), pi[i].get3Momentum().Mag() );	
+			double weight =  corrector.getCorrectionFactor( 2, chargeIdx );
+		
+		
 			//if( pi[0].getZ() + pi[1].getZ() < 0.5 || pi[0].getZ() + pi[1].getZ() > 1.1 ){continue;} 
-			if( rhoWeight[i] > 20 ) continue;
-			if( *Mx_2pi < 1.175 ){
-				hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , rhoWeight[i] );
+			if( rhoWeight[i] > 100  ) continue;
+			if( *Mx_2pi*(*Mx_2pi) < 1.25 ){
+				hM_rho[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , rhoWeight[i]*weight );
 			}
-			if( *Mx_2pi > 1.175 && *Mx_2pi < 1.5 ){
-				hM_rho_bac[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho), rhoWeight[i]*scaling );
+			if( *Mx_2pi > 1.125 && *Mx_2pi < 1.5 ){
+				hM_rho_bac[chargeIdx][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho), rhoWeight[i]*weight );
 			}
+			
+			/*
+			scaling = hNorms[(int)(!chargeIdx)]->GetBinContent(this_bin_xB+1, this_bin_Q2+1, this_bin_Z+1);
+			weight =  corrector.getCorrectionFactor( 2, (int)(!chargeIdx) );
+
+			if( rhoWeight_sym[i] > 100 ) continue;
+			if( *Mx_2pi < 1.125 ){
+				hM_rho[(int)(!chargeIdx)][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho) , 0.5*rhoWeight_sym[i]*weight );
+			}
+			if( *Mx_2pi > 1.125 && *Mx_2pi < 1.5 ){
+				hM_rho_bac[(int)(!chargeIdx)][this_bin_xB][this_bin_Q2][this_bin_Z]->Fill( (*M_rho), 0.5*rhoWeight_sym[i]*scaling*weight );
+			}
+			*/
 			
 		}
 	}
@@ -163,4 +191,25 @@ int main( int argc, char** argv){
 	
 	file_out->Close();
 
+}
+
+bool updateCorrectionsForBeam(
+    double eBeam,
+    double& beam_energy,
+    int matchType,
+    correctionTools& corrector
+){
+    if (eBeam == beam_energy)
+        return false;
+
+    corrector.setWeightName(
+        Form(matchType == 3
+             ? "corrections_%0.1f_3d_AN.root"
+             : "corrections_%0.1f_AN_test.root",
+             eBeam)
+    );
+
+    corrector.loadHistograms();
+    beam_energy = eBeam;
+    return true;
 }

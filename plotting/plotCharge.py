@@ -128,5 +128,5 @@ for key in inFile.keys():
 
 		pdfName = hName.replace("_pip", "")
 		fig.legend(fontsize=16)
-		fig.savefig(f"{out_dir}/{pdfName}.pdf")
+		fig.savefig(f"{out_dir}/{pdfName}.png")
 		plt.close(fig)
