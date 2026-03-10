@@ -78,13 +78,13 @@ int main( int argc, char** argv){
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
 	std::cout<<"Loaded cut values\n";
-	anal.setAnalyzerLevel(1);
+	anal.setAnalyzerLevel(0);
 	anal.setTarget( target );
 	anal.loadCutValues(-1, Ebeam);
 
 	reader runReader;
-	runReader.setNumFiles( 10 );
-	runReader.setRunType( 4 );
+	runReader.setNumFiles( 0 );
+	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	runReader.setTarget( target );
 	

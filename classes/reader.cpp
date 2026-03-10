@@ -84,7 +84,7 @@ void reader::setDataPaths(){
 
 			dataPath = "/cache/clas12/rg-b/production/recon/"+path_temp;
 		}
-    	}
+    }
 	else if( runType == 3 ){
 		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_0";
 		//dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/background_hipo";

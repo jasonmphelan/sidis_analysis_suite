@@ -73,6 +73,7 @@ int main( int argc, char** argv){
 		cout<< "Invalid Beam Energy... Set EBeam = 10.2\n"<<endl;
 		Ebeam = 10.2;
 	}
+	cout<<"TARGET : "<<target<<std::endl; 
     	
 
 	// Read cut values
@@ -83,7 +84,7 @@ int main( int argc, char** argv){
 	anal.loadCutValues(-1, Ebeam);
 
 	reader runReader;
-	runReader.setNumFiles( 5 );
+	runReader.setNumFiles( 0 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
 	runReader.setTarget( target );
@@ -105,9 +106,9 @@ int main( int argc, char** argv){
 
 	for( int j = 0; j < 6; j++ ){
 		hSF[j] = new TH2F( Form("hSF_sec_%i", j), ";p_{e} [GeV];#Delta(E_{PCAL} + E_{ECIN} + E_{ECOUT})/p_{e}", 150, 0, 8, 150, .1, .35 );
-		fMean[j] = new TF1( Form("fMean_SF_%i", j), "[0] + [1]*x + [2]*(x*x)",  2, 5 );
+		fMean[j] = new TF1( Form("fMean_SF_%i", j), "[0] + [1]*x + [2]*(x*x)",  2, 6.5 );
 		fMean[j]->SetParameters(.1,-.1,-.1);
-		fSigma[j] = new TF1( Form("fSigma_SF_%i", j), "[0] + [1]*x + [2]*(x*x)",  2, 5 );
+		fSigma[j] = new TF1( Form("fSigma_SF_%i", j), "[0] + [1]*x + [2]*(x*x)",  2, 6.5 );
 		fSigma[j]->SetParameters(.1,-.1,-.1);
 	}
 
