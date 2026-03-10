@@ -88,7 +88,8 @@ int main( int argc, char** argv){
 			double p_pi = 0 + 5.*bin/(double)nBins;
 			if( p_pi>3 )pimMax = 35; // p>3
 			if( p_e >= 3.75 && p_e < 4.5 ) elMax = 30;
-			if( p_e >= 5.5 && p_e < 6.75) elMax = 25;
+			if( p_e >= 5.5 && p_e < 6.0) elMax = 25;
+			if( p_e >= 6.0 && p_e < 6.75) elMax = 20;
 			if( p_e >= 6.75 ) elMax = 15;
 			hThetaPhi[1][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_pip", sec, bin), "", 500, -250, 250, 270, 0, 35 );
 			hThetaPhi[2][sec][bin] = new TH2F( Form("hThetaPhi_sec_%i_bin_%i_pim", sec, bin), "", 500, -250, 250, 270, 0, pimMax );
