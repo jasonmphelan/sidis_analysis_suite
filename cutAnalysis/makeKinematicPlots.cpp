@@ -46,9 +46,10 @@ int main( int argc, char** argv){
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 4 ){
+	if( argc < 5 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input path] [Output File] [# of input files] [Beam Energy] \n";
+		cerr << "./code [Input path] [Output File] [# of input files] [Beam Energy] [Target]\n";
+		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[2] << "\nnFiles " << atoi(argv[3]) << "\n";
@@ -57,21 +58,24 @@ int main( int argc, char** argv){
     	TString out_name = argv[2];
     	int nFiles = atoi(argv[3]);
     	double EBeam = atof(argv[4]);
-        
+	int target = atoi(argv[5]); // 0 = RGB/deuterium, 1 = RGA/proton
+
 	TFile * outFile = new TFile(out_name +".root", "RECREATE");
 
 	reader skimReader;
 	skimReader.setNumFiles( nFiles);
 	skimReader.setRunType( 1 );
 	skimReader.setEnergy( EBeam );
+	skimReader.setTarget( target );
 
 	TChain * chain = new TChain("ePi");
 	skimReader.getRunSkimsByName(chain, in_name);
 
         //TFile * file_rec = new TFile(in_name, "UPDATE");
-	
+
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
+	anal.setTarget( target );
 	
 	TH1F * h_Z[2][bins_Q2+1][bins_xB+1];
 

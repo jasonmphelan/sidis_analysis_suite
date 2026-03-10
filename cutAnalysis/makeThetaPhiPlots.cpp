@@ -43,9 +43,10 @@ int main( int argc, char** argv){
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 6 ){
+	if( argc < 7 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Input Path] [Output File] [# of input files] [File Type] [Beam Energy]\n";
+		cerr << "./code [Input Path] [Output File] [# of input files] [File Type] [Beam Energy] [Target]\n";
+		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2] << "\nnFiles " << atoi(argv[3]) << "\n";
@@ -55,8 +56,10 @@ int main( int argc, char** argv){
        	int nFiles = atoi(argv[3]);
        	int runType = atoi(argv[4]);
        	double EBeam = atof(argv[5]);
+	int target = atoi(argv[6]); // 0 = RGB/deuterium, 1 = RGA/proton
 
 	analyzer anal(0, -1);
+	anal.setTarget( target );
 	//anal.loadAcceptanceMap( (TString)_DATA + Form("/acceptance_map/acceptanceMap_%.1f.root", EBeam));
 	//anal.loadMatchingFunctions();
 
@@ -65,6 +68,7 @@ int main( int argc, char** argv){
 	skimReader.setNumFiles( nFiles);
 	skimReader.setRunType( runType );
 	skimReader.setEnergy( EBeam );
+	skimReader.setTarget( target );
 
 	cout<<"GETTING FILES \n";
 	TChain * chain = new TChain("ePi");

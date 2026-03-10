@@ -54,39 +54,43 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 4 ){
+	if( argc < 5 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [outFile name (no extension)] [Beam energy (0 for all energies)]\n";
-		cerr << "./code [nfiles] [(optional) run number]\n";
+		cerr << "./code [outFile name (no extension)] [Beam energy (0 for all energies)] [nfiles] [Target]\n";
+		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
+		cerr << "       Optionally append a run number as the last argument to read a single file\n";
 		return -1;
 	}
-	
+
     double Ebeam = atof(argv[2]); // [GeV]
-	TString outFile_name = argv[1]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
+	TString outFile_name = argv[1];
 	int nFiles = atoi(argv[3]);
+	int target = atoi(argv[4]); // 0 = RGB/deuterium, 1 = RGA/proton
 	int runNum;
-	if( argc == 5 ){
-		runNum = atoi(argv[4]);
+	if( argc == 6 ){
+		runNum = atoi(argv[5]);
 	}
-	
+
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 && Ebeam != 0 ){
 		cout<< "Invalid Beam Energy... Set EBeam = 10.2\n"<<endl;
 		Ebeam = 10.2;
 	}
-    	
+
 
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
 	anal.setAnalyzerLevel(0);
+	anal.setTarget( target );
 	anal.loadCutValues(-1, Ebeam);
 	anal.loadSamplingFractionParams();
-	
+
 	reader runReader;
 	runReader.setNumFiles( nFiles );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
+	runReader.setTarget( target );
 	
 	clas12root::HipoChain files;
 	if( nFiles == 1 ){

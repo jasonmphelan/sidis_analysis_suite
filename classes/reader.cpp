@@ -67,7 +67,7 @@ void reader::setDataPaths(){
 		TString path_temp;
 
 		if( target == 1 ){ // RGA proton
-			dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/proton/detector_skims/";
+			dataPath = "/cache/clas12/rg-a/production/recon/spring2019/torus-1/pass2/dst/train/nSidis/nSidis_";
 		}
 		else{ // RGB deuterium
 			if(EBeam == 10.6){

@@ -57,33 +57,37 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 3 ){
+	if( argc < 4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [outFile name] [Beam energy (0 for all energies)]\n";
+		cerr << "./code [outFile name] [Beam energy (0 for all energies)] [Target]\n";
+		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
 		return -1;
 	}
-	
-    double Ebeam = atof(argv[2]); // [GeV]
-	TString outFile_name = argv[1]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
 
-	
+    double Ebeam = atof(argv[2]); // [GeV]
+	TString outFile_name = argv[1];
+	int target = atoi(argv[3]); // 0 = RGB/deuterium, 1 = RGA/proton
+
+
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 && Ebeam != 0 ){
 		cout<< "Invalid Beam Energy... Set EBeam = 10.2\n"<<endl;
 		Ebeam = 10.2;
 	}
-    	
+
 
 	// Read cut values
 	double torusBending = -1; //outBending = -1, inBending = 1
 	analyzer anal(0, torusBending);
 	anal.setAnalyzerLevel(0);
+	anal.setTarget( target );
 	anal.loadCutValues(-1, Ebeam);
-	
+
 	reader runReader;
 	runReader.setNumFiles( 0 );
 	runReader.setRunType( 0 );
 	runReader.setEnergy( Ebeam );
+	runReader.setTarget( target );
 	
 	clas12root::HipoChain files;
        	runReader.readRunFiles(files);
