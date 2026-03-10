@@ -10,7 +10,6 @@ analyzer::analyzer(int _fdebug_, int _torusBending_){
 	SetTorusBending (_torusBending_);
 	std::fill_n( mod_pi_fid[0], 3, 1 );
 	std::fill_n( mod_pi_fid[1], 3, 1 );
-	//loadSamplingFractionParams();
 }
 
 analyzer::~analyzer(){}
@@ -210,7 +209,6 @@ void analyzer::randomizeCuts(){
 	cut_mods.push_back( &mod_el_corr);
 	cut_vals.push_back(PCAL_ECIN_SF_min);
 	
-	//fig, axs = plt.scatter(), figsize=(16,14))cut_mods.push_back( &mod_pi_vtz );
 	cut_vals.push_back( 3.5 );
 
 	cut_mods.push_back( &mod_W);
@@ -277,12 +275,6 @@ double analyzer::Chi2PID_pion_upperBound( Double_t p, Double_t C){
 }
 
 void analyzer::loadCutValues(int torusBending, double EBeam){
-	if( target == 1 ){ // RGA/proton
-		epid.setParamsRGA(EBeam);
-	}
-	else{ // RGB/deuterium (target == 0)
-		epid.setParamsRGB(EBeam);
-	}
 }
 
 
@@ -363,7 +355,6 @@ bool analyzer::applyElectronSF( electron e ){
 	bool pass_min = (bool)(sf > ( mean - nSigma*sigma ) );
 
 	return (pass_max && pass_min);
-	//return (epid.isElectron(&e)) ;
 }
 	
 bool analyzer::applyElectronCorrelation( electron e ){
@@ -407,12 +398,6 @@ bool analyzer::applyPionDetectorFiducials( pion pi ){
 	// chi2PID      pi chi2PID     (pips_chi2PID)
 	// p            pi momentum    (pi.P())
 	//
-
-	
-
-	//double DC_x[3] = {pi.getDC_x1(), pi.getDC_x2(), pi.getDC_x3()};
-	//double DC_y[3] = {pi.getDC_y1(), pi.getDC_y2(), pi.getDC_y3()};
-	//double DC_z[3] = {pi.getDC_z1(), pi.getDC_z2(), pi.getDC_z3()};
 
 	int piCharge = (int)( pi.getCharge() < 0 );
 
@@ -550,9 +535,6 @@ bool analyzer::applyAcceptanceMatching( pion pi, int dim ){
 
 //2d acceptance matching cut
 bool analyzer::acceptance_match_2d( double theta, double p, int sector_i){
-		//double acc_map_pip_min = pips_parameters[sector_i-1][0] + pips_parameters[sector_i-1][1]/p;                      
-                //double acc_map_pim_min = pims_parameters[sector_i-1][0] + pims_parameters[sector_i-1][1]/p;
-		
 		bool max_pip = (bool) ( theta < match2d[sector_i - 1][0][0]->Eval(p) );
 		bool max_pim = (bool) ( theta < match2d[sector_i - 1][0][1]->Eval(p) );
 		
@@ -648,9 +630,7 @@ void analyzer::loadMatchingFunctions3D( TString fileName ){
 
 	TFile matchFile3D( (TString) CUT_PATH + "/acceptance_matching/" + fileName);
 
-	TString chargeType[2] = {"pip", "pim"};	
-
-	for( int i = 0; i < 6; i++ ){		
+	for( int i = 0; i < 6; i++ ){
 		match3d[i][0] = (TF1 *)matchFile3D.Get(Form("fTheta0_%i", i));
 		match3d[i][1] = (TF1 *)matchFile3D.Get(Form("fPhi0_pip_%i", i));
 		match3d[i][2] = (TF1 *)matchFile3D.Get(Form("fPhi0_pim_%i", i));
@@ -669,11 +649,11 @@ void analyzer::loadMatchingFunctions3D(){
 int analyzer::FindMatch(TVector3 p, clas12::mcpar_ptr mcparts, std::vector<int> part_list){
 
 	double temp_min_dp = 9999;
-	double p_idx = -1;
+	int p_idx = -1;
 	double temp_min_dtheta = 9999;
-	double theta_idx = -1;
+	int theta_idx = -1;
 	double temp_min_dphi = 9999;
-	double phi_idx = -1;
+	int phi_idx = -1;
 
 	for ( int i : part_list ){
 		mcparts->setEntry(i);
@@ -712,9 +692,7 @@ void analyzer::loadAcceptanceMap(TString fileName){
 				//TF1 * f2 = (TF1 *) f.Get(Form("fThetaPhi_min_sec_%i_bin_%i_%s", sec, p, parType[par].Data() ) );
 
 				TF1 * f1 = (TF1 *) f.Get(Form("lower_p_%i_sec_%i_%s", p, sec, parType[par].Data() ) );
-				f1->Print("V");
 				TF1 * f2 = (TF1 *) f.Get(Form("upper_p_%i_sec_%i_%s", p, sec, parType[par].Data() ) );
-				f2->Print("V");
 				
 				TVector3 * fBounds = (TVector3 *) f.Get(Form("bounds_p_%i_sec_%i_%s", p, sec, parType[par].Data() ) );
 				
@@ -738,35 +716,19 @@ void analyzer::loadAcceptanceMap(TString fileName){
 
 //Check if in acceptance map
 int analyzer::checkAcceptance( double p, double phi, double theta, int particle ){
-	double par_0 = -999;
-	double par_1 = -999;
-	double par_2 = -999;
-
-	double max = -999;
-	double lower = 999;
-	double upper = -999;
-
-	//acceptanceMap[6][10][3][3];  //sector, p bin, particle type, number of parameters	
 	double p_max = 5 + 5*( (int) (particle < 1) );
 	int p_bin = (int)( ( (p)/(p_max) )*20 );
 	if( p_bin >= 20 ) return -1;
 
-	if( particle == 0 )return 0;
+	if( particle == 0 ) return 0;
 
-	double cutMin = 40;
 	for( int sec = 0; sec < 6; sec++ ){
 		double phi_temp = phi;
-		//par_0 = acceptanceMap[sec][p_bin][particle][0];
-		//par_1 = acceptanceMap[sec][p_bin][particle][1];
-		//par_2 = acceptanceMap[sec][p_bin][particle][2];
-		
-		//max = fitBounds[sec][p_bin][particle][2];
-		lower = fitBounds[sec][p_bin][particle][0];
-		upper = fitBounds[sec][p_bin][particle][1];
-	
+		double lower = fitBounds[sec][p_bin][particle][0];
+		double upper = fitBounds[sec][p_bin][particle][1];
+
 		if( (sec == 2 || (sec ==3 && p>1)) && phi_temp < 0. ){ phi_temp += 360; }
-		//cutMin = par_0*(phi_temp - par_1)*(phi_temp - par_1) + par_2;
-		
+
 		double cutMin = 0, cutMax = 0;
 
 		for( int param = 0; param < 4; param++ ){
@@ -792,9 +754,7 @@ void analyzer::loadAcceptanceMapContinuous(TString fileName){
 	for (int par = 0; par < 3; par++ ){
 		for (int sec = 0; sec < 6; sec++ ){
 			for ( int param = 0; param < 7; param++ ){
-				//mapParameters[par][sec][param] = (TF1*) f.Get( Form("f_%s_%i_param_%s", pars[par], sec+1, params[param]) );
 				mapParameters[par][sec][param] = (TF1*) f.Get( Form("f_")+pars[par]+Form("_%i_param_", sec+1) + params[param] );
-
 			}
 		}
 	}

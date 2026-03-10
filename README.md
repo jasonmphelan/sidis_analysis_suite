@@ -16,3 +16,6 @@ cmake ../
 make
 ```
 
+
+Analysis Pipeline:
+run calcVertexCut, calcSFCuts, and fiducials to get plots to determine cuts... Update cuts... run makeThetaPhi to produce plots for acceptance maps... Skim data with test_skimmer... Make acceptance maps

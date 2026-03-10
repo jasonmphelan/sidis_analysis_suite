@@ -18,7 +18,6 @@
 #include "DCfid_SIDIS.h"
 #include "electron.h"
 #include "pion.h"
-#include "e_pid.h"
 #include "HipoChain.h"
 #include "constants.h"
 #include "reader.h"

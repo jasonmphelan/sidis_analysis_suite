@@ -14,9 +14,7 @@
 #include "genElectron.h"
 #include "pion.h"
 #include "genPion.h"
-#include "e_pid.h"
 #include "DCfid_SIDIS.h"
-#include "TH3F.h"
 #include "mcparticle.h"
 
 using namespace cutVals;
@@ -93,24 +91,15 @@ public:
 	double returnElPhiMin(int sector, double p, double theta);
 	double returnElPhiMax(int sector, double p, double theta);
 private:
-	int	fdebug;
 	int	torusBending; // -1 for In-bending, +1 for Out-bending
-	int 	mode;
+	int	mode;
 	int	target = 0; // 0 = RGB/deuterium, 1 = RGA/proton
-
-	bool loadedAcceptanceMaps = false;
-
-	TH3F *	accCorrection;
-	TH3F *	binCorrection;
-	TH3F *	kaonCorrection;
-	TH3F *	rhoCorrection;
 
 	TF1 * match3d[6][3];
 	TF1 * match2d[6][2][2]; //[sector][max/min][pip/pim]
 
 	TF1 * mapParameters[3][6][7];
 
-	e_pid epid;
 	DCfid_SIDIS dcfid;
 	electron * e;
 	pion * pi;

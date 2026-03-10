@@ -19,7 +19,6 @@
 #include "electron.h"
 #include "pion.h"
 #include "analyzer.h"
-#include "e_pid.h"
 #include "HipoChain.h"
 #include "constants.h"
 #include "reader.h"
