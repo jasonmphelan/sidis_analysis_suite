@@ -61,24 +61,29 @@ void reader::setDataPaths(){
 	if(runType == 1 || runType == 2){
     		dataPath = "/volatile/clas12/osg/jphelan/";
 	}
-	
+
 
 	else if (runType == 0){//, ==4 is outbending
 		TString path_temp;
-	
-		if(EBeam == 10.6){ 
-			path_temp = "spring2019/torus-1/pass2/v0/dst/train/sidisdvcs/sidisdvcs_";
+
+		if( target == 1 ){ // RGA proton
+			dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/proton/detector_skims/";
 		}
-	
-		else if(EBeam == 10.4){ 
-			path_temp = "spring2020/torus-1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_";
+		else{ // RGB deuterium
+			if(EBeam == 10.6){
+				path_temp = "spring2019/torus-1/pass2/v0/dst/train/sidisdvcs/sidisdvcs_";
+			}
+
+			else if(EBeam == 10.4){
+				path_temp = "spring2020/torus-1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_";
+			}
+
+			else{
+				path_temp = "spring2019/torus-1/pass2/v0/dst/train/sidisdvcs/sidisdvcs_";
+	    		}
+
+			dataPath = "/cache/clas12/rg-b/production/recon/"+path_temp;
 		}
-	
-		else{
-			path_temp = "spring2019/torus-1/pass2/v0/dst/train/sidisdvcs/sidisdvcs_";
-    		}
-    		
-		dataPath = "/cache/clas12/rg-b/production/recon/"+path_temp;	
     	}
 	else if( runType == 3 ){
 		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_0";
@@ -92,16 +97,27 @@ void reader::setDataPaths(){
 
 void reader::getRunList(){
 	if( runType == 0 ){
-		if(EBeam == 10.6){ 
-			runList = (TString) RUN_PATH + "/runLists/good_runs_10-6.txt";
+		if( target == 1 ){ // RGA proton
+			if(EBeam == 10.6){
+				runList = (TString) RUN_PATH + "/runLists/rga_nsidis_runs_10-6.txt";
+			}
+			else{
+				cout<<"Warning: no RGA run list defined for EBeam="<<EBeam<<", using 10.6 list\n";
+				runList = (TString) RUN_PATH + "/runLists/rga_nsidis_runs_10-6.txt";
+			}
 		}
-		
-		else if(EBeam == 10.4){ 
-			runList = (TString) RUN_PATH+"/runLists/good_runs_10-4.txt";
-		}
-		
-		else{
-			runList = (TString) RUN_PATH + "/runLists/good_runs_10-2.txt";
+		else{ // RGB deuterium
+			if(EBeam == 10.6){
+				runList = (TString) RUN_PATH + "/runLists/good_runs_10-6.txt";
+			}
+
+			else if(EBeam == 10.4){
+				runList = (TString) RUN_PATH+"/runLists/good_runs_10-4.txt";
+			}
+
+			else{
+				runList = (TString) RUN_PATH + "/runLists/good_runs_10-2.txt";
+			}
 		}
 
 		cout<<"Run List : "<<runList<<endl;
@@ -109,7 +125,7 @@ void reader::getRunList(){
 
 	else if( runType == 4 || runType == 3){
 		runList = (TString) RUN_PATH+"/runLists/good_runs_10-4_pos.txt";
-	}	
+	}
 }
 
 

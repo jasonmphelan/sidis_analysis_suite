@@ -22,8 +22,8 @@ void analyzer::printCuts(){
 	}
 	std::cout<<"PCAL W : "<<mod_el_PCAL[0]*e_PCAL_W_min<<std::endl;
 	std::cout<<"PCAL V : "<<mod_el_PCAL[1]*e_PCAL_V_min<<std::endl;
-	std::cout<<"Electron Min Vertex : "<<mod_el_vtz[0]*Vz_e_min_inbending<<std::endl;
-	std::cout<<"Electron Max Vertex : "<<mod_el_vtz[1]*Vz_e_max_inbending<<std::endl;
+	std::cout<<"Electron Min Vertex : "<<mod_el_vtz[0]*Vz_e_min_inbending[target]<<std::endl;
+	std::cout<<"Electron Max Vertex : "<<mod_el_vtz[1]*Vz_e_max_inbending[target]<<std::endl;
 	std::cout<<"Minimum Edep : "<<mod_el_Edep*e_E_PCAL_min<<std::endl;
 	std::cout<<"SF Sigma : "<<mod_SF_sigma*3.5<<std::endl;	
 	std::cout<<"SF Correlation : "<<mod_el_corr*PCAL_ECIN_SF_min<<std::endl;
@@ -33,11 +33,11 @@ void analyzer::printCuts(){
 		std::cout<<"Pip Fiducial Region "<<i<<" : "<<mod_pi_fid[0][i]*pi_fid_cuts[0][i]<<std::endl;
 		std::cout<<"Pim Fiducial Region "<<i<<" : "<<mod_pi_fid[0][i]*pi_fid_cuts[1][i]<<std::endl;
 	}
-	std::cout<<"Pip-e Min Vertex : "<<Vz_pi_mean[mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
-	std::cout<<"Pip-e Max Vertex : "<<Vz_pi_mean[mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<std::endl;
+	std::cout<<"Pip-e Min Vertex : "<<Vz_pi_mean[target][mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][0]<<std::endl;
+	std::cout<<"Pip-e Max Vertex : "<<Vz_pi_mean[target][mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][0]<<std::endl;
 
-	std::cout<<"Pim-e Min Vertex : "<<Vz_pi_mean[mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
-	std::cout<<"Pim-e Max Vertex : "<<Vz_pi_mean[mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<std::endl;
+	std::cout<<"Pim-e Min Vertex : "<<Vz_pi_mean[target][mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][1]<<std::endl;
+	std::cout<<"Pim-e Max Vertex : "<<Vz_pi_mean[target][mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][1]<<std::endl;
 
 	
 	
@@ -116,9 +116,9 @@ void analyzer::writeCutsToFile(std::ofstream& txtFile){
 	//pcal V
 	txtFile<<mod_el_PCAL[1]*e_PCAL_V_min<<"\t";
 	//e vt min
-	txtFile<<mod_el_vtz[0]*Vz_e_min_inbending<<"\t";
+	txtFile<<mod_el_vtz[0]*Vz_e_min_inbending[target]<<"\t";
 	//e vt max
-	txtFile<<mod_el_vtz[1]*Vz_e_max_inbending<<"\t";
+	txtFile<<mod_el_vtz[1]*Vz_e_max_inbending[target]<<"\t";
 	//edep
 	txtFile<<mod_el_Edep*e_E_PCAL_min<<"\t";
 	//sf
@@ -133,13 +133,13 @@ void analyzer::writeCutsToFile(std::ofstream& txtFile){
 		txtFile<<mod_pi_fid[0][i]*pi_fid_cuts[1][i]<<"\t";
 	}
 	//pip min vtz
-	txtFile<<Vz_pi_mean[mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<"\t";
+	txtFile<<Vz_pi_mean[target][mode][0] - 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][0]<<"\t";
 	//pim max vtz
-	txtFile<<Vz_pi_mean[mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][0]<<"\t";
+	txtFile<<Vz_pi_mean[target][mode][0] + 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][0]<<"\t";
 	//pim min vtz
-	txtFile<<Vz_pi_mean[mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<"\t";
+	txtFile<<Vz_pi_mean[target][mode][1] - 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][1]<<"\t";
 	//pim max vtz
-	txtFile<<Vz_pi_mean[mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][1]<<"\t";
+	txtFile<<Vz_pi_mean[target][mode][1] + 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][1]<<"\t";
 
 	
 	//min pe
@@ -193,7 +193,7 @@ void analyzer::randomizeCuts(){
 
 
 	cut_vals.push_back(e_PCAL_V_min);
-	cut_vals.push_back(Vz_e_max_inbending);
+	cut_vals.push_back(Vz_e_max_inbending[target]);
 	cut_vals.push_back(P_pi_max);
 	cut_vals.push_back(P_e_max);
 
@@ -355,7 +355,7 @@ bool analyzer::applyElectronCorrelation( electron e ){
 
 bool analyzer::applyElectronVertex( electron e ){
 	//ELECTRON VERTEX CUT
-	return ((e.getVt().Z() > mod_el_vtz[0]*Vz_e_min_inbending) && (e.getVt().Z() < mod_el_vtz[1]*Vz_e_max_inbending));
+	return ((e.getVt().Z() > mod_el_vtz[0]*Vz_e_min_inbending[target]) && (e.getVt().Z() < mod_el_vtz[1]*Vz_e_max_inbending[target]));
 }
 
 bool analyzer::applyElectronDetectorCuts( electron e ){
@@ -424,8 +424,8 @@ bool analyzer::applyPionDetectorChi2( pion pi ){
 bool analyzer::applyPionDetectorVertex( pion pi, electron e ){
        
 	int chargeIdx = (int) ( pi.getCharge() < 0 );
-	double min = Vz_pi_mean[mode][chargeIdx] - 3.5*mod_pi_vtz*Vz_pi_sigma[mode][chargeIdx];
-	double max = Vz_pi_mean[mode][chargeIdx] + 3.5*mod_pi_vtz*Vz_pi_sigma[mode][chargeIdx];
+	double min = Vz_pi_mean[target][mode][chargeIdx] - 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][chargeIdx];
+	double max = Vz_pi_mean[target][mode][chargeIdx] + 3.5*mod_pi_vtz*Vz_pi_sigma[target][mode][chargeIdx];
 	
 	//DELTA VERTEX CUT
 	if( !( (pi.getVt() - e.getVt()).Z() > min && 
@@ -832,20 +832,20 @@ int analyzer::applyAcceptanceMap( double p, double phi, double theta, int partic
 		if( particle == 0 && sec == 3 && phi < 100. ){ phi_temp += 360; }
 		if( particle > 0 && (sec == 2 || (sec == 3 && p > .5) ) && phi < 0. ){ phi_temp += 360; }
 		double phi_avg = mapFunc(particle, sec, 6, p);
-		double theta_min = mapFunc(particle, sec, 4, p);
-		double theta_max = mapFunc(particle, sec, 5, p);
+		double map_min = mapFunc(particle, sec, 4, p);
+		double map_max = mapFunc(particle, sec, 5, p);
 
 		double a_low = mapFunc(particle, sec, 0, p);
 		double a_up = mapFunc(particle, sec, 1, p);
 		double b_low = mapFunc(particle, sec, 2, p);
 		double b_up = mapFunc(particle, sec, 3, p);
 
-		double denom_up = (theta - theta_min)/b_up;
-		double denom_low = (theta - theta_min)/b_low;
+		double denom_up = (theta - map_min)/b_up;
+		double denom_low = (theta - map_min)/b_low;
 
 		if(particle == 1){
-			denom_up = exp( (theta - theta_min)/b_up );
-			denom_low = exp( (theta - theta_min)/b_low );
+			denom_up = exp( (theta - map_min)/b_up );
+			denom_low = exp( (theta - map_min)/b_low );
 		}
 
 
@@ -854,7 +854,7 @@ int analyzer::applyAcceptanceMap( double p, double phi, double theta, int partic
 
 	
 
-		if ( phi_temp>phi_min && phi_temp < phi_max && theta > theta_min && theta < theta_max ) out_sec = sec;
+		if ( phi_temp>phi_min && phi_temp < phi_max && theta > map_min && theta < map_max ) return sec;
 	}
 
 	return out_sec;

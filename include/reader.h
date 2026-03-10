@@ -15,6 +15,7 @@ public:
 	int getRunNum( int i );
 	void setRunType( int i ){ runType = i; }
 	void setEnergy( double i ){ EBeam = i; }
+	void setTarget( int t ){ target = t; } // 0 = RGB/deuterium, 1 = RGA/proton
 	void readRunFiles( clas12root::HipoChain &fileList);
 	
 	void getRunFiles( clas12root::HipoChain &files);
@@ -37,6 +38,7 @@ private:
 
 	int nFiles;
 	int runType = 0;
+	int target = 0; // 0 = RGB/deuterium, 1 = RGA/proton
 	double EBeam = 10.2;
 };
 

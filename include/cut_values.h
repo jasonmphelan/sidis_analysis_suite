@@ -34,21 +34,41 @@ namespace cutVals{
 	const double Mx_min = 1.5;
 	const double Mx_max = 5.0;
 	
-	const double Vz_e_min_inbending = -7;//-4.0;
-	const double Vz_e_max_inbending = 2;//-1.0;
-	
-	const double Vz_pi_mean[5][2] = {{-1, -0.15},//data
-									{-0.15, -0.02},//gemc
-									{0,0},//generator
-									{0,0}, 
-									{-3.6, -1.9 } }; //outbending
-	//{{-7.0, -5}, {-4, -4}, {-7, -5}};//[RunType][charge]
-	const double Vz_pi_sigma[5][2] = {{1.4,1.2}, //data
-									{0.9, 0.85}, //gemc
-									{10,10}, //generator
-									{10,10}, //NA
-									{1.9, 1.9} }; //outbending
-	//{{4.0, 4.0}, {5, 5}, {4, 4}}; //[RunType][charge]
+	// Vertex cuts indexed by [target]: 0 = RGB/deuterium, 1 = RGA/proton
+	// RGA values (target=1) are placeholders — update after studying vertex distributions
+	const double Vz_e_min_inbending[2] = {-7,   -50}; // [target]
+	const double Vz_e_max_inbending[2] = { 2,    50}; // [target]
+
+	// [target][runType][charge]:  runType: 0=data, 1=gemc, 2=generator, 3=NA, 4=outbending
+	//                             charge:  0=pi+,  1=pi-
+	const double Vz_pi_mean[2][5][2] = {
+		{ {-1, -0.15},   // RGB data
+		  {-0.15, -0.02},// RGB gemc
+		  {0,0},         // RGB generator
+		  {0,0},         // RGB NA
+		  {-3.6, -1.9}   // RGB outbending
+		},
+		{ {0, 0},        // RGA data     -- TBD from data
+		  {0, 0},        // RGA gemc     -- TBD
+		  {0, 0},        // RGA generator
+		  {0, 0},        // RGA NA
+		  {0, 0}         // RGA outbending -- TBD
+		}
+	};
+	const double Vz_pi_sigma[2][5][2] = {
+		{ {1.4, 1.2},    // RGB data
+		  {0.9, 0.85},   // RGB gemc
+		  {10,  10},     // RGB generator
+		  {10,  10},     // RGB NA
+		  {1.9, 1.9}     // RGB outbending
+		},
+		{ {10, 10},      // RGA data     -- TBD from data
+		  {10, 10},      // RGA gemc     -- TBD
+		  {10, 10},      // RGA generator
+		  {10, 10},      // RGA NA
+		  {10, 10}       // RGA outbending -- TBD
+		}
+	};
 
 	//Legacy cuts ("loose")
 	const double SamplingFraction_min=0.17;

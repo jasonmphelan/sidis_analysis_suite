@@ -84,6 +84,12 @@ int main( int argc, char** argv){
 	//TH3F * binWeight_pim = (TH3F *)weightFile->Get("hBinMigrationM");
 
 	// Declare histograms
+	analyzer anal( 0, -1 );
+	anal.setAnalyzerLevel(0);//runType);
+	anal.loadMatchingFunctions("matchCut2D_map.root");
+	anal.loadMatchingFunctions3D();
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
+
 
 	cout<<"Creating Histograms\n";
 	
@@ -159,7 +165,7 @@ int main( int argc, char** argv){
 				hQ2_Z[i][j][k]		= new TH2F("hQ2_Z_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 2, 8, 100, .3 ,1 );
 				
 				hBeta_p[i][j][k]		= new TH2F("hBeta_p_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 0, 5, 100, .99 ,1.01 );
-				hTheta_p[i][j][k]		= new TH2F("hTheta_p_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 0, 5, 100, 0 , 40 );
+				hTheta_p[i][j][k]		= new TH2F("hTheta_p_"+data_type[i]+Form("_%i_%i", j, k), "", 100, 0, 10, 100, 0 , 40 );
 			}
 		}
 	}
@@ -171,10 +177,8 @@ int main( int argc, char** argv){
 
 	TTreeReaderValue<electron> e(reader_rec, "e");
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
-	TTreeReaderArray<bool> isGoodPion_vec(reader_rec, "isGoodPion");
+	TTreeReaderArray<bool> isGoodPion_vec(reader_rec, "isGoodPion_no_acc");
 	
-	analyzer anal( 0, -1 );
-	anal.setAnalyzerLevel(0);
 
 
 	int event_count = 0;
@@ -224,16 +228,25 @@ int main( int argc, char** argv){
                 h_p_e[chargeIdx][this_bin_Q2]->Fill(p_e, radWeight);
                 h_phi_e[chargeIdx][this_bin_Q2]->Fill(phi_e*rad_to_deg, radWeight);
 		*/
+		if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) <0) continue;
+				
+		hTheta_p[0][0][0]->Fill( e->get3Momentum().Mag(), e->get3Momentum().Theta()*rad_to_deg);
+
+
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			if( !isGoodPion_vec[i] || !(abs(pi[i].getPID()) == 211) ) {continue;}
 			if( !anal.applyElectronVertex( *e )){ continue; }
 			if( !anal.applyPionDetectorVertex( pi[i], *e )){ continue; }
-
+			if( !anal.applyAcceptanceMatching(pi[i], 2) ) continue;
 			//if( beta_cut > 0 && pi[i].getBeta_rich() < .0001 ){continue;}
 			if( beta_cut > 0 && (pi[0].getZ() + pi[1].getZ() < 0.9)){continue;}
 			
 
 			chargeIdx = (int)(pi[i].getCharge() < 1);
+			//if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) <0) continue;
+				
+			//if(anal.applyAcceptanceMap( pi[i].get3Momentum().Mag(), rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), 1+chargeIdx ) < 0 ) continue;	
+			
 			double M_x = pi[i].getMx();
 			double pT_pi = pi[i].getPi_q().Pt();
 			double p_pi = pi[i].get3Momentum().Mag();
@@ -317,7 +330,6 @@ int main( int argc, char** argv){
 			hQ2_W[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( xB, W);
 			
 			hBeta_p[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( p_pi, beta);
-			hTheta_p[chargeIdx][this_bin_Q2][this_bin_xB]->Fill( p_pi, theta_pi);
 			
 		}
 	}

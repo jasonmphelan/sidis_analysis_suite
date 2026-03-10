@@ -30,6 +30,7 @@ public:
 	analyzer& operator=( const analyzer&) =default;
 
 	void setAnalyzerLevel( int _mode ){ mode = _mode; }
+	void setTarget( int t ){ target = t; } // 0 = RGB/deuterium, 1 = RGA/proton
 	void loadElectron( electron *iE ){ e = iE; } 
 	void loadPion( pion *iPi ){ pi = iPi; } 
 
@@ -95,6 +96,7 @@ private:
 	int	fdebug;
 	int	torusBending; // -1 for In-bending, +1 for Out-bending
 	int 	mode;
+	int	target = 0; // 0 = RGB/deuterium, 1 = RGA/proton
 
 	bool loadedAcceptanceMaps = false;
 

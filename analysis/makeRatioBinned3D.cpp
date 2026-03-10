@@ -405,7 +405,6 @@ VecSample_w weights_in_bin(
 			double p_pi = pi[i].get3Momentum().Mag();
 
 			if(!isGoodPion_no_acc[i]) continue;
-
 			if(map && anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
 
 			if( !applyMatching(pi[i], p_pi) ) continue;
