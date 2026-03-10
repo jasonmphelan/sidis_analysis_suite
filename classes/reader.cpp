@@ -98,7 +98,7 @@ void reader::setDataPaths(){
 void reader::getRunList(){
 	if( runType == 0 ){
 		if( target == 1 ){ // RGA proton
-			if(EBeam == 10.6){
+			if(EBeam == 10.2){
 				runList = (TString) RUN_PATH + "/runLists/rga_nsidis_runs_10-6.txt";
 			}
 			else{
