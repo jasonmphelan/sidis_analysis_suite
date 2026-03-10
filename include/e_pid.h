@@ -16,6 +16,7 @@ public:
 	bool isElectronLoose(electron * eHit);
 
 	void setParamsRGB(double Ebeam);
+	void setParamsRGA(double Ebeam);
 	void fillParams();
 	void setIntervalEpcal(double newInterval);
 	void setIntervalMom(double newInterval);

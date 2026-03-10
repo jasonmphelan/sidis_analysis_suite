@@ -96,6 +96,18 @@ void e_pid::setParamsRGB(double Ebeam){
 	fillParams();
 }
 
+void e_pid::setParamsRGA(double Ebeam){
+	// RGA (proton) SF parameters
+	// Epcal params: use RGA-specific file
+	sprintf(paramFileNameEpcal,"%s/clas12pid/SFvEpcal_Params_RGA.dat",std::string(PID_DIR).c_str());
+	// Mom params: no RGA file yet, fall back to 10.6 RGB with warning
+	std::cout<<"Warning: no RGA SF momentum params file found."
+		<<" Using RGB 10.6 GeV params as placeholder.\n";
+	sprintf(paramFileNameMom,"%s/clas12pid/SFvMom_Params_106_RGB.dat",std::string(PID_DIR).c_str());
+	cout<<"FILLING PARAMETERS FROM "<<paramFileNameMom<<std::endl;
+	fillParams();
+}
+
 void e_pid::fillParams(){
 
 	//Load file data

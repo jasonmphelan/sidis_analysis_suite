@@ -277,7 +277,12 @@ double analyzer::Chi2PID_pion_upperBound( Double_t p, Double_t C){
 }
 
 void analyzer::loadCutValues(int torusBending, double EBeam){
-	epid.setParamsRGB(EBeam);
+	if( target == 1 ){ // RGA/proton
+		epid.setParamsRGA(EBeam);
+	}
+	else{ // RGB/deuterium (target == 0)
+		epid.setParamsRGB(EBeam);
+	}
 }
 
 
@@ -324,7 +329,23 @@ void analyzer::loadSamplingFractionParams(TString sfFile_name){
 }
 
 void analyzer::loadSamplingFractionParams(){
-	loadSamplingFractionParams( (TString) CUT_PATH + "/SF_fits.root");
+	if( target == 1 ){ // RGA/proton
+		TString rgaFile = (TString) CUT_PATH + "/SF_fits_RGA.root";
+		// Fall back to RGB file if RGA-specific file doesn't exist
+		FILE * f = fopen( rgaFile.Data(), "r" );
+		if( f ){
+			fclose(f);
+			loadSamplingFractionParams( rgaFile );
+		}
+		else{
+			std::cout<<"Warning: RGA SF fits file not found ("<<rgaFile<<")."
+				<<" Using RGB SF fits as placeholder.\n";
+			loadSamplingFractionParams( (TString) CUT_PATH + "/SF_fits.root" );
+		}
+	}
+	else{ // RGB/deuterium (target == 0)
+		loadSamplingFractionParams( (TString) CUT_PATH + "/SF_fits.root" );
+	}
 }
 
 
