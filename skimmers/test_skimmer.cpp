@@ -41,19 +41,21 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 7 ){
+	if( argc < 8 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [# of Files] [Beam energy]\n";
-		cerr << "	[Run Type] [Single File?] [Inclusive (0, 1)] [Output File Name (no extension)]\n";
+		cerr << "	[Run Type] [Single File?] [Inclusive (0, 1)] [Output File Name (no extension)] [Target]\n";
+		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
 		return -1;
 	}
-	
+
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
        	double Ebeam = atof(argv[2]); // [GeV]
 	int RunType = atoi(argv[3]);
 	int inclusive =atoi( argv[5]);
 	int singleFile =atoi( argv[4]);
-	TString outFileName = argv[6]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
+	TString outFileName = argv[6];
+	int target = atoi(argv[7]); // 0 = RGB/deuterium, 1 = RGA/proton ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
 
 	
 	// Check valid beam energy
@@ -72,8 +74,9 @@ int main( int argc, char** argv){
 	analyzer anal(0, torusBending);
 	if( RunType == 4 || RunType == 3){
 		anal.setAnalyzerLevel(0);
-	}	
+	}
 	else{ anal.setAnalyzerLevel(RunType); }
+	anal.setTarget( target );
 	anal.loadCutValues(-1, Ebeam);
 	anal.loadSamplingFractionParams();
 	anal.printCuts();
@@ -82,6 +85,7 @@ int main( int argc, char** argv){
 	runReader.setNumFiles( nFiles);
 	runReader.setRunType( RunType );
 	runReader.setEnergy( Ebeam );
+	runReader.setTarget( target );
 	
 	clas12root::HipoChain files;
        	runReader.readRunFiles(files);
