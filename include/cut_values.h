@@ -36,8 +36,8 @@ namespace cutVals{
 	
 	// Vertex cuts indexed by [target]: 0 = RGB/deuterium, 1 = RGA/proton
 	// RGA values (target=1) are placeholders — update after studying vertex distributions
-	const double Vz_e_min_inbending[2] = {-7,   -50}; // [target]
-	const double Vz_e_max_inbending[2] = { 2,    50}; // [target]
+	const double Vz_e_min_inbending[2] = {-7,   -8.5}; // [target]
+	const double Vz_e_max_inbending[2] = { 2,    .5}; // [target]
 
 	// [target][runType][charge]:  runType: 0=data, 1=gemc, 2=generator, 3=NA, 4=outbending
 	//                             charge:  0=pi+,  1=pi-
@@ -48,7 +48,7 @@ namespace cutVals{
 		  {0,0},         // RGB NA
 		  {-3.6, -1.9}   // RGB outbending
 		},
-		{ {0, 0},        // RGA data     -- TBD from data
+		{ {0.3, 0.8},        // RGA data     -- TBD from data
 		  {0, 0},        // RGA gemc     -- TBD
 		  {0, 0},        // RGA generator
 		  {0, 0},        // RGA NA
@@ -62,7 +62,7 @@ namespace cutVals{
 		  {10,  10},     // RGB NA
 		  {1.9, 1.9}     // RGB outbending
 		},
-		{ {10, 10},      // RGA data     -- TBD from data
+		{ {1.8, 1.5},      // RGA data     -- TBD from data
 		  {10, 10},      // RGA gemc     -- TBD
 		  {10, 10},      // RGA generator
 		  {10, 10},      // RGA NA

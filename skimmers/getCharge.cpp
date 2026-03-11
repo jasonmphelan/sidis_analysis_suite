@@ -41,17 +41,19 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 4 ){
+	if( argc < 6 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [# of Files] [Beam energy]\n";
-		cerr << "	[Run Type] [Output File Name (no extension)]\n";
+		cerr << "	[Run Type] [Output File Name (no extension)] [Target]\n";
+		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
 		return -1;
 	}
-	
+
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
     double Ebeam = atof(argv[2]); // [GeV]
 	int RunType = atoi(argv[3]);
 	TString outFile_name = argv[4];
+	int target = atoi(argv[5]); // 0 = RGB/deuterium, 1 = RGA/proton
 	
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 ){
@@ -65,8 +67,9 @@ int main( int argc, char** argv){
 	analyzer anal(0, torusBending);
 	if( RunType == 4 || RunType == 3){
 		anal.setAnalyzerLevel(0);
-	}	
+	}
 	else{ anal.setAnalyzerLevel(RunType); }
+	anal.setTarget( target );
 	anal.loadCutValues(-1, Ebeam);
 	anal.loadSamplingFractionParams();
 	anal.printCuts();

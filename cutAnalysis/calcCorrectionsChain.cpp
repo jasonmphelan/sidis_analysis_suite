@@ -54,15 +54,16 @@ double lookupCorr( TH3F* h, double xB, double Q2, double z ){
 
 int main( int argc, char** argv){
 
-	if( argc < 8 ){
+	if( argc < 9 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [# Files] [Beam Energy] [Run Type] [Output File] [Matching]\n";
-		cerr << "       [Rec Skim Base] [Gen Skim Base] [Data Skim Base]\n";
+		cerr << "       [Rec Skim Base] [Gen Skim Base] [Data Skim Base] [Target]\n";
 		cerr << "  # Files        : 0 = all files, N = cap at N\n";
 		cerr << "  Run Type       : 1=MC detector, 2=MC generator (for rec/gen chains)\n";
 		cerr << "  Output File    : base name (no extension); writes _pip.txt and _pim.txt\n";
 		cerr << "  Matching       : 0=no acc, 2=2D match, 3=3D match\n";
 		cerr << "  Data Skim Base : base path for data skims (RunType=0 used automatically)\n";
+		cerr << "  Target         : 0 = RGB/deuterium, 1 = RGA/proton\n";
 		return -1;
 	}
 
@@ -73,6 +74,7 @@ int main( int argc, char** argv){
 	TString recBase   = argv[5];
 	TString genBase   = argv[6];
 	TString dataBase  = argv[7];
+	int     target    = atoi(argv[8]); // 0 = RGB/deuterium, 1 = RGA/proton
 
 	cerr << "Rec base  : " << recBase  << "\n";
 	cerr << "Gen base  : " << genBase  << "\n";
@@ -129,6 +131,7 @@ int main( int argc, char** argv){
 	////////////////////////////////////////////////////
 	analyzer anal(0, -1);
 	anal.setAnalyzerLevel(1);
+	anal.setTarget( target );
 	anal.loadMatchingFunctions("matchCut2D_map.root");
 	anal.loadMatchingFunctions3D();
 	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root" );
