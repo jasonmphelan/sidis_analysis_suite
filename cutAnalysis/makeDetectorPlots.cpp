@@ -84,6 +84,10 @@ int main( int argc, char** argv){
 	anal.setTarget( target );
 	anal.loadCutValues(-1, Ebeam);
 	anal.loadSamplingFractionParams();
+	anal.loadMatchingFunctions3D();	
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
+	
+	
 
 	reader runReader;
 	runReader.setNumFiles( nFiles );
@@ -398,41 +402,17 @@ int main( int argc, char** argv){
 				hBeta_e[9]->Fill( e.getBeta() );
 				hBeta_p_pi[9][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
 				hBeta_pi[9][chargeIdx]->Fill( pi_dummy.getBeta() );
-				/*
-				//Electron Fiducials
-				hFid_e[chargeIdx][0][0]->Fill( e.getDC_x1(), e.getDC_y1() ); 
-				hFid_e[chargeIdx][1][0]->Fill( e.getDC_x2(), e.getDC_y2() ); 
-				hFid_e[chargeIdx][2][0]->Fill( e.getDC_x3(), e.getDC_y3() ); 
 				
-				counts[chargeIdx][8]++;
-				if( !anal.applyElectronFiducials( e ) ){ continue; }
-				hBeta_p_e[1]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[1]->Fill( e.getBeta() );
-				hBeta_p_pi[1][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[1][chargeIdx]->Fill( pi_dummy.getBeta() );
-				
-				hFid_e[chargeIdx][0][1]->Fill( e.getDC_x1(), e.getDC_y1() ); 
-				hFid_e[chargeIdx][1][1]->Fill( e.getDC_x2(), e.getDC_y2() ); 	
-				hFid_e[chargeIdx][2][1]->Fill( e.getDC_x3(), e.getDC_y3() ); 
-				
-
-				//Pion Fiducials
-				counts[chargeIdx][9]++;
-				hFid_pi[chargeIdx][0][0]->Fill( pi_dummy.getDC_x1(), pi_dummy.getDC_y1() );
-				hFid_pi[chargeIdx][1][0]->Fill( pi_dummy.getDC_x2(), pi_dummy.getDC_y2() );
-				hFid_pi[chargeIdx][2][0]->Fill( pi_dummy.getDC_x3(), pi_dummy.getDC_y3() );
-				if( !anal.applyPionDetectorFiducials( pi_dummy )){ continue ; }
-				hBeta_p_e[8]->Fill( e.get3Momentum().Mag(), e.getBeta() );
-				hBeta_e[8]->Fill( e.getBeta() );
-				hBeta_p_pi[8][chargeIdx]->Fill( pi_dummy.get3Momentum().Mag(), pi_dummy.getBeta() );
-				hBeta_pi[8][chargeIdx]->Fill( pi_dummy.getBeta() );
-					
-				hFid_pi[chargeIdx][0][1]->Fill( pi_dummy.getDC_x1(), pi_dummy.getDC_y1() );
-				hFid_pi[chargeIdx][1][1]->Fill( pi_dummy.getDC_x2(), pi_dummy.getDC_y2() );
-				hFid_pi[chargeIdx][2][1]->Fill( pi_dummy.getDC_x3(), pi_dummy.getDC_y3() );
-				*/
-	
 				counts[chargeIdx][10]++;
+
+				if(anal.applyAcceptanceMap( e.get3Momentum().Mag(), rad_to_deg*e.get3Momentum().Phi(), rad_to_deg*e.get3Momentum().Theta(), 0 ) <0) continue;
+				
+				counts[chargeIdx][11]++;
+
+				if(anal.applyAcceptanceMap( pi_dummy.get3Momentum().Mag(), rad_to_deg*pi_dummy.get3Momentum().Phi(),pi_dummy.get3Momentum().Theta()*rad_to_deg, chargeIdx + 1 ) < 0 ) continue;
+					
+	
+				counts[chargeIdx][12]++;
 			}
 
 			
@@ -499,6 +479,9 @@ int main( int argc, char** argv){
 	txtFile<< "Pion DC Fiducials\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
 	txtFile<< "Pion Vertex\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
 	txtFile<< "Chi2\t"<<counts[0][10]<<"\t"<<counts[1][10]<<std::endl;
+	txtFile<< "Electron Acceptance Maps\t"<<counts[0][11]<<"\t"<<counts[1][11]<<std::endl;
+	txtFile<< "Pion Acceptance Maps\t"<<counts[0][12]<<"\t"<<counts[1][12]<<std::endl;
+
 	txtFile.close();
 
 	std::cout<<"Done!\n";
