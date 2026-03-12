@@ -1,9 +1,9 @@
 #!/bash
 energy=10.2
 
-#./cutAnalysis/makeDetectorPlots /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/selection_plots_10.2 10.2 0 &
-#./cutAnalysis/makeDetectorPlots /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/selection_plots_10.4 10.4 0 &
-#./cutAnalysis/makeDetectorPlots /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/selection_plots_10.6 10.6 0 &
+./cutAnalysis/makeDetectorPlots /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/selection_plots_10.2 10.2 0 &
+./cutAnalysis/makeDetectorPlots /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/selection_plots_10.4 10.4 0 &
+./cutAnalysis/makeDetectorPlots /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/selection_plots_10.6 10.6 0 &
 
 wait
 

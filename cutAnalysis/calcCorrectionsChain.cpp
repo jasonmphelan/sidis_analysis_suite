@@ -252,7 +252,7 @@ int main( int argc, char** argv){
 			if( !anal.applyElectronKinematicCuts( *e_gen ) || !anal.applyPionKinematicCuts( pi ) ) continue;
 
 			if( sector_i < 1 ){
-				if( charge > 0 ){    
+				if( pi.getCharge() > 0 ){    
 					if( phi > -0.8 && phi < 0.25 ){ sector_i = 1; }
 					else if( phi >= 0.25 && phi < 1.3 ){ sector_i = 2; }
 					else if( phi >= 1.3 && phi <= 2.35 ){ sector_i = 3; }
@@ -260,7 +260,7 @@ int main( int argc, char** argv){
 					else if( phi > -2.9 && phi < -1.85){ sector_i = 5; }
 					else{ sector_i = 6; }
 				}
-				if( charge < 0 ){
+				if( pi.getCharge() < 0 ){
 					if( phi > -0.25 && phi < 0.8 ){ sector_i = 1; }
 					else if( phi >= 0.8 && phi < 1.85 ){ sector_i = 2; }
 					else if( phi >= 1.85 && phi <= 2.9 ){ sector_i = 3; }

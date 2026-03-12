@@ -30,7 +30,7 @@
 using namespace constants;
 
 #define CORR_PATH _DATA
-const int thread_MAX = 100;
+const int thread_MAX = 500;
 
 using std::cerr;
 using std::isfinite;
@@ -192,7 +192,7 @@ int main( int argc, char** argv){
 		if( acc_match && !anal.applyAcceptanceMatching(pi[0], 2) ){continue;}
 		if( acc_match && !anal.applyAcceptanceMatching(pi[1], 2) ){continue;}
 		//if( !isGoodPion_acc[0] && !isGoodPion_acc[1] ){continue;} //If event wouldn't be in our final sample, continue 
-		if( *Mx_2pi < 0 || *Mx_2pi > 2.5 ){continue;}
+		if( *Mx_2pi < 0 || *Mx_2pi > 1.5 ){continue;}
 		if( *M_rho < 0 ){continue;}
 
 		int symType = 0;
