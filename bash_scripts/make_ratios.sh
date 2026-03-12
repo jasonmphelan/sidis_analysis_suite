@@ -147,7 +147,8 @@ wait
 #../build/analysis/makeRatio3D 0 ../histograms/analysis_note/ratios_2d_k_Mx.root 2 4 1 acceptanceMap_allE_final.root Mx 10 1.7 3.7 10 corrections_10.2_AN_test.root 1.25 1 
 
 
-../build/analysis/makeRatio3D 0 ../histograms/analysis_note/ratios_3d_mc.root 3 1 1 acceptanceMap_allE_final.root Mx 1 1.7 3.7 1 corrections_10.2_AN_test.root 1.25 1 
+../build/analysis/makeRatio3D 0 ../histograms/analysis_note/ratios_2d_mc.root 2 3 1 acceptanceMap_allE_final.root Mx 1 1.7 3.7 1 corrections_10.2_AN_test.root 1.25 1 &
+../build/analysis/makeRatio3D 0 ../histograms/analysis_note/ratios_3d_mc.root 3 1 1 acceptanceMap_allE_final.root Mx 1 1.7 3.7 1 corrections_10.2_3d_AN.root 1.25 1 &
 
 
 #../build/analysis/makeRatioSym 0 ../histograms/analysis_note/ratios_2d_mx_1.2.root 2 5 1 acceptanceMap_allE_final.root 1.2  &

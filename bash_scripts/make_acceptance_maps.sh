@@ -1,8 +1,8 @@
 #!/bash
 
-./cutAnalysis/makeThetaPhi /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.2/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/theta_phi_10.2.root 0 0 10.2 &
-./cutAnalysis/makeThetaPhi /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.4/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/theta_phi_10.4.root 0 0 10.4 &
-./cutAnalysis/makeThetaPhi /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.6/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/theta_phi_10.6.root 0 0 10.6 &
+#./../build/cutAnalysis/makeThetaPhi /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.2/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/theta_phi_10.2.root 0 0 10.2 0 &
+#./../build/cutAnalysis/makeThetaPhi /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.4/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/theta_phi_10.4.root 0 0 10.4 0 &
+#./../build/cutAnalysis/makeThetaPhi /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.6/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/theta_phi_10.6.root 0 0 10.6 0 &
 
 wait
 

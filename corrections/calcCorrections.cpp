@@ -153,7 +153,15 @@ int main( int argc, char** argv){
 			if( abs( pi.getPID() ) != 211 ){continue;}
 
 			bool matching = true;
-			if( (matchType==0 && isGoodPion_no_acc[pi_count])|| (matchType==2 && isGoodPion[pi_count]) || (matchType==3 && isGoodPion3d[pi_count]) ){//|| (matchType==3 && isGoodPion3d[pi_count])){
+			double p_mom = pi.get3Momentum().Mag();
+			if (matchType == 1 || matchType == 2)
+				matching = anal.applyAcceptanceMatching(pi, 2);
+			if (matchType == 3)
+				matching = anal.applyAcceptanceMap(p_mom, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), 1) >= 0 &&
+			       anal.applyAcceptanceMap(p_mom, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), 2) >= 0;
+
+			if (!matching) continue;
+			if( (matchType==0 && isGoodPion_no_acc[pi_count])|| (matchType==2 && isGoodPion_no_acc[pi_count]) || (matchType==3 && isGoodPion_no_acc[pi_count]) ){//|| (matchType==3 && isGoodPion3d[pi_count])){
 				double p_pi = pi.get3Momentum().Mag();
 				if(anal.applyAcceptanceMap( e->get3Momentum().Mag(),rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) >= 0 && 
 					anal.applyAcceptanceMap( p_pi, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), chargeIdx + 1 ) >= 0) {

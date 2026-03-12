@@ -3,151 +3,267 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
+# ── Configuration ──────────────────────────────────────────────────────────────
+# applyCorr value used when running makeRatioBinned / makeRatioBinned3D
+#   > 3 : kaon correction applied (hRatio_k histograms present)
+#   > 4 : rho  correction applied (hRatio_r histograms present)
+APPLY_CORR = 4
 
+# Number of extra variable bins (1 = no extra variable dimension).
+# Overridden automatically when the file contains more bins.
+BINS_VAR = 1
+
+# True  = sum all var bins into a single curve (recommended for comparison plots)
+# False = use var bin 0 only
+SUM_VAR = True
+
+# Kinematic bin definitions (must match cut_values.h)
+BINS_Q2 = 12
+BINS_XB = 14
+Q2_MIN, Q2_MAX = 2.0, 8.0
+XB_MIN, XB_MAX = 0.1, 0.66
+
+# ── Helpers ────────────────────────────────────────────────────────────────────
 def ff(z):
-	return (1-z)/(z+1)
+	return (1 - z) / (1 + z)
+
+def get_hist(f, name):
+	"""Return (values, errors, bin_centers) or None if histogram absent."""
+	key = name + ";1"
+	if key not in f:
+		if name not in f:
+			return None
+		key = name
+	h = f[key]
+	edges = h.axis().edges()
+	centers = (edges[:-1] + edges[1:]) / 2
+	return np.array(h.values()), np.array(h.errors()), centers
 
 def ratio_to_ff(R, R_err):
-	"""Convert multiplicity ratio R = pip/pim to fragmentation function (4-R)/(4R-1)."""
-	FF = (4 - R) / (4*R - 1)
-	# dFF/dR = -15 / (4R-1)^2
-	denom = 4*R - 1
-	FF_err = np.abs(15 / denom**2) * R_err
+	"""Convert charge ratio R = pip/pim to asymmetry A = (4-R)/(4R-1)."""
+	denom = 4 * R - 1
+	with np.errstate(invalid='ignore', divide='ignore'):
+		FF     = np.where(np.abs(denom) > 1e-9, (4 - R) / denom, np.nan)
+		FF_err = np.where(np.abs(denom) > 1e-9, np.abs(15 / denom**2) * R_err, np.nan)
 	return FF, FF_err
 
-def read_hist(inFile, key):
-	"""Return (values, errors) arrays for a histogram key, or (None, None) if absent."""
-	if key not in inFile.keys():
-		return None, None
-	h = inFile[key]
-	return np.array(h.values()), np.array(h.errors())
+# ── Naming convention detection ────────────────────────────────────────────────
+def detect_naming(inFile):
+	"""Auto-detect histogram naming style and number of var bins in the file."""
+	def _probe(name):
+		return (name + ";1") in inFile or name in inFile
+	def _probe_any(pattern_fn):
+		for q in range(1, BINS_Q2 + 1):
+			for x in range(1, BINS_XB + 1):
+				if _probe(pattern_fn(q, x)):
+					return True
+		return False
 
-def read_xs(inFile, q, x):
-	"""Read pip and pim cross section histograms, apply kaon and rho corrections,
-	and return FF with errors. Kaon histograms are added; rho histograms are subtracted.
-	Both corrections are applied only when the histograms are present."""
-	key_pip = f'hRatio_{q+1}_{x+1};1'
-	key_pim = f'hRatioPim_{q+1}_{x+1};1'
-
-	pip, pip_err = read_hist(inFile, key_pip)
-	pim, pim_err = read_hist(inFile, key_pim)
-	if pip is None or pim is None:
-		return None
-
-	xEdges = inFile[key_pip].axis().edges()
-	binCenters = (xEdges[:-1] + xEdges[1:]) / 2
-
-	# Add kaon corrections (independent uncertainties)
-	k_pip, k_pip_err = read_hist(inFile, f'hRatio_k_{q+1}_{x+1};1')
-	k_pim, k_pim_err = read_hist(inFile, f'hRatioPim_k_{q+1}_{x+1};1')
-	if k_pip is not None:
-		pip     = pip     + k_pip
-		pip_err = np.sqrt(pip_err**2 + k_pip_err**2)
-	if k_pim is not None:
-		pim     = pim     + k_pim
-		pim_err = np.sqrt(pim_err**2 + k_pim_err**2)
-
-	# Subtract rho background — same histogram for pip and pim, so correlated.
-	# R = (pip - r) / (pim - r)
-	# dR/dr = (R - 1) / pim',  so sigma_R includes the shared sigma_r only once.
-	r, r_err = read_hist(inFile, f'hRatio_r_{q+1}_{x+1};1')
-	if r is not None:
-		pip = pip - r
-		pim = pim - r
-
-	# Mask invalid bins
-	mask = (pip > 0) & (pim > 0)
-	pip     = np.where(mask, pip,     np.nan)
-	pim     = np.where(mask, pim,     np.nan)
-	pip_err = np.where(mask, pip_err, np.nan)
-	pim_err = np.where(mask, pim_err, np.nan)
-
-	R = pip / pim
-	if r is not None:
-		r_err = np.where(mask, r_err, np.nan)
-		R_err = (1 / pim) * np.sqrt(pip_err**2 + (R * pim_err)**2 + ((R - 1) * r_err)**2)
+	if _probe_any(lambda q, x: f"hRatio_0_{q}_{x}_1"):
+		style = "new_multi"
+		n_var = 0
+		while _probe_any(lambda q, x: f"hRatio_{n_var}_{q}_{x}_1"):
+			n_var += 1
+	elif _probe_any(lambda q, x: f"hRatio_0_{q}_{x}"):
+		style = "new_single"
+		n_var = BINS_VAR
+	elif _probe_any(lambda q, x: f"hRatio_{q}_{x}"):
+		style = "old"
+		n_var = 1
 	else:
-		R_err = R * np.sqrt((pip_err / pip)**2 + (pim_err / pim)**2)
+		keys = [k.split(";")[0] for k in inFile.keys() if "hRatio" in k][:8]
+		raise RuntimeError(f"Cannot detect histogram naming convention. Sample keys: {keys}")
+	return style, n_var
 
+def make_hist_name(style):
+	"""Return a hist_name(prefix, var, charge, q_idx, x_idx) -> str function."""
+	def hist_name(prefix, var, charge, q_idx, x_idx):
+		if style == "new_multi":
+			charge_k = 0 if charge == '' else 1
+			return prefix + f"_{var}{charge}_{q_idx+1}_{x_idx+1}_{charge_k+1}"
+		elif style == "new_single":
+			return prefix + f"_{var}{charge}_{q_idx+1}_{x_idx+1}"
+		else:  # old
+			pim_str = 'Pim' if charge == '_Pim' else ''
+			return f"hRatio{pim_str}_{q_idx+1}_{x_idx+1}" if prefix == 'hRatio' \
+				else prefix + f"{charge}_{q_idx+1}_{x_idx+1}"
+	return hist_name
+
+# ── Load all cross sections from one ROOT file ─────────────────────────────────
+def load_file(path):
+	"""
+	Open a ROOT file, auto-detect histogram naming, load and correct pip/pim
+	yields, apply kaon/rho corrections, sum over var bins (if configured),
+	then compute A(z) = (4-R)/(4R-1).
+
+	Returns
+	-------
+	FF     : ndarray, shape (BINS_Q2, BINS_XB, n_z)
+	FF_err : ndarray, same shape
+	z_cen  : ndarray, shape (n_z,)
+	"""
+	inFile = uproot.open(path)
+	style, n_var = detect_naming(inFile)
+	hist_name = make_hist_name(style)
+
+	z_cen     = None
+	n_z       = None
+	pip_v_all = None
+	pip_e_all = None
+	pim_v_all = None
+	pim_e_all = None
+
+	for var in range(n_var):
+		for q in range(BINS_Q2):
+			for x in range(BINS_XB):
+				pip = get_hist(inFile, hist_name('hRatio', var, '',     q, x))
+				pim = get_hist(inFile, hist_name('hRatio', var, '_Pim', q, x))
+				if pip is None or pim is None:
+					continue
+
+				pv, pe, cen = pip
+				pmv, pme, _ = pim
+
+				if z_cen is None:
+					z_cen = cen
+					n_z   = len(cen)
+					shape = (n_var, BINS_Q2, BINS_XB, n_z)
+					pip_v_all = np.full(shape, np.nan)
+					pip_e_all = np.full(shape, np.nan)
+					pim_v_all = np.full(shape, np.nan)
+					pim_e_all = np.full(shape, np.nan)
+
+				# Kaon correction (added to pip and pim independently)
+				if APPLY_CORR > 3:
+					k = get_hist(inFile, hist_name('hRatio_k', var, '',     q, x))
+					if k is not None:
+						pv  += k[0];  pe  = np.sqrt(pe**2  + k[1]**2)
+					k = get_hist(inFile, hist_name('hRatio_k', var, '_Pim', q, x))
+					if k is not None:
+						pmv += k[0];  pme = np.sqrt(pme**2 + k[1]**2)
+
+				# Rho correction (subtracted from pip and pim independently)
+				if APPLY_CORR > 4:
+					r = get_hist(inFile, hist_name('hRatio_r', var, '',     q, x))
+					if r is not None:
+						pv  -= r[0];  pe  = np.sqrt(pe**2  + r[1]**2)
+					r = get_hist(inFile, hist_name('hRatio_r', var, '_Pim', q, x))
+					if r is not None:
+						pmv -= r[0];  pme = np.sqrt(pme**2 + r[1]**2)
+
+				pip_v_all[var, q, x] = pv
+				pip_e_all[var, q, x] = pe
+				pim_v_all[var, q, x] = pmv
+				pim_e_all[var, q, x] = pme
+
+	if z_cen is None:
+		return None, None, None
+
+	# Sum over var bins (at yield level, before ratio)
+	if n_var > 1 and SUM_VAR:
+		any_pip = np.any(np.isfinite(pip_v_all), axis=0, keepdims=True)
+		any_pim = np.any(np.isfinite(pim_v_all), axis=0, keepdims=True)
+		pip_v_all = np.where(any_pip, np.nansum(pip_v_all, axis=0, keepdims=True), np.nan)
+		pip_e_all = np.where(any_pip, np.sqrt(np.nansum(pip_e_all**2, axis=0, keepdims=True)), np.nan)
+		pim_v_all = np.where(any_pim, np.nansum(pim_v_all, axis=0, keepdims=True), np.nan)
+		pim_e_all = np.where(any_pim, np.sqrt(np.nansum(pim_e_all**2, axis=0, keepdims=True)), np.nan)
+
+	# Collapse var axis to (BINS_Q2, BINS_XB, n_z)
+	pip_v = pip_v_all[0]
+	pip_e = pip_e_all[0]
+	pim_v = pim_v_all[0]
+	pim_e = pim_e_all[0]
+
+	mask  = (pip_v > 0) & (pim_v > 0)
+	pip_v = np.where(mask, pip_v, np.nan)
+	pim_v = np.where(mask, pim_v, np.nan)
+	pip_e = np.where(mask, pip_e, np.nan)
+	pim_e = np.where(mask, pim_e, np.nan)
+
+	R     = pip_v / pim_v
+	R_err = R * np.sqrt((pip_e / pip_v)**2 + (pim_e / pim_v)**2)
 	FF, FF_err = ratio_to_ff(R, R_err)
 
-	return FF, FF_err, binCenters
+	return FF, FF_err, z_cen  # each shape (BINS_Q2, BINS_XB, n_z)
 
-#python makeRatios.py outfile file_1 title_1 file_2 title_2 ...
+# ── Command-line interface ─────────────────────────────────────────────────────
+# Usage: python plotRatios.py outdir file1 title1 [file2 title2 ...]
 outFileName = sys.argv[1]
-nFiles = int((len(sys.argv) - 2)/2)
-
+nFiles      = (len(sys.argv) - 2) // 2
 inFile_list = [sys.argv[2*i + 2] for i in range(nFiles)]
 inFile_tits = [sys.argv[2*i + 3] for i in range(nFiles)]
 
+colorList = ['red', 'blue', 'green', 'magenta', 'brown', 'gold',
+             'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray'] * 3
 
-colorList = ['red', 'blue', 'green', 'magenta', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray', 'red', 'blue', 'magenta', 'green', 'brown', 'gold', 'cyan', 'blueviolet', 'darkorange', 'black', 'yellow', 'gray']
+# Pre-load all files up front
+loaded = [load_file(p) for p in inFile_list]
 
-for q in range(12):
+z_line = np.linspace(0.3, 1.0, 500)
 
-	for x in range(14):
+for q in range(BINS_Q2):
+	for x in range(BINS_XB):
 
-		fig, ax = plt.subplots(2, 1, figsize=(12,6), height_ratios=[3,1], sharex='col', layout='constrained')
-		ax[0].set_ylim( [0, 1] )
-		ax[1].set_xlim( [.3, .8] )
+		FF0, FF0_err, z_cen = loaded[0]
+		if FF0 is None or np.isnan(FF0[q, x]).all():
+			print('none')
+			continue
+
+		fig, ax = plt.subplots(2, 1, figsize=(12, 6), height_ratios=[3, 1],
+		                       sharex='col', layout='constrained')
+		ax[0].set_ylim([0, 1])
+		ax[1].set_xlim([0.3, 0.8])
 		ax[0].tick_params(axis='both', which='major', labelsize=14)
 		ax[1].tick_params(axis='both', which='major', labelsize=14)
 
-		z = np.linspace( .3, 1, 500 )
-		ax[0].plot( z, np.asarray(ff(z)), color = 'black', linestyle = '--')
-		ax[1].axhline( y=1, xmin=0, xmax=1 , color = 'black', linestyle = '--')
+		ax[0].plot(z_line, ff(z_line), color='black', linestyle='--')
+		ax[1].axhline(y=1, color='black', linestyle='--')
 
 		ax[1].set_xlabel(r'$z$', fontsize=18)
 		ax[1].set_ylabel(rf'$r(z)/r$({inFile_tits[0]})', fontsize=16)
 		ax[0].set_ylabel(r'$r(z)$', fontsize=18)
 
-		ax[0].text(.7, .75, r'%.1f $< Q^2 <$ %.1f'%(2 + .5*(q), 2+.5*(q+1)), fontsize=18)
-		ax[0].text(.7, .7, r'%.2f $< x_B <$ %.2f'%( .1 + .04*x, .1 + .04*(x+1)), fontsize=18)
+		q2_lo = Q2_MIN + q * (Q2_MAX - Q2_MIN) / BINS_Q2
+		q2_hi = Q2_MIN + (q + 1) * (Q2_MAX - Q2_MIN) / BINS_Q2
+		xb_lo = XB_MIN + x * (XB_MAX - XB_MIN) / BINS_XB
+		xb_hi = XB_MIN + (x + 1) * (XB_MAX - XB_MIN) / BINS_XB
+		ax[0].text(0.7, 0.75, rf'${q2_lo:.1f} < Q^2 < {q2_hi:.1f}$', fontsize=18)
+		ax[0].text(0.7, 0.70, rf'${xb_lo:.2f} < x_B < {xb_hi:.2f}$', fontsize=18)
 
-		inFile = uproot.open(inFile_list[0])
+		vals0  = FF0[q, x]
+		errs0  = FF0_err[q, x]
+		z_plot = z_cen + (-0.01 + 0.002 * q)
 
-		result = read_xs(inFile, q, x)
-		if result is None:
-			plt.close()
-			continue
+		ax[0].errorbar(z_plot, vals0, errs0, label=inFile_tits[0], marker='.',
+		               color=colorList[0], linestyle='', capsize=2, lw=1,
+		               capthick=1, markersize=10, mec='black')
 
-		values, errors, binCenters = result
-		binCenters = binCenters + (-.01 + .002*q)
-
-		if np.isnan(values).all():
-			plt.close()
-			continue
-
-		ax[0].errorbar( binCenters, values, errors, label=inFile_tits[0], marker='.',
-						color = colorList[0], linestyle = '',capsize = 2, lw = 1, capthick = 1, markersize=10,mec='black')
-
-		rat_max = 1.05
-		rat_min = 0.95
-		for num in range( 1, len(inFile_list) ):
-			inFile_temp = uproot.open(inFile_list[num])
-			result_temp = read_xs(inFile_temp, q, x)
-			if result_temp is None:
+		rat_max, rat_min = 1.05, 0.95
+		for num in range(1, nFiles):
+			FF_n, FF_n_err, _ = loaded[num]
+			if FF_n is None:
 				continue
+			vals_n = FF_n[q, x]
+			errs_n = FF_n_err[q, x]
 
-			values_temp, errors_temp, _ = result_temp
+			ax[0].errorbar(z_plot, vals_n, errs_n, label=inFile_tits[num], marker='.',
+			               color=colorList[num], linestyle='', capsize=2, lw=1,
+			               capthick=1, markersize=10, mec='black')
 
-			ratio = values_temp / values
-			ratio_err = ratio * np.sqrt( (errors / values)**2 + (errors_temp / values_temp)**2 )
+			ratio     = vals_n / vals0
+			ratio_err = ratio * np.sqrt((errs0 / vals0)**2 + (errs_n / vals_n)**2)
 			ratio_err[ratio_err <= 0] = np.nan
 
-			ax[0].errorbar( binCenters, values_temp, errors_temp, label=inFile_tits[num], marker='.',
-							color = colorList[num], linestyle = '',capsize = 2, lw = 1, capthick = 1,markersize=10,mec='black')
+			ax[1].errorbar(z_plot, ratio, ratio_err, marker='.',
+			               color=colorList[num], linestyle='', capsize=2, lw=1,
+			               capthick=1, markersize=10, mec='black')
 
-			ax[1].errorbar( binCenters, ratio, ratio_err, marker='.',
-							color = colorList[num], linestyle = '',capsize = 2, lw = 1, capthick = 1, markersize=10,mec='black')
+			valid = ratio[np.isfinite(ratio)]
+			if len(valid):
+				rat_max = max(rat_max, np.nanmax(valid) * 1.2)
+				rat_min = min(rat_min, np.nanmin(valid) * 0.8)
 
-			if np.nanmax(ratio) > rat_max:
-				rat_max = np.nanmax(ratio)*1.2
-			if np.nanmin(ratio) < rat_min:
-				rat_min = np.nanmin(ratio)*0.8
-
-		ax[1].set_ylim( rat_min, rat_max )
+		ax[1].set_ylim(rat_min, rat_max)
 		ax[0].legend()
-		fig.savefig('{0}/ratio_{1}_{2}.png'.format(outFileName, q+1, x+1))
-
+		fig.savefig(f'{outFileName}/ratio_{q+1}_{x+1}.png')
 		plt.close()

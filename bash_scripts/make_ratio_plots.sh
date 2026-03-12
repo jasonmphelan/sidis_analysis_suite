@@ -31,27 +31,29 @@
 #python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_sector_pi ../histograms/analysis_note/ratios_2d_rho_sector_pi.root sector_pi & 
 #python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_pT ../histograms/analysis_note/ratios_2d_rho_pt.root pT & 
 
-python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_phi_q ../histograms/analysis_note/ratios_2d_phi_q.root phi_q & 
+#python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_phi_q ../histograms/analysis_note/ratios_2d_phi_q.root phi_q & 
 #python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_eta ../histograms/analysis_note/ratios_2d_rho_eta.root eta & 
 
 
-python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_sector_pi ../histograms/analysis_note/ratios_2d_sector_pi.root sector_pi &
-python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_sector_e ../histograms/analysis_note/ratios_2d_sector_e.root sector_e &
+#python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_sector_pi ../histograms/analysis_note/ratios_2d_sector_pi.root sector_pi &
+#python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_sector_e ../histograms/analysis_note/ratios_2d_sector_e.root sector_e &
 
-python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_pT ../histograms/analysis_note/ratios_2d_pT.root pT &
+#python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_pT ../histograms/analysis_note/ratios_2d_pT.root pT &
 
 #python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_sector_pi ../histograms/analysis_note/ratios_2d_acc.root '$E = 10.2$ GeV' ../histograms/analysis_note/ratios_no_match_mc.root 'With sector corr' 
-
+#
 #wait
 #
 #python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_energy_effect ../histograms/analysis_note/ratios_2d_rho_10.2.root '$E = 10.2$ GeV' ../histograms/analysis_note/ratios_2d_rho_10.4.root '$E = 10.4$ GeV' ../histograms/analysis_note/ratios_2d_rho_10.6.root '$E = 10.6$ GeV'  &
 
 
 #python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_mx_effect  ../histograms/analysis_note/ratios_2d_acc.root '$M_X > 1.7$ [GeV]' ../histograms/analysis_note/ratios_mid_mx.root '$M_X > 1.6$ [GeV]'  ../histograms/analysis_note/ratios_loose_mx.root '$M_X > 1.5$ [GeV]' &
-python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_cut_effect  ../histograms/analysis_note/ratios_2d_rho.root '$M_X^{\pi+, \pi-} < 1.25$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.1.root '$M_X^{\pi+, \pi-} < 1.1$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.2.root '$M_X^{\pi+, \pi-} < 1.2$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.3.root '$M_X^{\pi+, \pi-} < 1.3$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.4.root '$M_X^{\pi+, \pi-} < 1.4$ [GeV]' & 
+#python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_cut_effect  ../histograms/analysis_note/ratios_2d_rho.root '$M_X^{\pi+, \pi-} < 1.25$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.1.root '$M_X^{\pi+, \pi-} < 1.1$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.2.root '$M_X^{\pi+, \pi-} < 1.2$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.3.root '$M_X^{\pi+, \pi-} < 1.3$ [GeV]' ../histograms/analysis_note/ratios_2d_mx_1.4.root '$M_X^{\pi+, \pi-} < 1.4$ [GeV]' & 
 
 #python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_acc_effect  ../histograms/analysis_note/ratios_2d_rho.root 'Old Code$ [GeV]' ../histograms/analysis_note/ratios_2d_rho_pim.root 'New Code'
 
-python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_acc_effect  ../histograms/analysis_note/ratios_2d_rho_pim.root 'Tagging $\pi^+$' ../histograms/analysis_note/ratios_2d_rho_pip.root 'Tagging $\pi^-$' 
+#python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_acc_effect  ../histograms/analysis_note/ratios_2d_rho_pim.root 'Tagging $\pi^+$' ../histograms/analysis_note/ratios_2d_rho_pip.root 'Tagging $\pi^-$' 
 
-python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_W2 ../histograms/analysis_note/ratios_2d_rho_W2.root W2 &
+#python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_W2 ../histograms/analysis_note/ratios_2d_rho_W2.root W2 &
+python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_3d_map  ../histograms/analysis_note/ratios_2d_mc.root '2D acceptance matching + MC corrections' ../histograms/analysis_note/ratios_3d_mc.root '3D acceptance matching'
+

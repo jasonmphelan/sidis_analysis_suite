@@ -782,10 +782,11 @@ double analyzer::getMaxTheta(double p, int particle){
 double analyzer::returnElPhiMin(int sec, double p, double theta){
 	int particle = 0;
 	double phi_avg = mapFunc(particle, sec, 6, p);
+	double map_min = mapFunc(particle, sec, 4, p);
 
 	double a_low = mapFunc(particle, sec, 0, p);
 	double b_low = mapFunc(particle, sec, 2, p);
-	double denom_low = (theta - theta_min)/b_low;
+	double denom_low = (theta - map_min)/b_low;
 
 	double phi_min = phi_avg - a_low*(1 - 1/( denom_low + 1 ));
 	return phi_min;
@@ -794,11 +795,12 @@ double analyzer::returnElPhiMin(int sec, double p, double theta){
 double analyzer::returnElPhiMax(int sec, double p, double theta){
 	int particle = 0;
 	double phi_avg = mapFunc(particle, sec, 6, p);
+	double map_min = mapFunc(particle, sec, 4, p);
 
 	double a_up = mapFunc(particle, sec, 1, p);
 	double b_up = mapFunc(particle, sec, 3, p);
 
-	double denom_up = (theta - theta_min)/b_up;
+	double denom_up = (theta - map_min)/b_up;
 
 	double phi_max = phi_avg + a_up*(1 - 1/( denom_up + 1 ));
 	return phi_max;

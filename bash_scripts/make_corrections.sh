@@ -56,14 +56,14 @@ wait
 #python ../plotting/plotCorrections.py corrections_10.6_AN_test.root bin
 #python ../plotting/plotCorrections.py corrections_10.6_AN_test.root acc
 
-#python ../plotting/plotCorrections.py corrections_10.2_3d_AN.root bin
-#python ../plotting/plotCorrections.py corrections_10.2_3d_AN.root acc
+python ../plotting/plotCorrections.py corrections_10.2_3d_AN.root bin
+python ../plotting/plotCorrections.py corrections_10.2_3d_AN.root acc
 
-#python ../plotting/plotCorrections.py corrections_10.4_3d_AN.root bin
-#python ../plotting/plotCorrections.py corrections_10.4_3d_AN.root acc
+python ../plotting/plotCorrections.py corrections_10.4_3d_AN.root bin
+python ../plotting/plotCorrections.py corrections_10.4_3d_AN.root acc
 
-#python ../plotting/plotCorrections.py corrections_10.6_3d_AN.root bin
-#python ../plotting/plotCorrections.py corrections_10.6_3d_AN.root acc
+python ../plotting/plotCorrections.py corrections_10.6_3d_AN.root bin
+python ../plotting/plotCorrections.py corrections_10.6_3d_AN.root acc
 
 #python ../plotting/plotCorrections.py corrections_10.2_no_match_AN.root bin
 #python ../plotting/plotCorrections.py corrections_10.2_no_match_AN.root acc

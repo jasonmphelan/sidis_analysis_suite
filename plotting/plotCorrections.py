@@ -199,11 +199,11 @@ if energy == '_':
 print( energy )
 
 for key in keyList:
-	if 'k2pi' in inFile_name or 'pi2k' in inFile_name or '4D' in inFile_name or 'phi_q' or 'pT' or 'sector_pi' in inFile_name:
-		for p in range(6):
-			hist = inFile[key+f'_{p};1']
-			makePlots( corrType, hist, energy)
+	#if 'k2pi' in inFile_name or 'pi2k' in inFile_name or '4D' in inFile_name or 'phi_q' or 'pT' or 'sector_pi' in inFile_name:
+	#	for p in range(6):
+	#		hist = inFile[key+f'_{p};1']
+	#		makePlots( corrType, hist, energy)
 			
-	else:
-		hist = inFile[key]
-		makePlots( corrType, hist, energy)
+	#else:
+	hist = inFile[key]
+	makePlots( corrType, hist, energy)

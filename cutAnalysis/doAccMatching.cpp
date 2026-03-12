@@ -101,8 +101,8 @@ int main( int argc, char** argv){
 		if( anal.applyAcceptanceMap( e->get3Momentum().Mag(), e->get3Momentum().Phi()*rad_to_deg, e->get3Momentum().Theta()*rad_to_deg, 0 ) < 0 ) continue;
 		
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
-                        int sector_i = pi[i].getDC_sector() - 1;
-    			int chargeIdx = (int)(pi[i].getCharge() < 0);			
+            int sector_i = pi[i].getDC_sector() - 1;
+    		int chargeIdx = (int)(pi[i].getCharge() < 0);			
 			
 			if ( !isGoodPion[i] ) { continue; }
 		
