@@ -106,7 +106,7 @@ int main( int argc, char** argv){
 	// Pion Variables
 	std::vector<pion> pi;
 	std::vector<genPion> pi_gen;
-	
+	int target_nucl = 0;
 	std::vector<region_part_ptr> electrons, pions, pipluses, piminuses; //For reading from hipo file... not outputted
 	std::vector<int> electronsMC;
 	std::vector<std::vector<int>> pionsMC;
@@ -136,6 +136,7 @@ int main( int argc, char** argv){
 		outTree->Branch("Npi", &Npi);
 		outTree->Branch("Npips", &Npips);
 		outTree->Branch("Npims", &Npims);
+		outTree->Branch("target", &target_nucl);
 
 		outTree->Branch("pi", &pi);
 		if( RunType == 1 ){
@@ -178,6 +179,7 @@ int main( int argc, char** argv){
 
 			outTree->Branch("pi", &pi);
 			if( RunType == 1 ){
+				outTree->Branch("target", &target_nucl);
 				outTree->Branch("e_gen", &e_gen);
 				outTree->Branch("pi_gen", &pi_gen);
 				outTree->Branch("isDIS", &isDIS);
@@ -268,6 +270,8 @@ int main( int argc, char** argv){
 				std::vector<int> pimsMC;
 				for ( int i = 0; i<nMcPart; i++ ){
 					mcId = c12.mcparts()->getPid(i);
+					cout<<"i = "<<i<<std::endl;
+					cout<<mcId<<std::endl;
 					if( mcId == 11 ){
 						electronsMC.push_back(i);
 					}
