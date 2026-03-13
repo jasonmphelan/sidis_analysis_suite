@@ -74,7 +74,7 @@ int main( int argc, char** argv){
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);//runType);
 	anal.setTarget( target );
-	anal.loadMatchingFunctions("matchCut2D_map.root");
+	anal.loadMatchingFunctions(target == 1 ? "matchCut2D_rga.root" : "matchCut2D_map.root");
 	anal.loadMatchingFunctions3D();
 	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
 
