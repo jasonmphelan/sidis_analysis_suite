@@ -38,12 +38,15 @@ using std::ofstream;
 using namespace cutVals;
 using namespace constants;
 
+bool checkDiffractive( pion pi_1, pion pi_2, electron e, double Mx_cut );
+
+
 int main( int argc, char** argv){
 
 	if( argc <3 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
 		cerr << "./code [Output File]\n";
-		cerr << "[Type (0 - pi2k, 1 - k2pi)] [Theta Cut (optional)]\n";
+		cerr << "[Type (0 - pi2k, 1 - k2pi)] [Theta Cut (optional)] [Mx_2pi^2 cut (optional, default 1.25)]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " <<(TString) HIST_PATH +"/" + argv[2] <<"\n";
@@ -52,15 +55,30 @@ int main( int argc, char** argv){
 	int nBinsXb = bins_xB/2;//(int) (10* (bins_xB/25.));
 	int nBinsZ = bins_Z;
 
-	//TString in_name = argv[1];
-       	TString out_name = argv[1];
+    TString out_name = argv[1];
 		
 	int type = atoi(argv[2]);
 
-       	double theta_cut = 0;
-		if( argc > 3 ){ theta_cut = atoi(argv[3]); }
+    double theta_cut = 0;
+	if( argc > 3 ){ theta_cut = atoi(argv[3]); }
+	double Mx_2pi_cut = 1.25;
+	if( argc > 4 ){ Mx_2pi_cut = atof(argv[4]); }
 
-       	TFile * outFile = new TFile(out_name, "RECREATE");//(TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
+	// Optional: specify Q2 and xB bin ranges to sum over (1-indexed, inclusive)
+	int Q2_bin_lo = 1, Q2_bin_hi = nBinsQ2;
+	int xB_bin_lo = 1, xB_bin_hi = nBinsXb;
+	if( argc > 5 ){ Q2_bin_lo = std::max(1, std::min(atoi(argv[5]), nBinsQ2)); }
+	if( argc > 6 ){ Q2_bin_hi = std::max(1, std::min(atoi(argv[6]), nBinsQ2)); }
+	if( argc > 7 ){ xB_bin_lo = std::max(1, std::min(atoi(argv[7]), nBinsXb)); }
+	if( argc > 8 ){ xB_bin_hi = std::max(1, std::min(atoi(argv[8]), nBinsXb)); }
+	cerr << Form("Summing Q2 bins [%d-%d], xB bins [%d-%d]\n", Q2_bin_lo, Q2_bin_hi, xB_bin_lo, xB_bin_hi);
+
+	int target = 0;  // 0 = RGB/deuterium, 1 = RGA/proton
+	if( argc > 9 ){ target = atoi(argv[9]); }
+	cerr << "Target: " << target << " (" << (target == 1 ? "RGA/proton" : "RGB/deuterium") << ")\n";
+
+
+    TFile * outFile = new TFile(out_name, "RECREATE");//(TString) HIST_PATH + "/" + out_name + ".root", "RECREATE");
 	
 	// Declare histograms
 
@@ -95,15 +113,25 @@ int main( int argc, char** argv){
 	//TFile * file = new TFile(in_name);
 	TChain * file = new TChain("ePi");
 	if(type == 0){
-		file->Add("../trees/final_skims/10.2/final_skim.root");
-		file->Add("../trees/final_skims/10.4/final_skim.root");
-		file->Add("../trees/final_skims/10.6/final_skim.root");
+		if( target == 0 ){
+			file->Add("../trees/final_skims/10.2/tight_skim.root");
+			file->Add("../trees/final_skims/10.4/tight_skim.root");
+			file->Add("../trees/final_skims/10.6/tight_skim.root");
+		}
+		if( target == 1 ){
+			file->Add("../trees/final_skims/10.6/final_skim_rga.root");
+		}
 	}
 	if(type == 1){
 		cout<<"Adding kaon files"<<std::endl;
-		file->Add("../trees/final_skims/kaons_10.2/final_skim.root");
-		file->Add("../trees/final_skims/kaons_10.4/final_skim.root");
-		file->Add("../trees/final_skims/kaons_10.6/final_skim.root");
+		if( target == 0 ){
+			file->Add("../trees/final_skims/kaons_10.2/tight_skim.root");
+			file->Add("../trees/final_skims/kaons_10.4/tight_skim.root");
+			file->Add("../trees/final_skims/kaons_10.6/tight_skim.root");
+		}
+		if( target == 1 ){
+			file->Add("../trees/final_skims/kaons_10.6/final_skim_rga.root");
+		}
 	}
 		//TTreeReader reader("ePi", file);
 	TTreeReader reader( file);
@@ -137,22 +165,20 @@ int main( int argc, char** argv){
 
 
 		int chargeIdx = 0;
-	
+		if( type == 0 &&  (int) ( pi.end() - pi.begin() ) == 2
+				 && Mx_2pi_cut > 0 && 
+				 checkDiffractive(pi[0], pi[1], *e, Mx_2pi_cut)) continue;
+
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
-			//if(accMatchType < 2 && !isGoodPion_no_acc_vec[i]) {continue;}
 			if( !isGoodPion_vec[i]) {continue;}
-			//if(accMatchType == 3 && !isGoodPion_3d_vec[i]) {continue;}
 			if(pi[i].getBeta_rich() < .0001){continue;}
-			//if( pi[i].get3Momentum().Theta()*rad_to_deg > max_theta_cut ){ continue; }
 			
 			chargeIdx = (int)(pi[i].getCharge() < 1);
 			double p_pi = pi[i].get3Momentum().Mag();
 			double theta_pi = pi[i].get3Momentum().Theta();
 			double phi_pi = pi[i].get3Momentum().Phi();
 			double Z = pi[i].getZ();
-			//if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) <0) continue;
-			//if(anal.applyAcceptanceMap( p_pi, rad_to_deg*phi_pi, theta_pi*rad_to_deg, chargeIdx + 1 ) < 0 ) continue;
-			
+		
 			
 			if( theta_cut > 0 && !anal.acceptance_match_2d(theta_pi*rad_to_deg, p_pi, 1) ){continue;}
 			int this_bin_Q2 = (int)( ( (Q2 - Q2_min)/(Q2_max-Q2_min) )*nBinsQ2) + 1;
@@ -186,6 +212,38 @@ int main( int argc, char** argv){
 
 	outFile->cd();
 	
+	// Build summed histograms over the specified Q2/xB bin ranges
+	cout << "Creating summed histograms\n";
+	TString sum_label = Form("_Q2_%d-%d_xB_%d-%d", Q2_bin_lo, Q2_bin_hi, xB_bin_lo, xB_bin_hi);
+	TH1F * h_Beta_sum[2][nBinsZ+1][bins_p+1];
+	TH1F * h_Beta_rich_sum[2][nBinsZ+1][bins_p+1];
+	TH2F * hBeta_p_sum[2][nBinsZ+1];
+	TH2F * hBeta_rich_p_sum[2][nBinsZ+1];
+	for( int i = 0; i < 2; i++ ){
+		for( int l = 0; l <= nBinsZ; l++ ){
+			hBeta_p_sum[i][l]      = new TH2F("hBeta_p_sum_"+data_type[i]+Form("_Z_%i",l)+sum_label, "", 100, 1.25, 5, 135, -.1, 1.25);
+			hBeta_rich_p_sum[i][l] = new TH2F("hBeta_rich_p_sum_"+data_type[i]+Form("_Z_%i",l)+sum_label, "", 20, 3, 5, 135, -.1, 1.25);
+			for( int m = 0; m <= bins_p; m++ ){
+				h_Beta_sum[i][l][m]      = new TH1F("hBeta_sum_"+data_type[i]+Form("_Z_%i_p_%i",l,m)+sum_label, "m^{2};Counts [a.u.]", 135, -.1, 1.25);
+				h_Beta_rich_sum[i][l][m] = new TH1F("hBeta_rich_sum_"+data_type[i]+Form("_Z_%i_p_%i",l,m)+sum_label, "m^{2};Counts [a.u.]", 135, -.1, 1.25);
+			}
+		}
+	}
+	for( int j = Q2_bin_lo; j <= Q2_bin_hi; j++ ){
+		for( int k = xB_bin_lo; k <= xB_bin_hi; k++ ){
+			for( int i = 0; i < 2; i++ ){
+				for( int l = 0; l <= nBinsZ; l++ ){
+					hBeta_p_sum[i][l]->Add(hBeta_p[i][j][k][l]);
+					hBeta_rich_p_sum[i][l]->Add(hBeta_rich_p[i][j][k][l]);
+					for( int m = 0; m <= bins_p; m++ ){
+						h_Beta_sum[i][l][m]->Add(h_Beta[i][j][k][l][m]);
+						h_Beta_rich_sum[i][l][m]->Add(h_Beta_rich[i][j][k][l][m]);
+					}
+				}
+			}
+		}
+	}
+
 	cout<<"BEGIN WRITING HISTOGRAMS\n";
 
 	for( int j = 0; j <= nBinsQ2; j++ ){
@@ -208,6 +266,27 @@ int main( int argc, char** argv){
 		}
 	
 	}
+	// Write summed histograms
+	for( int i = 0; i < 2; i++ ){
+		for( int l = 0; l <= nBinsZ; l++ ){
+			if( hBeta_rich_p_sum[i][l]->Integral() != 0 ){
+				hBeta_p_sum[i][l]->Write();
+				hBeta_rich_p_sum[i][l]->Write();
+			}
+			for( int m = 1; m <= bins_p; m++ ){
+				if( l > 0 && h_Beta_rich_sum[i][l][m]->Integral() != 0 ){
+					h_Beta_sum[i][l][m]->Write();
+					h_Beta_rich_sum[i][l][m]->Write();
+				}
+			}
+		}
+	}
 	cout<<"FINISHED WRITING\n";
 	outFile->Close();
+}
+
+
+bool checkDiffractive( pion pi_1, pion pi_2, electron e, double Mx_cut ){
+	TLorentzVector missing = p_rest + e.getQ() - pi_1.get4Momentum() - pi_2.get4Momentum();
+	return missing.Mag2() < Mx_cut;
 }

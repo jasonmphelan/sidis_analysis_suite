@@ -62,6 +62,7 @@ int applyCorr = 0;
 int binnedOut = 1;
 int map = 0;
 int n4d_corr_bins = 0;  // number of 4D correction bins found in file; 0 = use 3D corrections
+int target = 0;         // 0 = RGB/deuterium, 1 = RGA/proton
 TString var_name = "null";
 int bins_var = 1;
 double var_min = 0;
@@ -126,6 +127,8 @@ int main( int argc, char** argv){
 	double rho_mode = 1;
 	if( argc > 13 ) Mx2_cut = atof(argv[13]);
 	if( argc > 14 ) rho_mode = atoi(argv[14]);
+	if( argc > 15 ) target = atoi(argv[15]);
+	cout << "Target: " << target << " (" << (target == 1 ? "RGA/proton" : "RGB/deuterium") << ")\n";
 
 	// Probe correction file for 4D binning metadata before any array allocation
 	if( bins_var > 1 ){
@@ -168,33 +171,42 @@ int main( int argc, char** argv){
 	constexpr int N_E = 3;
 	
 
-	if( inBeam == 0 || inBeam == 10.2){
-		dChain->Add( base + "final_skims/10.2/final_skim.root");
-		if( applyCorr > 3 ){
-			kChain->Add( base + "final_skims/kaons_10.2/final_skim.root");
+	if( target == 0 ){
+		if( inBeam == 0 || inBeam == 10.2){
+			dChain->Add( base + "final_skims/10.2/tight_skim.root");
+			if( applyCorr > 3 ){
+				kChain->Add( base + "final_skims/kaons_10.2/tight_skim.root");
+			}
+			if( applyCorr > 4 ){
+				rChain->Add( base + "final_skims/rho_skims/rotated_10.2_final.root");
+			}
 		}
-		if( applyCorr > 4 ){
-			rChain->Add( base + "final_skims/rho_skims/rotated_10.2_sym.root");
+		if( inBeam == 0 || inBeam == 10.4){
+			dChain->Add( base + "final_skims/10.4/tight_skim.root");
+			if( applyCorr > 3 ){
+				kChain->Add( base + "final_skims/kaons_10.4/tight_skim.root");
+			}
+			if( applyCorr > 4 ){
+				rChain->Add( base + "final_skims/rho_skims/rotated_10.4_final.root");
+			}
+		}
+		if( inBeam == 0 || inBeam == 10.6){
+			dChain->Add( base + "final_skims/10.6/tight_skim.root");
+			if( applyCorr > 3 ){
+				kChain->Add( base + "final_skims/kaons_10.6/tight_skim.root");
+			}
+			if( applyCorr > 4 ){
+				rChain->Add( base + "final_skims/rho_skims/rotated_10.6_final.root");
+			}
 		}
 	}
-	if( inBeam == 0 || inBeam == 10.4){
-		dChain->Add( base + "final_skims/10.4/final_skim.root");
+	if( target == 1 ){
+		dChain->Add( base + "final_skims/10.6/final_skim_rga.root");
 		if( applyCorr > 3 ){
-			kChain->Add( base + "final_skims/kaons_10.4/final_skim.root");
+			kChain->Add( base + "final_skims/kaons_10.6/final_skim_rga.root");
 		}
 		if( applyCorr > 4 ){
-			rChain->Add( base + "final_skims/rho_skims/rotated_10.4_sym.root");
-			
-		}
-	}
-	if( inBeam == 0 || inBeam == 10.6){
-		dChain->Add( base + "final_skims/10.6/final_skim.root");
-		if( applyCorr > 3 ){
-			kChain->Add( base + "final_skims/kaons_10.6/final_skim.root");
-		}
-		if( applyCorr > 4 ){
-			rChain->Add( base + "final_skims/rho_skims/rotated_10.6_sym.root");
-
+			rChain->Add( base + "final_skims/rho_skims/rotated_10.6_rga.root");
 		}
 	}
 
@@ -337,8 +349,8 @@ VecSample_w weights_in_bin(
 	if( n4d_corr_bins > 0 ){
 		corrector.setN4dBins(n4d_corr_bins);
 	}
-	corrector.setK2piName( "corrections_k2pi_AN.root");
-	corrector.setPi2kName( "corrections_pi2k_AN.root");
+	corrector.setK2piName( target == 1 ? "corrections_k2pi_rga.root" : "corrections_k2pi_AN.root");
+	corrector.setPi2kName( target == 1 ? "corrections_pi2k_rga.root" : "corrections_pi2k_AN.root");
 	corrector.loadHistograms();	
 	corrector.printFilePaths();
 
@@ -362,6 +374,8 @@ VecSample_w weights_in_bin(
 	TTreeReaderArray<pion> pi(reader_rec, "pi");
 
 	TTreeReaderArray<bool> isGoodPion_no_acc(reader_rec, "isGoodPion_no_acc");
+	TTreeReaderArray<bool> isGoodPion(reader_rec, "isGoodPion");
+	TTreeReaderArray<bool> isGoodPion3D(reader_rec, "isGoodPion_3d");
 
 	// Lambda: compute all bin indices for a given electron/pion/momentum
 	struct Bins { int E, Q2, xB, Z, var, p; };
@@ -397,17 +411,20 @@ VecSample_w weights_in_bin(
 		updateCorrectionsForBeam(*eBeam, beam_energy, correction_name, corrector);
 
 		TVector3 e_mom = e->get3Momentum();
-		if(map && anal.applyAcceptanceMap( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0 ) continue;
+		if(matchType==0 && map && anal.applyAcceptanceMap( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0 ) continue;
 		
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			
 			int chargeIdx = (int)( pi[i].getCharge() < 1 );
 			double p_pi = pi[i].get3Momentum().Mag();
 
-			if(!isGoodPion_no_acc[i]) continue;
-			if(map && anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
+			if(matchType==0 && !isGoodPion_no_acc[i]) continue;
+			else if(matchType==2 && !isGoodPion[i]) continue;
+			else if(matchType==3 && !isGoodPion3D[i]) continue;
 
-			if( !applyMatching(pi[i], p_pi) ) continue;
+			if(matchType==0 && map && anal.applyAcceptanceMap( p_pi, rad_to_deg*pi[i].get3Momentum().Phi(), rad_to_deg*pi[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
+
+			//if( !applyMatching(pi[i], p_pi) ) continue;
 
 			auto b = calcBins(*e, pi[i], p_pi);
 			corrector.setKinematics( e->getXb(), e->getQ2(), pi[i].getZ(), p_pi );
@@ -434,6 +451,8 @@ VecSample_w weights_in_bin(
 	TTreeReaderValue<electron> e_k(reader_k, "e");
 	TTreeReaderArray<pion> k(reader_k, "pi");
 	TTreeReaderArray<bool> isGoodKaon_no_acc(reader_k, "isGoodPion_no_acc");
+	TTreeReaderArray<bool> isGoodKaon(reader_k, "isGoodPion");
+	TTreeReaderArray<bool> isGoodKaon3D(reader_k, "isGoodPion_3d");
 
 
 	event_total = reader_k.GetEntries();
@@ -449,17 +468,19 @@ VecSample_w weights_in_bin(
 			updateCorrectionsForBeam(*eBeam_k, beam_energy, correction_name, corrector);
 
 			TVector3 e_mom = e_k->get3Momentum();
-			if(map && anal.applyAcceptanceMap( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0 ) continue;
+			if(matchType==0 && map && anal.applyAcceptanceMap( e_mom.Mag(),rad_to_deg*e_mom.Phi(), rad_to_deg*e_mom.Theta(), 0 ) <0 ) continue;
 	
 			for( int i = 0; i < (int) ( k.end() - k.begin() ); i++ ){
 				
 				int chargeIdx = (int)( k[i].getCharge() < 1 );
 				double p_pi = k[i].get3Momentum().Mag();
-				if( !isGoodKaon_no_acc[i] )continue;
+				if( matchType == 0 && !isGoodKaon_no_acc[i] )continue;
+				else if( matchType == 2 && !isGoodKaon[i] )continue;
+				else if( matchType == 3 && !isGoodKaon3D[i] )continue;
 
-				if(map && anal.applyAcceptanceMap( p_pi, rad_to_deg*k[i].get3Momentum().Phi(), rad_to_deg*k[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
+				if(matchType==0 && map && anal.applyAcceptanceMap( p_pi, rad_to_deg*k[i].get3Momentum().Phi(), rad_to_deg*k[i].get3Momentum().Theta(), chargeIdx + 1 ) <0)continue;
 
-				if( !applyMatching(k[i], p_pi) ) continue;
+				//if( !applyMatching(k[i], p_pi) ) continue;
 
 				auto b = calcBins(*e_k, k[i], p_pi);
 				corrector.setKinematics( e_k->getXb(), e_k->getQ2(), k[i].getZ(), p_pi );
@@ -532,7 +553,7 @@ VecSample_w weights_in_bin(
 			if( applyCorr == 1 ) weight *= corrector.getCorrectionFactor(0, chargeIdx);
 			if( applyCorr == 2 ) weight *= corrector.getCorrectionFactor(1, chargeIdx);
 			if( applyCorr > 2 )  weight *= corrector.getCorrectionFactor(2, chargeIdx);
-			if( applyCorr > 3 && b.p >= 0) weight *= corrector.getCorrectionFactor(3, chargeIdx);
+			//if( applyCorr > 3 && b.p >= 0) weight *= corrector.getCorrectionFactor(3, chargeIdx);
 
 			events_in_bin[index][0][b.var][b.Q2][b.xB][b.Z][b.p][b.E] += rhoWeight[i];
 			weights_in_bin[index][0][b.var][b.Q2][b.xB][b.Z][b.E] += weight;
@@ -590,16 +611,24 @@ VecSample_w weights_in_bin(
 				}
 
 				outFile->cd();
-				hZ[var][i-1][j-1][0]->Write();
-				hZ[var][i-1][j-1][1]->Write();
+				//hZ[var][i-1][j-1][0]->Write();
+				//hZ[var][i-1][j-1][1]->Write();
 				if( applyCorr > 3 ){
-					hZ_k[var][i-1][j-1][0]->Write();
-					hZ_k[var][i-1][j-1][1]->Write();
+					hZ[var][i-1][j-1][0]->Add(hZ_k[var][i-1][j-1][0]);
+					hZ[var][i-1][j-1][1]->Add(hZ_k[var][i-1][j-1][1]);
+
+					//hZ_k[var][i-1][j-1][0]->Write();
+					//hZ_k[var][i-1][j-1][1]->Write();
 				}
 				if( applyCorr > 4 ){
-					hZ_r[var][i-1][j-1][0]->Write();
-					hZ_r[var][i-1][j-1][1]->Write();
+					hZ[var][i-1][j-1][0]->Add(hZ_r[var][i-1][j-1][0], -1);
+					hZ[var][i-1][j-1][1]->Add(hZ_r[var][i-1][j-1][1], -1);
+					//hZ_r[var][i-1][j-1][0]->Write();
+					//hZ_r[var][i-1][j-1][1]->Write();
 				}
+				hZ[var][i-1][j-1][0]->Divide(hZ[var][i-1][j-1][1]);
+				hZ[var][i-1][j-1][0]->Write();
+				//hZ[var][i-1][j-1][1]->Write();
 			}
 		}
 	}

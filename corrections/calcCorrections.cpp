@@ -51,17 +51,20 @@ double getUncertainty( double num, double den, double num_unc, double den_unc );
 
 int main( int argc, char** argv){
 	
-	if( argc < 5 ){
+	if( argc < 6 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Rec File] [Gen File]  [Output File] [Matching]\n";
+		cerr << "./code [Rec File] [Gen File] [Output File] [Matching] [Target]\n";
+		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2]  << "\n";
-	
+
 	TString inName_rec = argv[1];
 	TString inName_gen = argv[2];
 	TString outName = argv[3];
 	int matchType = atoi( argv[4] );
+	int rga    = atoi( argv[5] );
+	
 	
 	TFile * outFile = new TFile( outName, "RECREATE");
 	
@@ -121,14 +124,14 @@ int main( int argc, char** argv){
 	TTreeReaderValue<genElectron> e_MC(reader_rec, "e_gen");
 	TTreeReaderArray<pion> pi_vec(reader_rec, "pi");
 	TTreeReaderArray<genPion> pi_match(reader_rec, "pi_gen");
-	
+	TTreeReaderValue<int> target(reader_rec, "target");
 	//Define good event list and additional variables for output branches
 	
 	int event_total = recChain->GetEntries();
 	
 	while (reader_rec.Next()) {
 		int event_count = reader_rec.GetCurrentEntry();
-		
+		if( rga && *target != 2212 ) continue;
 		if(event_count%100000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
 		}
@@ -149,22 +152,22 @@ int main( int argc, char** argv){
 		for( auto pi : pi_vec ){
 			pi_count++;
 			int chargeIdx = (int)( pi.getCharge() < 1 );
-
+			
 			if( abs( pi.getPID() ) != 211 ){continue;}
 
 			bool matching = true;
 			double p_mom = pi.get3Momentum().Mag();
-			if (matchType == 1 || matchType == 2)
-				matching = anal.applyAcceptanceMatching(pi, 2);
-			if (matchType == 3)
-				matching = anal.applyAcceptanceMap(p_mom, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), 1) >= 0 &&
-			       anal.applyAcceptanceMap(p_mom, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), 2) >= 0;
+			//if (matchType == 1 || matchType == 2)
+			//	matching = anal.applyAcceptanceMatching(pi, 2);
+			//if (matchType == 3)
+			//	matching = anal.applyAcceptanceMap(p_mom, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), 1) >= 0 &&
+			//       anal.applyAcceptanceMap(p_mom, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), 2) >= 0;
 
 			if (!matching) continue;
-			if( (matchType==0 && isGoodPion_no_acc[pi_count])|| (matchType==2 && isGoodPion_no_acc[pi_count]) || (matchType==3 && isGoodPion_no_acc[pi_count]) ){//|| (matchType==3 && isGoodPion3d[pi_count])){
+			if( (matchType==0 && isGoodPion_no_acc[pi_count])|| (matchType==2 && isGoodPion[pi_count]) || (matchType==3 && isGoodPion3d[pi_count]) ){//|| (matchType==3 && isGoodPion3d[pi_count])){
 				double p_pi = pi.get3Momentum().Mag();
-				if(anal.applyAcceptanceMap( e->get3Momentum().Mag(),rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) >= 0 && 
-					anal.applyAcceptanceMap( p_pi, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), chargeIdx + 1 ) >= 0) {
+				//if(anal.applyAcceptanceMap( e->get3Momentum().Mag(),rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) >= 0 && 
+				//	anal.applyAcceptanceMap( p_pi, rad_to_deg*pi.get3Momentum().Phi(), rad_to_deg*pi.get3Momentum().Theta(), chargeIdx + 1 ) >= 0) {
 
 				//if( matchType == 2 ){ matching = !isGoodPion[pi_count]; }
 				//else if( matchType == 3 ){ matching = !isGoodPion3d[pi_count]; }
@@ -174,7 +177,7 @@ int main( int argc, char** argv){
 				//Fill reco pions
 						recHists[this_bin_xB][this_bin_Q2][chargeIdx]->Fill( pi.getZ() );
 					
-				}
+				//}
 			}
 			
 			//Fill matched pions
@@ -210,13 +213,15 @@ int main( int argc, char** argv){
 	TTreeReader reader_gen(genChain);
 	TTreeReaderValue<genElectron> e_gen(reader_gen, "e_gen");
 	TTreeReaderArray<genPion> pi_gen(reader_gen, "pi_gen");
-	
+	TTreeReaderValue<int> target_gen(reader_gen, "target");
+
 	
 	event_total = genChain->GetEntries();
 	
 	while (reader_gen.Next()) {
 		int event_count = reader_gen.GetCurrentEntry();
-		
+		if( rga && *target_gen != 2212 ) continue;
+
 		if(event_count%1000000 == 0){
 			cout<<"Events Analyzed: "<<event_count<<" / "<<event_total<<std::endl;
 		}
@@ -247,7 +252,7 @@ int main( int argc, char** argv){
 
 
 			int chargeIdx = (int)( pi.getCharge() < 1 );
-			sector_i = anal.applyAcceptanceMap( p, phi, theta, chargeIdx + 1 ) + 1;
+			sector_i = -1;//anal.applyAcceptanceMap( p, phi, theta, chargeIdx + 1 ) + 1;
 			if( sector_i < 1 ){
 			
 				if( charge > 0 ){    
