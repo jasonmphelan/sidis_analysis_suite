@@ -51,4 +51,7 @@ gemc
 bash_scripts/eventfiles/
 bash_scripts/RNDMSTATUS
 bash_scripts/*.sh
+bash_scripts/rga/*.sh
+bash_scripts/rga/*.py
 
+bash_scripts/*.py
