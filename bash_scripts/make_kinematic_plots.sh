@@ -1,13 +1,18 @@
-591333698162
+
 #!/bash
 energy=10.2
 
-#./cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.2/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_10.2 0 0 10.2 &
-#./cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.4/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_10.4 0 0 10.4 &
-#./cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.6/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_10.6 0 0 10.6 &
+./../build/cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.2/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_10.2 0 0 10.2 0 &
+./../build/cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.4/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_10.4 0 0 10.4 0 &
+./../build/cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.6/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_10.6 0 0 10.6 0 &
+
+./../build/cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/kaons_10.2/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_k_10.2 0 0 10.2 0 &
+./../build/cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/kaons_10.4/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_k_10.4 0 0 10.4 0 &
+./../build/cutAnalysis/makeKinematicPlots /volatile/clas12/users/jphelan/SIDIS/data/detector_skims/kaons_10.6/run_skim /work/clas12/users/jphelan/sidis_analysis_suite/histograms/analysis_note/kinematic_cuts_k_10.6 0 0 10.6 0 &
+
 
 wait
 
-#./analysis/mergeEnergy ../histograms/analysis_note/kinematic_cuts ../histograms/analysis_note/kinematic_cuts
+./../build/analysis/mergeEnergy ../histograms/analysis_note/kinematic_cuts ../histograms/analysis_note/kinematic_cuts
 
-python ../plotting/plotCuts.py ../histograms/analysis_note/kinematic_cuts_allE.root ../plotting/analysis_note/kinematic_cuts
+#python ../plotting/plotCuts.py ../histograms/analysis_note/kinematic_cuts_allE.root ../plotting/analysis_note/kinematic_cuts

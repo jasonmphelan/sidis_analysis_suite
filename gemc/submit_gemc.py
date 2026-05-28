@@ -20,7 +20,7 @@ gcard='/work/clas12/users/nwright/BAND/simScripts/GEMC/gcards/rgb_spring2019.gca
 #lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/neutron_'
 
 for xsv in xsv_v:
-	for x in range(0,  5000):
+	for x in range(0,  1):
 		n = x + 1 
 		lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/'+xsv+"_"
 	#n = runList[x]
@@ -37,7 +37,7 @@ for xsv in xsv_v:
 export GEMC_DATA_DIR="/work/clas12/users/tkutz/gemc/clas12Tags/clas12Tags-5.10"
 export CCDB_CONNECTION="sqlite:////work/clas12/users/jphelan/GEMC_DATA/ccdb_05-12-2024.sqlite"
 export RCDB_CONNECTION="sqlite:////work/clas12/users/jphelan/GEMC_DATA/rcdb_2024-06-18.sqlite"
-time {2} {3} -USE_GUI=0 -N=5000 -INPUT_GEN_FILE="LUND, {4}{7}.dat" -OUTPUT="hipo, /volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/{8}/hipo/{0}_mag_{7}.hipo"
+time {2} {3} -USE_GUI=0 -N=5000 -INPUT_GEN_FILE="LUND, /volatile/clas12/users/nwright/GEMC/LUND/10.2/tagged_full/PRC/lund_tagged_full_PRC_E10.2GeV_Np150MeV_full_00334.dat" -OUTPUT="hipo, /volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/{8}/hipo/{0}_mag_{7}.hipo"
     	""".format(xsv, xpv, exe, gcard, lunddir, 0, suffix, n, Ebeam)	
 		command = command.replace('\t', '')
 		print(command)

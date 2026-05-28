@@ -172,7 +172,7 @@ int main( int argc, char** argv){
 			
 			double p_pi = pi[i].get3Momentum().Mag();
 			if(anal.applyAcceptanceMap( e->get3Momentum().Mag(), rad_to_deg*e->get3Momentum().Phi(), rad_to_deg*e->get3Momentum().Theta(), 0 ) <0) continue;
-			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*(pi)[i].get3Momentum().Phi(), rad_to_deg*(pi)[i].get3Momentum().Theta(), 1 ) < 0 ) continue;
+			if(anal.applyAcceptanceMap( p_pi, rad_to_deg*(pi)[i].get3Momentum().Phi(), rad_to_deg*(pi)[i].get3Momentum().Theta(), idx+1 ) < 0 ) continue;
 			
 
 
@@ -190,6 +190,7 @@ int main( int argc, char** argv){
 			counts[idx][2]++;
 			h_y[idx]->Fill( e->getY() );
 			if( e->getY() > 0.75 ){continue;}
+			if( e->get3Momentum().Mag() < 3 ){continue;}
 
 			counts[idx][3]++;
 			h_Mx[idx]->Fill( pi[i].getMx() );
@@ -209,7 +210,11 @@ int main( int argc, char** argv){
 			
 			counts[idx][7]++;
 			h_Z[idx]->Fill( pi[i].getZ() );
+			if( pi[i].getZ() < 0.3 ) continue;
 			counts[idx][8]++;
+
+			if( !anal.applyAcceptanceMatching(pi[i], 2)) continue;
+			counts[idx][9]++;
 		}
 	}
 	
@@ -248,6 +253,7 @@ int main( int argc, char** argv){
         txtFile<< "theta_e\t"<<counts[0][6]<<"\t"<<counts[1][6]<<std::endl;
         txtFile<< "theta_pi\t"<<counts[0][7]<<"\t"<<counts[1][7]<<std::endl;
 		txtFile<< "z\t"<<counts[0][8]<<"\t"<<counts[1][8]<<std::endl;
+		txtFile<< "Acceptance Matching\t"<<counts[0][9]<<"\t"<<counts[1][9]<<std::endl;
         txtFile.close();
 	
 

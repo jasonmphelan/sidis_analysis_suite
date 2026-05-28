@@ -50,7 +50,7 @@ int main( int argc, char** argv){
 	}
 
 	int nFiles = atoi(argv[1]); //set 0 to loop over all files,
-       	double Ebeam = atof(argv[2]); // [GeV]
+    double Ebeam = atof(argv[2]); // [GeV]
 	int RunType = atoi(argv[3]);
 	int inclusive =atoi( argv[5]);
 	int singleFile =atoi( argv[4]);
@@ -81,6 +81,7 @@ int main( int argc, char** argv){
 	runReader.setNumFiles( nFiles);
 	runReader.setRunType( RunType );
 	runReader.setEnergy( Ebeam );
+	runReader.setTarget(target);
 	
 	clas12root::HipoChain files;
        	runReader.readRunFiles(files);

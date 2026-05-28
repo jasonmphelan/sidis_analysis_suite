@@ -34,7 +34,7 @@ lunddir='/volatile/clas12/users/jphelan/SIDIS/generator/clasdis/10.2/lund/neutro
 
 #for n in np.arange(11,1001):
 
-for n in [442, 670, 908]:
+for n in [1]:
 				
 	time.sleep(0.5)			
 	command="""#!/bin/bash -l
@@ -48,13 +48,14 @@ for n in [442, 670, 908]:
 #SBATCH --error=/farm_out/tkutz/gemc/err_gemc_{0}_{1}{6}{9}_{8}GeV_{10}MeV_{7:05d}.txt
 #SBATCH --output=/volatile/clas12/users/tkutz/GEMC/farm_out/gemc/tagged_full/{8}/out_gemc_{0}_{1}{6}{9}_{8}GeV_{10}MeV_{7:05d}.txt
 module use /scigroup/cvmfs/hallb/clas12/sw/modulefiles
-module load clas12
+module purge
+module load clas12/5
 module switch gemc/5.10
 module switch sqlite/5.10
 export GEMC_DATA_DIR="/work/clas12/users/tkutz/gemc/clas12Tags/clas12Tags-5.10"
 export CCDB_CONNECTION="sqlite:////work/clas12/users/tkutz/gemc/database/ccdb_05-12-2024.sqlite"
 export RCDB_CONNECTION="sqlite:////work/clas12/users/tkutz/gemc/database/rcdb_2024-06-18.sqlite"
-time {2} {3} -USE_GUI=0 -N=25000 -INPUT_GEN_FILE="LUND, {4}/lund_{0}_{1}_E{8}GeV_Np{10}MeV{6}_{7:05d}.dat" -OUTPUT="hipo, {5}/gemc_{0}_{1}_E_{8}GeV{9}_Np_{10}MeV{6}_{7:05d}.hipo"
+time {2} {3} -USE_GUI=0 -N=25000 -INPUT_GEN_FILE="LUND, /volatile/clas12/users/nwright/GEMC/LUND/10.2/tagged_full/PRC/lund_tagged_full_PRC_E10.2GeV_Np150MeV_full_00334.dat" -OUTPUT="hipo, {5}/gemc_{0}_{1}_E_{8}GeV{9}_Np_{10}MeV{6}_{7:05d}.hipo"
 	""".format(xsv, xpv, exe, gcard, lunddir, outdir, suffix, n, Ebeam, variation, Np)	
 	command = command.replace('\t', '')
 	print(command)

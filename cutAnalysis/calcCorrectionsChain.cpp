@@ -136,6 +136,7 @@ int main( int argc, char** argv){
 	anal.loadMatchingFunctions3D();
 	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root" );
 	anal.loadSamplingFractionParams();
+	anal.randomizeCuts();
 	////////////////////////////////////////////////////
 	// MC rec loop: fill recHists and matchHists
 	////////////////////////////////////////////////////

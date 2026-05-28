@@ -5,7 +5,7 @@ import subprocess
 #import numpy as np
 import time
 
-Ebeam = 10.6
+Ebeam = 10.2
 # Create a list with the ranges:
 
 for x in range(0,500):

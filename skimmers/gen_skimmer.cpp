@@ -15,9 +15,7 @@
 #include <TCanvas.h>
 #include <TBenchmark.h>
 #include "clas12reader.h"
-//#include "DCfid_SIDIS.h"
-//#include "electron.h"
-//#include "pion.h"
+
 #include "genElectron.h"
 #include "genPion.h"
 #include "analyzer.h"
@@ -53,7 +51,7 @@ int main( int argc, char** argv){
 	int singleFile =atoi( argv[3]);
 	int inclusive =atoi( argv[4]);
 	TString outFileName = argv[5]; ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
-
+	int target = atoi(argv[6]);
 	
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 ){
@@ -76,9 +74,9 @@ int main( int argc, char** argv){
 	runReader.setNumFiles( nFiles);
 	runReader.setRunType( 1 );
 	runReader.setEnergy( Ebeam );
-	
+	runReader.setTarget( target );
 	clas12root::HipoChain files;
-       	runReader.readRunFiles(files);
+    runReader.readRunFiles(files);
 
 	cout<<"Set output files"<<endl;
 	
@@ -86,7 +84,7 @@ int main( int argc, char** argv){
 	int Ne,Npi, Npips, Npims, runnum, evnum;
 	double torus_setting;
 	TLorentzVector beam( 0, 0, Ebeam, Ebeam );
-
+	int target_nucl = 0;
 	// Electron Variables
 	genElectron e_gen;
 
@@ -107,6 +105,8 @@ int main( int argc, char** argv){
 		// Set output branches
 		cout<<"Declare trees"<<endl;
 		outTree->Branch("runnum", &runnum);
+		outTree->Branch("target", &target_nucl);
+
 		outTree->Branch("torus", &torusBending);
 		outTree->Branch("evnum", &evnum);
 		outTree->Branch("Ebeam", &Ebeam);
@@ -131,7 +131,7 @@ int main( int argc, char** argv){
 		//Only skim desired number of files
 		if(nFiles != 0 && i > nFiles){break;}	
 	
-			
+		if( i == 8000 )break;
 		if( singleFile == 0 ){
 			cout<<"Declare output file\n";	
 			outputFile = new TFile(outFileName + Form("_%i.root", runReader.getRunNum(i) ), "RECREATE");
@@ -140,6 +140,8 @@ int main( int argc, char** argv){
 			// Set output branches
 			cout<<"Declare tree"<<endl;
 			outTree->Branch("runnum", &runnum);
+			outTree->Branch("target", &target_nucl);
+
 			outTree->Branch("torus", &torusBending);
 			outTree->Branch("evnum", &evnum);
 			outTree->Branch("Ebeam", &Ebeam);
@@ -190,6 +192,7 @@ int main( int argc, char** argv){
 			int mcId;
 			for ( int i = 1; i<nMcPart; i++ ){
 				mcId = c12.mcparts()->getPid(i);
+				if( i == 1 ) target_nucl = mcId;
 				switch (mcId){
 					case 11:
 						electronsMC.push_back(i);
@@ -231,10 +234,10 @@ int main( int argc, char** argv){
 				mcparts->setEntry( pionsMC[i] );
 				genPi_dummy.setMomentum( mcparts );
 				genPi_dummy.setKinematicInformation( e_gen.getQ(),e_gen.get4Momentum(), mcparts );
-				if( !anal.applyPionKinematicCuts( genPi_dummy ) ) {continue;}
-				if (genPi_dummy.getZ() < Z_min || genPi_dummy.getZ() > Z_max) {
-					std::cerr << "BAD Z PASSED CUT: Z=" << genPi_dummy.getZ() << std::endl;
-				}
+				//if( !anal.applyPionKinematicCuts( genPi_dummy ) ) {continue;}
+				//if (genPi_dummy.getZ() < Z_min || genPi_dummy.getZ() > Z_max) {
+				//	std::cerr << "BAD Z PASSED CUT: Z=" << genPi_dummy.getZ() << std::endl;
+				//}
 				pi_gen.push_back(genPi_dummy);
 					
 			}

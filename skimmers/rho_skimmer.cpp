@@ -47,11 +47,12 @@ int main( int argc, char** argv){
        	int nFiles = atoi(argv[3]);
        	int runType = atoi(argv[4]);
        	double EBeam = atof(argv[5]);
-
+		int target = atoi(argv[6]);
 	reader skimReader;
 	skimReader.setNumFiles( nFiles);
 	skimReader.setRunType( runType );
 	skimReader.setEnergy( EBeam );
+	skimReader.setTarget( target );
 
 	TChain * chain = new TChain("ePi");
 	skimReader.getRunSkimsByName(chain, in_name);
@@ -61,6 +62,10 @@ int main( int argc, char** argv){
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
 	anal.loadMatchingFunctions();
+	anal.setTarget(target);
+	anal.loadMatchingFunctions("matchCut2D_map.root");
+	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");//%.1f.root", energy));
+
 
 	//Load input tree
         //TTreeReader reader_rec("ePi", file_rec);
@@ -99,8 +104,8 @@ int main( int argc, char** argv){
 		//double lead_Z_3d_temp = -1;               
  
 		int lead_idx_temp = -1;
-                int lead_idx_no_acc_temp = -1;
-                //int lead_idx_3d_temp = -1;
+		int lead_idx_no_acc_temp = -1;
+		//int lead_idx_3d_temp = -1;
 		
 		std::vector<bool> isGoodPion_event;
 		std::vector<bool> isGoodPion_no_acc_event;
@@ -114,7 +119,7 @@ int main( int argc, char** argv){
 			isGoodPion_no_acc_event.push_back(false);;
 			//isGoodPion_3d_event.push_back(false);;
 
-                	if(!anal.applyPionKinematicCuts(pi[i])){ continue; }
+            if(!anal.applyPionKinematicCuts(pi[i])){ continue; }
 
 			if( pi[i].getZ() > lead_Z_no_acc_temp ){
 				lead_Z_no_acc_temp = pi[i].getZ();
@@ -195,9 +200,9 @@ int main( int argc, char** argv){
         //TBranch * branch_6 = outTree->Branch("isGoodPion_3d", &isGoodPion_3d);
 	
 	TBranch * branch_Mx_2pi = outTree->Branch("Mx_2pi", &Mx_2pi );
-        TBranch * branch_M_rho = outTree->Branch("M_rho", &M_rho );
+	TBranch * branch_M_rho = outTree->Branch("M_rho", &M_rho );
 
-        int nEvents = good_events->GetN();
+	int nEvents = good_events->GetN();
 
 	cout<<"Starting event loop\n";
 

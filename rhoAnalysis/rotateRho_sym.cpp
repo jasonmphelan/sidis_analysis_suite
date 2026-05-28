@@ -177,6 +177,8 @@ int main( int argc, char** argv){
 		double phi_e = e->get3Momentum().Phi()*rad_to_deg;
 
 		//Look at particles in acceptance map
+		if( *Mx_2pi < 0 || *Mx_2pi > 1.5 ){continue;}
+		if( *M_rho < 0 ){continue;}
 		if( anal.applyAcceptanceMap( p_e,
 					phi_e, 
 					theta_e, 0 )  < 0){continue;}
@@ -192,8 +194,7 @@ int main( int argc, char** argv){
 		if( acc_match && !anal.applyAcceptanceMatching(pi[0], 2) ){continue;}
 		if( acc_match && !anal.applyAcceptanceMatching(pi[1], 2) ){continue;}
 		//if( !isGoodPion_acc[0] && !isGoodPion_acc[1] ){continue;} //If event wouldn't be in our final sample, continue 
-		if( *Mx_2pi < 0 || *Mx_2pi > 1.5 ){continue;}
-		if( *M_rho < 0 ){continue;}
+		/*
 
 		int symType = 0;
 
@@ -205,14 +206,14 @@ int main( int argc, char** argv){
 						rad_to_deg*pi[1].get3Momentum().Phi(), 
 						rad_to_deg*pi[1].get3Momentum().Theta(), 
 						(int)( pi[0].getCharge() < 0 ) + 1 );
-		
+		*/
 
-		if ( symSec_0 >= 0 && symSec_1 >= 0)symType = 2;
-		else if (symSec_0 >= 0 && symSec_1 < 0) symType = 0;
-		else if (symSec_1 >= 0 && symSec_0 < 0) symType = 1;
-		else{ symType = -1; }
+		//if ( symSec_0 >= 0 && symSec_1 >= 0)symType = 2;
+		//else if (symSec_0 >= 0 && symSec_1 < 0) symType = 0;
+		//else if (symSec_1 >= 0 && symSec_0 < 0) symType = 1;
+		//else{ symType = -1; }
 		//Find electron rotation angles that satisfy acceptance map for fixed p, theta
-		symmetry_type=symType;
+		//symmetry_type=symType;
 
 		std::vector<std::pair<double, double>> phi_ranges;
 		std::vector<double> cumulative_phi;
@@ -278,7 +279,7 @@ int main( int argc, char** argv){
 			}
 
 			double deltaPhi_lab =  (newPhi_lab - phi_e)/rad_to_deg;//2*TMath::Pi()*(gen.Rndm());//(newPhi_lab - phi_e)/rad_to_deg;//
-			double deltaPhi_q = 0;//2*TMath::Pi()*(gen.Rndm()); 
+			double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm()); 
 			
 			TVector3 e_mom = e->get3Momentum();
 			TVector3 pi_mom[2];
@@ -304,6 +305,7 @@ int main( int argc, char** argv){
 				//Check Pion acceptance
 				int piType = (int)(pi[i].getCharge() < 0) + 1;
 				int piTypeSym = piType + (int)(i == 0) - (int)(i==1);
+
 				
 				int new_sec = anal.applyAcceptanceMap( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piType ) ;
 				
@@ -319,7 +321,8 @@ int main( int argc, char** argv){
 					accPion[i] = true;
 					goodPion[i] =  anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec + 1);
 				}
-
+				/*
+				cout<<"new sym sec\n";
 
 				if( symType == 0 || symType == 1 )continue;
 				int new_sec_sym = anal.applyAcceptanceMap( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piTypeSym) ;			
@@ -332,6 +335,7 @@ int main( int argc, char** argv){
 					accPion_sym[i] = true;
 					goodPion_sym[i] =  anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec_sym + 1);
 				}
+				*/
 			}
 
 			if( detectedPion[0] == true && goodPion[0] == true && detectedPion[1] == false ) {
@@ -344,7 +348,7 @@ int main( int argc, char** argv){
 				( goodPion[0] == true || goodPion[1] == true  ) ){			
 					twoPiEvents++;
 			}
-
+			/*
 			if( detectedPion_sym[0] == true && goodPion_sym[0] == true && detectedPion_sym[1] == false ) {
 				onePiEvents_sym[ (int) ( pi[0].getCharge() < 0 )]++;
 			}				
@@ -360,7 +364,7 @@ int main( int argc, char** argv){
 			}
 
 
-
+			*/
 			//check uncertainty
 			if( onePiEvents[0] != 0 && twoPiEvents != 0 ){
 				corr_err[0] =  sqrt( 1./onePiEvents[0] + 1./twoPiEvents );
@@ -368,7 +372,7 @@ int main( int argc, char** argv){
 			if( onePiEvents[1] != 0 && twoPiEvents != 0 ){
 				corr_err[1] =  sqrt( 1./onePiEvents[1] + 1./twoPiEvents );
 			}
-
+			/*
 			if( symType == 0 || symType == 1 ) {
 				corr_err_sym[0] = 0;
 				corr_err_sym[1] = 0;
@@ -386,9 +390,8 @@ int main( int argc, char** argv){
 				}
 			}
 			//cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;	
-	
+			*/
 		}	
-		if( event_count == 193)txtFile.close();
 
 
 		//Check for weird guys
@@ -406,6 +409,7 @@ int main( int argc, char** argv){
 				rhoWeight[i] = onePiEvents[i]/twoPiEvents ;
 			}
 		}
+		/*
 		if( symType == 0 ){
 			rhoWeight_sym[0] = 1.;
 			rhoWeight_sym[1] = 0.;
@@ -422,7 +426,7 @@ int main( int argc, char** argv){
 			rhoWeight_sym[0] =  1. + onePiEvents_sym[0]/zeroPiEvents ;
 			rhoWeight_sym[1] =  1. + onePiEvents_sym[1]/zeroPiEvents ;
 		}
-
+		*/
 
 
 		

@@ -5,7 +5,7 @@ import subprocess
 #import numpy as np
 import time
 
-Ebeam = 10.2
+Ebeam = 10.6
 
 for x in range(0, 300):
 	n = x + 1 
@@ -15,12 +15,12 @@ for x in range(0, 300):
 #SBATCH --job-name=cut_sensitivity_{0}_{1}
 #SBATCH --account=clas12
 #SBATCH -p production
-#SBATCH --mem-per-cpu=250
-#SBATCH -t600
+#SBATCH --mem-per-cpu=1000
+#SBATCH -t180
 #SBATCH --constraint=el9
 #SBATCH --error=/farm_out/jphelan/cut_sensitivity/err_cs_{0}_{1}.txt
 #SBATCH --output=/volatile/clas12/users/jphelan/SIDIS/cut_sensitivity/farm_out/out_{0}_{1}.txt
-time ./cutAnalysis/cutSensitivity 10 0 0 0 0 /volatile/clas12/users/jphelan/SIDIS/cut_sensitivity/ratio_no_vz_{1}_{0}
+time ./../build/cutAnalysis/calcCorrectionsChain 0 10.6 /volatile/clas12/users/jphelan/SIDIS/cut_sensitivity/ratio_mc_{1}_{0} 2 /volatile/clas12/users/jphelan/SIDIS/data/cut_sensitivity/10.6/cutSensitivitySkimGEMC.root /volatile/clas12/users/jphelan/SIDIS/data/cut_sensitivity/10.6/cutSensitivitySkimGen.root /volatile/clas12/users/jphelan/SIDIS/data/cut_sensitivity/10.6/cutSensitivitySkimData.root 0
     """.format( n, Ebeam)	
 	command = command.replace('\t', '')
 	print(command)

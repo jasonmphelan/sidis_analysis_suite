@@ -21,13 +21,15 @@ namespace constants{
 	const double n_rich = 1.05;
 	
 	//Monte Carlo info
-	const int nRuns[3] = {4, 2, 2};
+
+	const int nRuns[3] = {1, 1, 1};
 	const int monteCarloRuns[3][4] ={ 
 				//{9814}, {0}, {9880} };
+				{10927, 0, 0, 0},
+				//{10637, 0, 0, 0},
+				{10892, 0, 0, 0},
+				{10138, 0, 0, 0}
 
-				{9013,8990, 8995, 9143},
-				{8963, 9194, 0, 0},
-				{9031, 8910, 0, 0}
 	};
 				//{7224, 7302, 7304, 7393, 7439, 7520, 8910},
 				//{ 8389, 7608, 7769, 8371, 8398, 0, 8963 },
@@ -35,6 +37,7 @@ namespace constants{
 				
 
 	//Rho subtraction of non exclusive background
+	//UNUSED
 	const double bac_norm = 0.178568;
 	const double bac_min_mx = 1.15;
 	const double bac_max_mx = 1.45; 
