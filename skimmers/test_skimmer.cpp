@@ -94,6 +94,8 @@ int main( int argc, char** argv){
 	
 	// Set output variables
 	int Ne,Npi, Npips, Npims, runnum, evnum;
+	int Nka, Nkaps, Nakms;
+	int Npr, Nprps, Naprms;
 	bool isDIS;
 	double torus_setting;
 	TLorentzVector beam( 0, 0, Ebeam, Ebeam );
@@ -111,6 +113,17 @@ int main( int argc, char** argv){
 	std::vector<int> electronsMC;
 	std::vector<std::vector<int>> pionsMC;
 	std::vector<std::vector<int>> pidMC;
+	std::vector<int> pidRICH;
+	std::vector<double> probRICH;
+	std::vector<double> nRICH;
+
+	// Kaon Variables (stored in pi/pi_gen/pidRICH/probRICH/nRICH vectors)
+	std::vector<region_part_ptr> kaons, kapluses, kaminuses; //For reading from hipo file... not outputted
+	std::vector<std::vector<int>> kaonsMC;
+
+	// Proton Variables (stored in pi/pi_gen/pidRICH/probRICH/nRICH vectors)
+	std::vector<region_part_ptr> protons, propluses, prominuses; //For reading from hipo file... not outputted
+	std::vector<std::vector<int>> protonsMC;
 	
 	// Set Output file and tree
 	TFile * outputFile;
@@ -137,6 +150,9 @@ int main( int argc, char** argv){
 		outTree->Branch("Npips", &Npips);
 		outTree->Branch("Npims", &Npims);
 		outTree->Branch("target", &target_nucl);
+		outTree->Branch("probRICH", &probRICH);
+		outTree->Branch("pidRICH", &pidRICH);
+		outTree->Branch("nRICH", &nRICH);
 
 		outTree->Branch("pi", &pi);
 		if( RunType == 1 ){
@@ -144,8 +160,16 @@ int main( int argc, char** argv){
 			outTree->Branch("pi_gen", &pi_gen);
 			outTree->Branch("isDIS", &isDIS);
 		}
+
+		outTree->Branch("Nka", &Nka);
+		outTree->Branch("Nkaps", &Nkaps);
+		outTree->Branch("Nakms", &Nakms);
+
+		outTree->Branch("Npr", &Npr);
+		outTree->Branch("Nprps", &Nprps);
+		outTree->Branch("Naprms", &Naprms);
 	}
-	
+
 	int goodElectron = 0;
 
 
@@ -176,7 +200,9 @@ int main( int argc, char** argv){
 			outTree->Branch("Npi", &Npi);
 			outTree->Branch("Npips", &Npips);
 			outTree->Branch("Npims", &Npims);
-
+			outTree->Branch("probRICH", &probRICH);
+			outTree->Branch("pidRICH", &pidRICH);
+			outTree->Branch("nRICH", &nRICH);
 			outTree->Branch("pi", &pi);
 			if( RunType == 1 ){
 				outTree->Branch("target", &target_nucl);
@@ -184,6 +210,14 @@ int main( int argc, char** argv){
 				outTree->Branch("pi_gen", &pi_gen);
 				outTree->Branch("isDIS", &isDIS);
 			}
+
+			outTree->Branch("Nka", &Nka);
+			outTree->Branch("Nkaps", &Nkaps);
+			outTree->Branch("Nakms", &Nakms);
+
+			outTree->Branch("Npr", &Npr);
+			outTree->Branch("Nprps", &Nprps);
+			outTree->Branch("Naprms", &Naprms);
 		}
 
 		//create the event reader
@@ -223,16 +257,29 @@ int main( int argc, char** argv){
 			pions.clear();
 			pipluses.clear();
 			piminuses.clear();
-		
+			kaons.clear();
+			kapluses.clear();
+			kaminuses.clear();
+			protons.clear();
+			propluses.clear();
+			prominuses.clear();
+
 			electronsMC.clear();
 			pionsMC.clear();
-			
+			kaonsMC.clear();
+			protonsMC.clear();
+
 			e.Clear();
 			pi.clear();
 			e_gen.Clear();
 			pi_gen.clear();
+			pidRICH.clear();
+			probRICH.clear();
+			nRICH.clear();
 
 			Ne = Npi = Npips = Npims = 0;
+			Nka = Nkaps = Nakms = 0;
+			Npr = Nprps = Naprms = 0;
 			isDIS = false;
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
 			
@@ -241,27 +288,49 @@ int main( int argc, char** argv){
 				electrons   = c12.getByID( -11   );
 				pipluses    = c12.getByID( -211  );
 				piminuses   = c12.getByID( 211  );
+				kapluses    = c12.getByID( -321  );
+				kaminuses   = c12.getByID(  321  );
+				propluses   = c12.getByID( -2212 );
+				prominuses  = c12.getByID(  2212 );
 			}
 			else{
 				electrons   = c12.getByID( 11   );
 				pipluses    = c12.getByID( 211  );
 				piminuses   = c12.getByID(-211  );
+				kapluses    = c12.getByID( 321  );
+				kaminuses   = c12.getByID(-321  );
+				propluses   = c12.getByID( 2212 );
+				prominuses  = c12.getByID(-2212 );
 			}
-
+			/*
 			if( RunType == 1 ){
-				std::vector<region_part_ptr> kpluses, kminuses; 
+				std::vector<region_part_ptr> kpluses, kminuses;
 				kpluses = c12.getByID(321);
 				kminuses = c12.getByID(-321);
 
 				pipluses.insert( pipluses.end(), kpluses.begin(), kpluses.end() );
 				piminuses.insert( piminuses.end(), kminuses.begin(), kminuses.end() );
 			}
-
+			*/
 			pions = pipluses;
 			pions.insert( pions.end(), piminuses.begin(), piminuses.end() );
+			kaons = kapluses;
+			kaons.insert( kaons.end(), kaminuses.begin(), kaminuses.end() );
+			protons = propluses;
+			protons.insert( protons.end(), prominuses.begin(), prominuses.end() );
 
 			Ne      = electrons.size();
 			Npi 	= pions.size();
+			Nka     = kaons.size();
+			Nkaps   = kapluses.size();
+			Nakms   = kaminuses.size();
+			Npr     = protons.size();
+			Nprps   = propluses.size();
+			Naprms  = prominuses.size();
+
+			pions.insert( pions.end(), kaons.begin(), kaons.end() );
+			pions.insert( pions.end(), protons.begin(), protons.end() );
+
 			
 			if(RunType == 1 && inclusive != 1){	
 				int nMcPart = c12.mcevent()->getNpart();	
@@ -270,18 +339,18 @@ int main( int argc, char** argv){
 				std::vector<int> pimsMC;
 				for ( int i = 0; i<nMcPart; i++ ){
 					mcId = c12.mcparts()->getPid(i);
-					cout<<"i = "<<i<<std::endl;
-					cout<<mcId<<std::endl;
+					//cout<<"i = "<<i<<std::endl;
+					//cout<<mcId<<std::endl;
 					if( mcId == 11 ){
 						electronsMC.push_back(i);
 					}
-					if( mcId == 211 || mcId == 321 ){
+					if( mcId == 211 || mcId == 321 || mcId == 2212 ){
 						pipsMC.push_back(i);
 					}
-					if( mcId == -211 || mcId == -321 ){
+					if( mcId == -211 || mcId == -321 || mcId == -2212 ){
 						pimsMC.push_back(i);
 					}
-					if( abs(mcId) ==91 || abs(mcId) == 92 || abs(mcId) == 1 || abs(mcId) == 2) isDIS == true;
+					if( abs(mcId) ==91 || abs(mcId) == 92 || abs(mcId) == 1 || abs(mcId) == 2) isDIS = true;
 				}
 				pionsMC.push_back(pipsMC);
 				pionsMC.push_back(pimsMC);
@@ -307,13 +376,18 @@ int main( int argc, char** argv){
 			pion pi_dummy;
 			genPion genPi_dummy;
 			//Find good pions			
-			for(int i = 0; i < Npi; i++){
+			for(int i = 0; i < (int) ( pions.end() - pions.begin() ); i++){
 				if( inclusive == 1 ){ continue; }
 				pi_dummy.Clear();
 				pi_dummy.setMCPion( (bool)RunType );
 				pi_dummy.setPion( e.getQ(),e.get4Momentum(), pions[i] );
 				if( !anal.applyPionDetectorCuts( pi_dummy, e ) ) {continue;}
 			
+				auto RICH_info = pions[i]->rich();
+				pidRICH.push_back(RICH_info->getBest_PID());
+				probRICH.push_back(RICH_info->getRQ());
+				nRICH.push_back(RICH_info->getBest_ntot());
+
 				//Do MC Matching if skimming monte carlo
 				if( RunType == 1 ){
 					int chargeIdx = (int) (pi_dummy.getCharge() < 0);
@@ -331,8 +405,75 @@ int main( int argc, char** argv){
 					
 			}
 
+			////////////////Kaon analysis/////////////////
+			/*
+			pion ka_dummy;
+			genPion genKa_dummy;
+			//Find good kaons (stored in shared pi/pi_gen/RICH vectors)
+			for(int i = 0; i < Nka; i++){
+				if( inclusive == 1 ){ continue; }
+				ka_dummy.Clear();
+				ka_dummy.setMCPion( (bool)RunType );
+				ka_dummy.setPion( e.getQ(),e.get4Momentum(), kaons[i] );
+				if( !anal.applyPionDetectorCuts( ka_dummy, e ) ) {continue;}
+
+				auto RICH_info_ka = kaons[i]->rich();
+				pidRICH.push_back(RICH_info_ka->getBest_PID());
+				probRICH.push_back(RICH_info_ka->getRQ());
+				nRICH.push_back(RICH_info_ka->getBest_ntot());
+
+				//Do MC Matching if skimming monte carlo
+				if( RunType == 1 ){
+					int chargeIdx = (int) (ka_dummy.getCharge() < 0);
+					int ka_match = anal.FindMatch(ka_dummy.get3Momentum(), mcparts, pionsMC[chargeIdx] );
+					mcparts->setEntry(ka_match);
+					if( ka_match > -1  ){
+						genKa_dummy.Clear();
+						genKa_dummy.setKinematicInformation(e_gen.getQ(), e_gen.get4Momentum(), mcparts);
+						ka_dummy.setPID( abs(mcparts->getPid() ) );
+						pi_gen.push_back(genKa_dummy);
+					}
+					else { continue; }
+				}
+				pi.push_back(ka_dummy);
+			}
+
+			////////////////Proton analysis/////////////////
+
+			pion pr_dummy;
+			genPion genPr_dummy;
+			//Find good protons/antiprotons (stored in pi/pi_gen/RICH vectors)
+			for(int i = 0; i < Npr; i++){
+				if( inclusive == 1 ){ continue; }
+				pr_dummy.Clear();
+				pr_dummy.setMCPion( (bool)RunType );
+				pr_dummy.setPion( e.getQ(),e.get4Momentum(), protons[i] );
+				if( !anal.applyPionDetectorCuts( pr_dummy, e ) ) {continue;}
+
+				auto RICH_info_pr = protons[i]->rich();
+				pidRICH.push_back(RICH_info_pr->getBest_PID());
+				probRICH.push_back(RICH_info_pr->getRQ());
+				nRICH.push_back(RICH_info_pr->getBest_ntot());
+
+				//Do MC Matching if skimming monte carlo
+				if( RunType == 1 ){
+					int chargeIdx = (int) (pr_dummy.getCharge() < 0);
+					int pr_match = anal.FindMatch(pr_dummy.get3Momentum(), mcparts, pionsMC[chargeIdx] );
+					mcparts->setEntry(pr_match);
+					if( pr_match > -1  ){
+						genPr_dummy.Clear();
+						genPr_dummy.setKinematicInformation(e_gen.getQ(), e_gen.get4Momentum(), mcparts);
+						pr_dummy.setPID( abs(mcparts->getPid() ) );
+						pi_gen.push_back(genPr_dummy);
+					}
+					else { continue; }
+				}
+				pi.push_back(pr_dummy);
+			}
+			*/
+			
 			//goodElectron++;
-			if(pi.size() == 0 && inclusive == 0){continue;}	
+			if(pi.size() == 0 && inclusive == 0){continue;}
 			outTree->Fill();
 			
 		}

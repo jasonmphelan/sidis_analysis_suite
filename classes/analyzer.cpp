@@ -620,7 +620,7 @@ void analyzer::loadMatchingFunctions( TString fileName ){
 		for( int j = 0; j < 2; j++ ){
 			for( int k = 0; k < 2; k++ ){
 				match2d[i][j][k] = (TF1 *)matchFile2D.Get(boundType[j] + Form("_%i_", i) + chargeType[k]);
-				match2d[i][j][k]->Print("V");
+				//match2d[i][j][k]->Print("V");
 			}
 		}
 	}
@@ -806,7 +806,7 @@ double analyzer::returnElPhiMax(int sec, double p, double theta){
 	return phi_max;
 }
 
-int analyzer::applyAcceptanceMap( double p, double phi, double theta, int particle ){
+int analyzer::applyAcceptanceMap( double p, double phi, double theta, int particle, int par_for_avg ){
 	int out_sec = -1;
 
 	for( int sec = 0; sec < 6; sec++ ){
@@ -814,7 +814,7 @@ int analyzer::applyAcceptanceMap( double p, double phi, double theta, int partic
 		
 		if( particle == 0 && sec == 3 && phi < 100. ){ phi_temp += 360; }
 		if( particle > 0 && (sec == 2 || (sec == 3 && p > .5) ) && phi < 0. ){ phi_temp += 360; }
-		double phi_avg = mapFunc(particle, sec, 6, p);
+		double phi_avg = mapFunc(par_for_avg, sec, 6, p);
 		double map_min = mapFunc(particle, sec, 4, p);
 		double map_max = mapFunc(particle, sec, 5, p);
 
@@ -842,6 +842,13 @@ int analyzer::applyAcceptanceMap( double p, double phi, double theta, int partic
 
 	return out_sec;
 }
+
+int analyzer::applyAcceptanceMap( double p, double phi, double theta, int particle){
+	return applyAcceptanceMap( p, phi, theta, particle, particle);
+}
+
+
+
 //Legacy cut function
 /*
 bool analyzer::applyElectronDetectorCuts( electron e ){

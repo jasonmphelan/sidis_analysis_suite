@@ -176,8 +176,8 @@ int main( int argc, char** argv){
 	//TTreeReaderArray<bool> isGoodPion_vec(reader_rec, "isGoodPion");
 	
 	analyzer anal( 0, -1 );
-	anal.setAnalyzerLevel(0);
-
+	anal.setAnalyzerLevel(2);
+	anal.loadCutValues(-1, 10.2);
 
 	int event_count = 0;
 	while (reader_rec.Next()) {
@@ -228,8 +228,8 @@ int main( int argc, char** argv){
 		*/
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
 			//if( !isGoodPion_vec[i] || !(abs(pi[i].getPID()) == 211) ) {continue;}
-			//if( !anal.applyElectronVertex( *e )){ continue; }
-			//if( !anal.applyPionDetectorVertex( pi[i], *e )){ continue; }
+			if( !anal.applyElectronKinematicCuts( *e )){ continue; }
+			if( !anal.applyPionKinematicCuts( pi[i] )){ continue; }
 
 			//if( beta_cut > 0 && pi[i].getBeta_rich() < .0001 ){continue;}
 			if( beta_cut > 0 && (pi[0].getZ() + pi[1].getZ() < 0.9)){continue;}

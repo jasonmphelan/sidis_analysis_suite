@@ -22,13 +22,13 @@ inFile = uproot.open(in_name)
 for key in inFile.keys():
 	if "pim" in key:
 		continue
-	if "_e_" not in key:
+	if "_e_" not in key and ("El" not in key):
 		continue
-	if ("Beta" not in key):
+	if ("Beta" not in key) and ("El" not in key):
 		continue
 	if ";1" in key:# or "Min" not in key or "Pos" not in key:
 		continue
-	print(key)
+	#print(key)
 	hist = inFile[key]
 	if isinstance( hist, uproot.models.TH.Model_TH2F_v4): 
 		if "reg" in key:
@@ -39,8 +39,10 @@ for key in inFile.keys():
 		eName = key
 		pipName = eName.replace("_e_","_pip_")
 		pimName = eName.replace("_e_","_pim_")
-
-	
+		
+		if "El" in key:
+			pipName = eName.replace("El","Pos")
+			pimName = eName.replace("El","Min")
 		keys = [eName, pipName, pimName]
 		labels = ['e', '\pi^+', '\pi^-']
 
@@ -49,7 +51,14 @@ for key in inFile.keys():
 			values = hist2d.values()
 			values[values == 0] = np.nan
 
-			name_1 = keys[i].replace("_p_", "_")
+			name_1=keys[i]
+			
+			if "El" in keys[i] or "Pos" in keys[i] or "Min" in keys[i]:
+				name_1 = keys[i].replace("_b_p", "")
+				print(name_1)
+			else:
+				name_1 = keys[i].replace("_p_", "_")
+
 			hist1d = inFile[name_1.replace(';2', ';1')]
 
 			xEdges = hist2d.axis(0).edges()

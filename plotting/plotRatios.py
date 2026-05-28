@@ -64,6 +64,11 @@ def detect_naming(inFile):
 		n_var = 0
 		while _probe_any(lambda q, x: f"hRatio_{n_var}_{q}_{x}_1"):
 			n_var += 1
+	elif _probe_any(lambda q, x: f"hSigmaPlus_0_{q}_{x}"):
+		style = "sigma_single"
+		n_var = 0
+		while _probe_any(lambda q, x: f"hSigmaPlus_{n_var}_{q}_{x}"):
+			n_var += 1
 	elif _probe_any(lambda q, x: f"hRatio_0_{q}_{x}"):
 		style = "new_single"
 		n_var = BINS_VAR
@@ -81,6 +86,16 @@ def make_hist_name(style):
 		if style == "new_multi":
 			charge_k = 0 if charge == '' else 1
 			return prefix + f"_{var}{charge}_{q_idx+1}_{x_idx+1}_{charge_k+1}"
+		elif style == "sigma_single":
+			# pip/pim stored as hSigmaPlus / hSigmaMinus_Pim; other prefixes
+			# (kaon/rho corrections) use new_single format (absent → None)
+			if prefix == 'hRatio':
+				if charge == '_Pim':
+					return f"hSigmaMinus_Pim_{var}_{q_idx+1}_{x_idx+1}"
+				else:
+					return f"hSigmaPlus_{var}_{q_idx+1}_{x_idx+1}"
+			else:
+				return prefix + f"_{var}{charge}_{q_idx+1}_{x_idx+1}"
 		elif style == "new_single":
 			return prefix + f"_{var}{charge}_{q_idx+1}_{x_idx+1}"
 		else:  # old
@@ -157,7 +172,7 @@ def load_file(path):
 				pim_e_all[var, q, x] = pme
 
 	if z_cen is None:
-		return None, None, None
+		return None, None, None, None, None
 
 	# Sum over var bins (at yield level, before ratio)
 	if n_var > 1 and SUM_VAR:
@@ -184,10 +199,15 @@ def load_file(path):
 	R_err = R * np.sqrt((pip_e / pip_v)**2 + (pim_e / pim_v)**2)
 	FF, FF_err = ratio_to_ff(R, R_err)
 
-	return FF, FF_err, z_cen  # each shape (BINS_Q2, BINS_XB, n_z)
+	return FF, FF_err, R, R_err, z_cen  # each shape (BINS_Q2, BINS_XB, n_z)
 
 # ── Command-line interface ─────────────────────────────────────────────────────
-# Usage: python plotRatios.py outdir file1 title1 [file2 title2 ...]
+# Usage: python plotRatios.py [--raw] outdir file1 title1 [file2 title2 ...]
+# --raw : plot the raw pi+/pi- cross section ratio instead of the FF asymmetry
+PLOT_RAW = '--raw' in sys.argv
+if PLOT_RAW:
+	sys.argv.remove('--raw')
+
 outFileName = sys.argv[1]
 nFiles      = (len(sys.argv) - 2) // 2
 inFile_list = [sys.argv[2*i + 2] for i in range(nFiles)]
@@ -204,34 +224,39 @@ z_line = np.linspace(0.3, 1.0, 500)
 for q in range(BINS_Q2):
 	for x in range(BINS_XB):
 
-		FF0, FF0_err, z_cen = loaded[0]
+		FF0, FF0_err, R0, R0_err, z_cen = loaded[0]
 		if FF0 is None or np.isnan(FF0[q, x]).all():
 			print('none')
 			continue
 
 		fig, ax = plt.subplots(2, 1, figsize=(12, 6), height_ratios=[3, 1],
 		                       sharex='col', layout='constrained')
-		ax[0].set_ylim([0, 1])
 		ax[1].set_xlim([0.3, 0.8])
 		ax[0].tick_params(axis='both', which='major', labelsize=14)
 		ax[1].tick_params(axis='both', which='major', labelsize=14)
 
-		ax[0].plot(z_line, ff(z_line), color='black', linestyle='--')
+		if PLOT_RAW:
+			ax[0].set_ylabel(r'$\pi^+/\pi^-$', fontsize=18)
+			ax[1].set_ylabel(rf'ratio / {inFile_tits[0]}', fontsize=16)
+		else:
+			ax[0].set_ylim([.3, .7])
+			#ax[0].plot(z_line, ff(z_line), color='black', linestyle='--')
+			ax[0].set_ylabel(r'$r(z)$', fontsize=18)
+			ax[1].set_ylabel(rf'$r(z)/r$({inFile_tits[0]})', fontsize=16)
 		ax[1].axhline(y=1, color='black', linestyle='--')
-
 		ax[1].set_xlabel(r'$z$', fontsize=18)
-		ax[1].set_ylabel(rf'$r(z)/r$({inFile_tits[0]})', fontsize=16)
-		ax[0].set_ylabel(r'$r(z)$', fontsize=18)
 
 		q2_lo = Q2_MIN + q * (Q2_MAX - Q2_MIN) / BINS_Q2
 		q2_hi = Q2_MIN + (q + 1) * (Q2_MAX - Q2_MIN) / BINS_Q2
 		xb_lo = XB_MIN + x * (XB_MAX - XB_MIN) / BINS_XB
 		xb_hi = XB_MIN + (x + 1) * (XB_MAX - XB_MIN) / BINS_XB
-		ax[0].text(0.7, 0.75, rf'${q2_lo:.1f} < Q^2 < {q2_hi:.1f}$', fontsize=18)
-		ax[0].text(0.7, 0.70, rf'${xb_lo:.2f} < x_B < {xb_hi:.2f}$', fontsize=18)
+		ax[0].text(0.55, 0.95, rf'${q2_lo:.1f} < Q^2 < {q2_hi:.1f}$',
+		           fontsize=14, transform=ax[0].transAxes)
+		ax[0].text(0.55, 0.90, rf'${xb_lo:.2f} < x_B < {xb_hi:.2f}$',
+		           fontsize=14, transform=ax[0].transAxes)
 
-		vals0  = FF0[q, x]
-		errs0  = FF0_err[q, x]
+		vals0 = R0[q, x] if PLOT_RAW else FF0[q, x]
+		errs0 = R0_err[q, x] if PLOT_RAW else FF0_err[q, x]
 		z_plot = z_cen + (-0.01 + 0.002 * q)
 
 		ax[0].errorbar(z_plot, vals0, errs0, label=inFile_tits[0], marker='.',
@@ -240,11 +265,11 @@ for q in range(BINS_Q2):
 
 		rat_max, rat_min = 1.05, 0.95
 		for num in range(1, nFiles):
-			FF_n, FF_n_err, _ = loaded[num]
+			FF_n, FF_n_err, R_n, R_n_err, _ = loaded[num]
 			if FF_n is None:
 				continue
-			vals_n = FF_n[q, x]
-			errs_n = FF_n_err[q, x]
+			vals_n = R_n[q, x] if PLOT_RAW else FF_n[q, x]
+			errs_n = R_n_err[q, x] if PLOT_RAW else FF_n_err[q, x]
 
 			ax[0].errorbar(z_plot, vals_n, errs_n, label=inFile_tits[num], marker='.',
 			               color=colorList[num], linestyle='', capsize=2, lw=1,

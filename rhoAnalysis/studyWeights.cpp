@@ -75,9 +75,9 @@ int main( int argc, char** argv){
 	TH1F * hZ_sum = new TH1F( "hZ_sum", "", 100, 0.5, 1);
 
 	TChain * file_rec = new TChain("ePi");
-	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.2_sym.root");
-	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.4_sym.root");
-	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.6_sym.root");
+	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.2_final.root");
+	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.4_final.root");
+	file_rec->Add("../trees/final_skims/rho_skims/rotated_10.6_final.root");
 	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_skim_10.2.root");
 	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_skim_10.4.root");
 	//file_rec->Add("/volatile/clas12/users/jphelan/SIDIS/data/rho_skims/rho_skim_10.6.root");

@@ -84,6 +84,7 @@ public:
 
 
 	void loadAcceptanceMapContinuous(TString fileName);
+	int applyAcceptanceMap( double p, double phi, double theta, int particle, int par_for_avg );
 	int applyAcceptanceMap( double p, double phi, double theta, int particle );
 	double mapFunc(int particle, int sector, int param, double p) {return mapParameters[particle][sector][param]->Eval(p);}
 	double getMinTheta(double p, int particle);

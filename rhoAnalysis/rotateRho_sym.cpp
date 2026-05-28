@@ -63,8 +63,8 @@ int main( int argc, char** argv){
 	analyzer anal(0, -1);
 	anal.loadAcceptanceMapContinuous( (TString)_DATA + (TString)"/acceptance_map/"+acc_name);//%.1f.root", energy));
 	anal.loadMatchingFunctions("matchCut2D_map.root");//(TString)_DATA + (TString)"/acceptance_matching/matchCut2D_map.root");
-	
-	
+
+
 	//Load input tree
     TTreeReader reader_rec("ePi", file_rec);
 	TTreeReaderValue<electron> e(reader_rec, "e");
@@ -77,20 +77,19 @@ int main( int argc, char** argv){
 
 	//Set output tree
 	TTree * outTree = new TTree("ePi", "(e,e'pi) event  information");
-	TLorentzVector beam_out;	
+	TLorentzVector beam_out;
 	electron e_out;
 	std::vector<pion> pi_out;
 	std::vector<bool> goodPiOut;
-	
+
 	double Mx_2pi_out;
 	double M_rho_out;
 	double rhoWeight[2];
-	double rhoWeight_sym[2];
+	double rhoWeight_3d[2];
 	double corr_err[2];
-	double corr_err_sym[2];
+	double corr_err_3d[2];
 	int trials;
 	int event_num;
-	int symmetry_type;
 
 	outTree->Branch("beam", &beam_out);
 	outTree->Branch("e", &e_out);
@@ -100,18 +99,17 @@ int main( int argc, char** argv){
 	outTree->Branch("M_rho", &M_rho_out);
 
 	outTree->Branch("rhoWeight", rhoWeight, "rhoWeight[2]/D");
-	outTree->Branch("rhoWeight_sym", rhoWeight_sym, "rhoWeight_sym[2]/D");
+	outTree->Branch("rhoWeight_3d", rhoWeight_3d, "rhoWeight_3d[2]/D");
 
 	outTree->Branch("rhoErr", corr_err, "rhoErr[2]/D");
-	outTree->Branch("rhoErr_sym", corr_err_sym, "rhoErr_sym[2]/D");
+	outTree->Branch("rhoErr_3d", corr_err_3d, "rhoErr_3d[2]/D");
 
 	outTree->Branch("trials", &trials);
 	outTree->Branch("event_num", &event_num);
-	outTree->Branch("symmetry_type", &symmetry_type);
 	std::ofstream txtFile;
 	txtFile.open( "../plotting/rho_data_points_one_pi.txt" );
-	
-	
+
+
 	int event_total = reader_rec.GetEntries();
 	int chunkSize  = event_total / (thread_MAX-1);
 	auto start = std::chrono::high_resolution_clock::now();
@@ -121,31 +119,26 @@ int main( int argc, char** argv){
 		if( event_count < i_thread*chunkSize || event_count >= (i_thread+1)*chunkSize )continue;
 
 		event_num = event_count;
-		
+
 		if((event_count%50) == (0)){
 			cout<<"Thread "<<i_thread<<" : "<<100.*(double)(event_count - i_thread*chunkSize)/(double)chunkSize<<"%";
 			auto finish = std::chrono::high_resolution_clock::now();
     		std::chrono::duration<double> elapsed = finish - start;
 			cout<<" in "<<elapsed.count()/60.<<" minutes\n";
-		}		
-	
+		}
+
 		//initialize event variables
-		
+
 		bool detectedPion[2] = {false, false};
 		bool goodPion[2] = {false, false};
 		bool accPion[2] = {false, false};
 
-		bool detectedPion_sym[2] = {false, false};
-		bool goodPion_sym[2] = {false, false};
-		bool accPion_sym[2] = {false, false};
-
 		double onePiEvents[2] = {0};
-		double onePiEvents_sym[2] = {0};
+		double onePiEvents_3d[2] = {0};
 
 		double twoPiEvents = 0;
-		double twoPiEvents_sym = 0;
+		double twoPiEvents_3d = 0;
 
-		double zeroPiEvents = 0;
 		trials = 0;
 
 		pi_out.clear();
@@ -156,64 +149,45 @@ int main( int argc, char** argv){
 		e_out = (electron)(*e);
 		pi_out.push_back((pion)pi[0]);
 		pi_out.push_back((pion)pi[1]);
-		
+
 		goodPiOut.push_back((bool)isGoodPion[0]);
 		goodPiOut.push_back((bool)isGoodPion[1]);
-		
+
 		Mx_2pi_out = (double)(*Mx_2pi);
 		M_rho_out = (double)(*M_rho);
 		rhoWeight[0] = 0; // (pi+, pi-)
 		rhoWeight[1] = 0; // (pi+, pi-)
+		rhoWeight_3d[0] = 0;
+		rhoWeight_3d[1] = 0;
 		corr_err[0] = 999;
 		corr_err[1] = 999;
-
-		rhoWeight_sym[0] = 0; // (pi+, pi-)
-		rhoWeight_sym[1] = 0; // (pi+, pi-)
-		corr_err_sym[0] = 999;
-		corr_err_sym[1] = 999;
+		corr_err_3d[0] = 999;
+		corr_err_3d[1] = 999;
 
 		double p_e = e->get3Momentum().Mag();
 		double theta_e = e->get3Momentum().Theta()*rad_to_deg;
 		double phi_e = e->get3Momentum().Phi()*rad_to_deg;
 
 		//Look at particles in acceptance map
-		if( anal.applyAcceptanceMap( p_e,
-					phi_e, 
-					theta_e, 0 )  < 0){continue;}
-		if( anal.applyAcceptanceMap( pi[0].get3Momentum().Mag(), 
-					rad_to_deg*pi[0].get3Momentum().Phi(), 
-					rad_to_deg*pi[0].get3Momentum().Theta(), 
-					(int)( pi[0].getCharge() < 0 ) + 1 ) < 0 ) { continue; }
-		if( anal.applyAcceptanceMap( pi[1].get3Momentum().Mag(), 
-					rad_to_deg*pi[1].get3Momentum().Phi(), 
-					rad_to_deg*pi[1].get3Momentum().Theta(), 
-					(int)( pi[1].getCharge() < 0 ) + 1 ) < 0  ) { continue; }
-		//Restrict ROI			
-		if( acc_match && !anal.applyAcceptanceMatching(pi[0], 2) ){continue;}
-		if( acc_match && !anal.applyAcceptanceMatching(pi[1], 2) ){continue;}
-		//if( !isGoodPion_acc[0] && !isGoodPion_acc[1] ){continue;} //If event wouldn't be in our final sample, continue 
 		if( *Mx_2pi < 0 || *Mx_2pi > 1.5 ){continue;}
 		if( *M_rho < 0 ){continue;}
+		if( anal.applyAcceptanceMap( p_e,
+					phi_e,
+					theta_e, 0 )  < 0){continue;}
+		if( anal.applyAcceptanceMap( pi[0].get3Momentum().Mag(),
+					rad_to_deg*pi[0].get3Momentum().Phi(),
+					rad_to_deg*pi[0].get3Momentum().Theta(),
+					(int)( pi[0].getCharge() < 0 ) + 1 ) < 0 ) { continue; }
+		if( anal.applyAcceptanceMap( pi[1].get3Momentum().Mag(),
+					rad_to_deg*pi[1].get3Momentum().Phi(),
+					rad_to_deg*pi[1].get3Momentum().Theta(),
+					(int)( pi[1].getCharge() < 0 ) + 1 ) < 0  ) { continue; }
+		//Restrict ROI
+		if( acc_match && !anal.applyAcceptanceMatching(pi[0], 2) ){continue;}
+		if( acc_match && !anal.applyAcceptanceMatching(pi[1], 2) ){continue;}
+		//if( !isGoodPion_acc[0] && !isGoodPion_acc[1] ){continue;} //If event wouldn't be in our final sample, continue
 
-		int symType = 0;
-
-		int symSec_0 = anal.applyAcceptanceMap( pi[0].get3Momentum().Mag(), 
-						rad_to_deg*pi[0].get3Momentum().Phi(), 
-						rad_to_deg*pi[0].get3Momentum().Theta(), 
-						(int)( pi[1].getCharge() < 0 ) + 1 ) ;
-		int symSec_1 = anal.applyAcceptanceMap( pi[1].get3Momentum().Mag(), 
-						rad_to_deg*pi[1].get3Momentum().Phi(), 
-						rad_to_deg*pi[1].get3Momentum().Theta(), 
-						(int)( pi[0].getCharge() < 0 ) + 1 );
-		
-
-		if ( symSec_0 >= 0 && symSec_1 >= 0)symType = 2;
-		else if (symSec_0 >= 0 && symSec_1 < 0) symType = 0;
-		else if (symSec_1 >= 0 && symSec_0 < 0) symType = 1;
-		else{ symType = -1; }
 		//Find electron rotation angles that satisfy acceptance map for fixed p, theta
-		symmetry_type=symType;
-
 		std::vector<std::pair<double, double>> phi_ranges;
 		std::vector<double> cumulative_phi;
 		double total_phi = 0;
@@ -227,7 +201,7 @@ int main( int argc, char** argv){
 				///cout<<anal.returnElPhiMin(sec, p_e, theta_e)<< " and "<<anal.returnElPhiMax(sec, p_e, theta_e)<<std::endl;
 				total_phi += (anal.returnElPhiMax(sec, p_e, theta_e) - anal.returnElPhiMin(sec, p_e, theta_e));
 				cumulative_phi.push_back(total_phi);
-				
+
 			}
 		}
 
@@ -239,11 +213,9 @@ int main( int argc, char** argv){
 
 			if ( trials >500000  )break;
 
-			//if( trials > 50000 && 
+			//if( trials > 50000 &&
 			//	( ( isGoodPion[0] && corr_err[0] > 900) || (isGoodPion[1] && corr_err[1] > 900 )
 			 //) ){ break; }
-			
-			//double symType = 0;
 
 			detectedPion[0] = false;
 		    detectedPion[1] = false;
@@ -251,15 +223,6 @@ int main( int argc, char** argv){
 			goodPion[1] = false;
 			accPion[0] = false;
 			accPion[1] = false;
-
-			detectedPion_sym[0] = false;
-		    detectedPion_sym[1] = false;
-			goodPion_sym[0] = false;
-			goodPion_sym[1] = false;
-			accPion_sym[0] = false;
-			accPion_sym[1] = false;
-		
-		
 
 			//initialize rotation angles
 			double newPhi_lab = 0;
@@ -269,7 +232,7 @@ int main( int argc, char** argv){
 				if( r < cumulative_phi[i] ){
 					double base = (i==0)?0.0 : cumulative_phi[i-1];
 
-					
+
 					double offset = r-base;
 					newPhi_lab = phi_ranges[i].first + offset;
 					break;
@@ -278,13 +241,13 @@ int main( int argc, char** argv){
 			}
 
 			double deltaPhi_lab =  (newPhi_lab - phi_e)/rad_to_deg;//2*TMath::Pi()*(gen.Rndm());//(newPhi_lab - phi_e)/rad_to_deg;//
-			double deltaPhi_q = 0;//2*TMath::Pi()*(gen.Rndm()); 
-			
+			double deltaPhi_q = 2*TMath::Pi()*(gen.Rndm());
+
 			TVector3 e_mom = e->get3Momentum();
 			TVector3 pi_mom[2];
 
-		
-		
+
+
 			//rotate electron about beam axis and check acceptance
 			//e_mom.RotateZ(deltaPhi_lab);
 			//We can choose only angles that would already satisfy acceptance map
@@ -296,70 +259,50 @@ int main( int argc, char** argv){
 				//rotate pion about q and z
 				TVector3 pi_q_mom = pi[i].getPi_q().Vect();
 				pi_q_mom.RotateZ( deltaPhi_q );
-			
+
 				pi_mom[i] = rotate_to_beam_frame( e->getQ(), e->get4Momentum(), pi_q_mom );
 				pi_mom[i].RotateZ( deltaPhi_lab );
-				
+
 
 				//Check Pion acceptance
 				int piType = (int)(pi[i].getCharge() < 0) + 1;
-				int piTypeSym = piType + (int)(i == 0) - (int)(i==1);
-				
+
 				int new_sec = anal.applyAcceptanceMap( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piType ) ;
-				
-			
-		
+
+
+
 
 				if( new_sec > -1 ) {
 					if( acc_match ) detectedPion[i] = anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec + 1);
 					else detectedPion[i] = true;
 				}
-				
-				if( new_sec > -1 &&  isGoodPion[i] ){ 					
+
+				if( new_sec > -1 &&  isGoodPion[i] ){
 					accPion[i] = true;
 					goodPion[i] =  anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec + 1);
-				}
-
-
-				if( symType == 0 || symType == 1 )continue;
-				int new_sec_sym = anal.applyAcceptanceMap( pi_mom[i].Mag(), rad_to_deg*pi_mom[i].Phi(), rad_to_deg*pi_mom[i].Theta(), piTypeSym) ;			
-				if( new_sec_sym > -1 ) {
-					if( acc_match ) detectedPion_sym[i] = anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec_sym + 1);
-					else detectedPion_sym[i] = true;
-				}
-
-				if( new_sec_sym > -1 &&  isGoodPion[i] ){ 					
-					accPion_sym[i] = true;
-					goodPion_sym[i] =  anal.acceptance_match_2d( pi_mom[i].Theta()*rad_to_deg, pi_mom[i].Mag(), new_sec_sym + 1);
 				}
 			}
 
 			if( detectedPion[0] == true && goodPion[0] == true && detectedPion[1] == false ) {
 				onePiEvents[ (int) ( pi[0].getCharge() < 0 )]++;
-			}				
+			}
 			if ( detectedPion[1] == true && goodPion[1] == true && detectedPion[0] == false ) {
 				onePiEvents[ (int) ( pi[1].getCharge() < 0 )]++;
 			}
 			if( ( detectedPion[0] == true && detectedPion[1] == true ) &&
-				( goodPion[0] == true || goodPion[1] == true  ) ){			
+				( goodPion[0] == true || goodPion[1] == true  ) ){
 					twoPiEvents++;
 			}
 
-			if( detectedPion_sym[0] == true && goodPion_sym[0] == true && detectedPion_sym[1] == false ) {
-				onePiEvents_sym[ (int) ( pi[0].getCharge() < 0 )]++;
-			}				
-			if ( detectedPion_sym[1] == true && goodPion_sym[1] == true && detectedPion_sym[0] == false ) {
-				onePiEvents_sym[ (int) ( pi[1].getCharge() < 0 )]++;
+			if( goodPion[0] == true && goodPion[1] == false ) {
+				onePiEvents_3d[ (int) ( pi[0].getCharge() < 0 )]++;
 			}
-			if( ( detectedPion_sym[0] == true && detectedPion_sym[1] == true ) &&
-				( goodPion_sym[0] == true || goodPion_sym[1] == true  ) ){			
-					twoPiEvents_sym++;
+			if( goodPion[1] == true && goodPion[0] == false ) {
+				onePiEvents_3d[ (int) ( pi[1].getCharge() < 0 )]++;
 			}
-			if( ( detectedPion_sym[0] == false && detectedPion_sym[1] == false ) ){			
-					zeroPiEvents++;
+			if( goodPion[0] == true && goodPion[1] == true ) {
+				twoPiEvents_3d++;
 			}
-
-
 
 			//check uncertainty
 			if( onePiEvents[0] != 0 && twoPiEvents != 0 ){
@@ -368,26 +311,15 @@ int main( int argc, char** argv){
 			if( onePiEvents[1] != 0 && twoPiEvents != 0 ){
 				corr_err[1] =  sqrt( 1./onePiEvents[1] + 1./twoPiEvents );
 			}
-
-			if( symType == 0 || symType == 1 ) {
-				corr_err_sym[0] = 0;
-				corr_err_sym[1] = 0;
+			if( onePiEvents_3d[0] != 0 && twoPiEvents_3d != 0 ){
+				corr_err_3d[0] =  sqrt( 1./onePiEvents_3d[0] + 1./twoPiEvents_3d );
 			}
-
-			double denom = 0;
-			if( symType == 2 ){ denom = twoPiEvents_sym; }
-			if( symType == -1 ){ denom = zeroPiEvents; }
-			if( denom > 0 ){
-				if( onePiEvents_sym[0] != 0 && twoPiEvents_sym != 0 ){
-					corr_err_sym[0] =  sqrt( 1./onePiEvents_sym[0] + 1./denom );
-				}
-				if( onePiEvents_sym[1] != 0 && twoPiEvents_sym != 0 ){
-					corr_err_sym[1] =  sqrt( 1./onePiEvents_sym[1] + 1./denom );
-				}
+			if( onePiEvents_3d[1] != 0 && twoPiEvents_3d != 0 ){
+				corr_err_3d[1] =  sqrt( 1./onePiEvents_3d[1] + 1./twoPiEvents_3d );
 			}
-			//cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;	
-	
-		}	
+			//cout<<"CURRENT UNCERTAINTY : "<<corr_err<<endl;
+
+		}
 		if( event_count == 193)txtFile.close();
 
 
@@ -405,42 +337,37 @@ int main( int argc, char** argv){
 			else{
 				rhoWeight[i] = onePiEvents[i]/twoPiEvents ;
 			}
-		}
-		if( symType == 0 ){
-			rhoWeight_sym[0] = 1.;
-			rhoWeight_sym[1] = 0.;
-		}
-		else if( symType == 1 ){
-			rhoWeight_sym[1] = 1.;
-			rhoWeight_sym[0] = 0.;
-		}
-		else if( symType == 2 ){
-			rhoWeight_sym[0] =  1. + onePiEvents_sym[0]/twoPiEvents_sym ;
-			rhoWeight_sym[1] =  1. + onePiEvents_sym[1]/twoPiEvents_sym ;
-		}
-		else{
-			rhoWeight_sym[0] =  1. + onePiEvents_sym[0]/zeroPiEvents ;
-			rhoWeight_sym[1] =  1. + onePiEvents_sym[1]/zeroPiEvents ;
+
+			if( onePiEvents_3d[i] == 0 || twoPiEvents_3d == 0 ){
+				if( isGoodPion_acc[i] ){
+					rhoWeight_3d[i] = 1.;
+				}
+				else{ rhoWeight_3d[i] = 0.;}
+			}
+			else if( isGoodPion_acc[i] ){
+				rhoWeight_3d[i] =  1. + onePiEvents_3d[i]/twoPiEvents_3d ;
+			}
+			else{
+				rhoWeight_3d[i] = onePiEvents_3d[i]/twoPiEvents_3d ;
+			}
 		}
 
 
 
-		
-		
-		outTree->Fill();	
-	}    
+		outTree->Fill();
+	}
     outFile->cd();
     outTree->Write();
     outFile->Close();
-		
-	
+
+
 }
 
 
 
 TVector3 rotate_to_beam_frame( TLorentzVector q, TLorentzVector p_e, TVector3 pi_q ){
 	TVector3 v = pi_q;
-    
+
 	p_e.RotateZ(-q.Phi());
 	p_e.RotateY(-q.Theta());
 

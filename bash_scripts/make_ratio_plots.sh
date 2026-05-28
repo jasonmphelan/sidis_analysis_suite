@@ -55,5 +55,9 @@
 #python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_acc_effect  ../histograms/analysis_note/ratios_2d_rho_pim.root 'Tagging $\pi^+$' ../histograms/analysis_note/ratios_2d_rho_pip.root 'Tagging $\pi^-$' 
 
 #python ../plotting/plotFragBinned3d.py ../plotting/analysis_note/ratio_W2 ../histograms/analysis_note/ratios_2d_rho_W2.root W2 &
-python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_3d_map  ../histograms/analysis_note/ratios_2d_mc.root '2D acceptance matching + MC corrections' ../histograms/analysis_note/ratios_3d_mc.root '3D acceptance matching'
+#python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_3d_map  ../histograms/analysis_note/ratios_2d_mc.root '2D acceptance matching + MC corrections' ../histograms/analysis_note/ratios_3d_mc.root '3D acceptance matching'
 
+python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_effect ../histograms/analysis_note/ratios_2d.root '1%' ../histograms/analysis_note/ratios_2d_10.root '10%' ../histograms/analysis_note/ratios_2d_20.root '20%'
+#python ../plotting/plotRatios.py ../plotting/analysis_note/ratio_rho_effect ../histograms/analysis_note/ratios_2d_mc.root 'MC' ../histograms/analysis_note/ratios_mc_rho.root 'Mx cut' 
+
+python ../plotting/plotFragBinned.py ../plotting/analysis_note/ratio_rho_effect ../histograms/analysis_note/ratios_2d_20.root &

@@ -243,7 +243,7 @@ int main( int argc, char** argv){
 				if( particle->par()->getPid() == 11){
 					hElectrons->Fill(particle->getBeta());
 					hElectrons_b_p->Fill( particle->par()->getP(),particle->getBeta());	
-					counts[1][0]++;
+					//counts[1][0]++;
 				}
 
 			}

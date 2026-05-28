@@ -14,7 +14,10 @@ add_executable(makeRatioSym makeRatioBinned_sym.cpp ${CMAKE_SOURCE_DIR}/classes/
 target_link_libraries(makeRatioSym ${ROOT_LIBRARIES} clashit_tree) 
 
 add_executable(makeRatio3D makeRatioBinned3D.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp)
-target_link_libraries(makeRatio3D ${ROOT_LIBRARIES} clashit_tree) 
+target_link_libraries(makeRatio3D ${ROOT_LIBRARIES} clashit_tree)
+
+add_executable(makeRatio3D_fullUnc makeRatioBinned3D_fullUncertainty.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp)
+target_link_libraries(makeRatio3D_fullUnc ${ROOT_LIBRARIES} clashit_tree)
 
 add_executable(studyZ studyZ.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp)
 target_link_libraries(studyZ ${ROOT_LIBRARIES} clashit_tree) 
@@ -28,12 +31,16 @@ target_link_libraries(makeThetaPhi_analysis ${ROOT_LIBRARIES} clashit_tree)
 #target_link_libraries(makeRatioBinned ${ROOT_LIBRARIES} clashit_tree) 
 
 add_executable(makeXsRatio makeXsRatioBinned.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp)
-target_link_libraries(makeXsRatio ${ROOT_LIBRARIES} clashit_tree) 
+target_link_libraries(makeXsRatio ${ROOT_LIBRARIES} clashit_tree)
+
+add_executable(makeGenFFRatio makeGenFFRatio.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/genElectron.cpp ${CMAKE_SOURCE_DIR}/classes/genPion.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp)
+target_link_libraries(makeGenFFRatio ${ROOT_LIBRARIES} -lEG PkgConfig::hipo4 -L${CLAS12ROOT}/lib -lClas12Banks -lClas12Root clashit_tree genhit_tree)
 
 
 add_executable(makeKinematics makeKinematicPlots.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp 
 							${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp 
-							${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/reader.cpp )
+							${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/reader.cpp
+							${CMAKE_SOURCE_DIR}/classes/correctionTools.cpp )
 target_link_libraries(makeKinematics ${ROOT_LIBRARIES} clashit_tree) 
 
 add_executable(makeGenKinematics makeGeneratorPlots.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp 

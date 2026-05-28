@@ -109,9 +109,15 @@ namespace cutVals{
 
 	const double theta_bowl_width = 0.9*550.;
 
-	const int bins_p = 4;
+	const int bins_p = 25;
 	//const double p_bin_edges[5] = { 1.25, 2.25, 2.50, 3.5, 5.00};
-	const double p_bin_edges[5] = { 1.25, 2., 3., 4., 5.00};
+	//const double p_bin_edges[5] = { 1.25, 2., 3., 4., 5.00};  // old 4-bin edges
+	// 25 uniform bins: [1.25, 5.00], step = 0.15
+	const double p_bin_edges[26] = {
+		1.25, 1.40, 1.55, 1.70, 1.85, 2.00, 2.15, 2.30, 2.45, 2.60,
+		2.75, 2.90, 3.05, 3.20, 3.35, 3.50, 3.65, 3.80, 3.95, 4.10,
+		4.25, 4.40, 4.55, 4.70, 4.85, 5.00
+	};
 	const double p_bin_edges_3d[5] = { 1.25, 2.00, 2.50, 3.5, 5.00};
 
 	const double e_fid_cuts[3] = {5, 5, 10};//[region]
