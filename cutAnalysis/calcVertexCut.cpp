@@ -53,39 +53,40 @@ int main( int argc, char** argv){
 			
 	auto start = std::chrono::high_resolution_clock::now();
 
-	if( argc < 4 ){
+	if( argc < 5 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [outFile name] [Beam energy (0 for all energies)] [Target]\n";
-		cerr << "       Target: 0 = RGB/deuterium, 1 = RGA/proton\n";
+		cerr << "./code [outFile name] [Beam energy (0 for all energies)] [Target] [RunType]\n";
+		cerr << "       Target:  0 = RGB/deuterium, 1 = RGA/proton\n";
+		cerr << "       RunType: 0 = inbending data, 3/4/5 = outbending data\n";
 		return -1;
 	}
 
        	double Ebeam = atof(argv[2]); // [GeV]
 	TString outFile_name = argv[1];
-	int target = atoi(argv[3]); // 0 = RGB/deuterium, 1 = RGA/proton ///volatile/clas12/users/jphelan/SIDIS/GEMC/clasdis/10.2/detector_skims/clasdis_7393.root",//, //Enter 
+	int target  = atoi(argv[3]); // 0 = RGB/deuterium, 1 = RGA/proton
+	int RunType = atoi(argv[4]);
 
 	TFile * outFile = new TFile(outFile_name, "RECREATE");
-	
+
 	// Check valid beam energy
 	if( Ebeam != 10.2 && Ebeam != 10.4 && Ebeam != 10.6 && Ebeam != 0 ){
-		cout<< "Invaid Beam Energy... Set EBeam = 10.2\n"<<endl;
+		cout<< "Invalid Beam Energy... Set EBeam = 10.2\n"<<endl;
 		Ebeam = 10.2;
 	}
-    	
 
-	// Read cut values
-	double torusBending = -1; //outBending = -1, inBending = 1
-	analyzer anal(0, torusBending);
-	std::cout<<"Loaded cut values\n";
-	anal.setAnalyzerLevel(0);
-	anal.setTarget( target );
-	anal.loadCutValues(-1, Ebeam);
 
 	reader runReader;
 	runReader.setNumFiles( 0 );
-	runReader.setRunType( 0 );
+	runReader.setRunType( RunType );
 	runReader.setEnergy( Ebeam );
 	runReader.setTarget( target );
+
+	int torusBending = runReader.getTorusBending();
+	analyzer anal(0, torusBending);
+	std::cout<<"Loaded cut values\n";
+	anal.setAnalyzerLevel( (RunType == 3 || RunType == 4 || RunType == 5) ? 4 : RunType );
+	anal.setTarget( target );
+	anal.loadCutValues(torusBending, Ebeam);
 	
 	clas12root::HipoChain files;
        	runReader.readRunFiles(files);
@@ -121,7 +122,6 @@ int main( int argc, char** argv){
 	// Set Output file and tree
 	//TFile * outputFile = new TFile(outFile_name + ".root", "RECREATE");
 	int nFiles = 0;
-	int RunType = 0;
 	int inclusive = 0;
 
 	//Set event count array
@@ -161,7 +161,7 @@ int main( int argc, char** argv){
 			/////////////////////////////BEGIN EVENT ANALYSIS///////////////////////////
 			
 			// Get Particles By PID
-			electrons   = c12.getByID( -11   );
+			electrons   = c12.getByID( 11 );
 			pipluses    = c12.getByID( 211  );
 			piminuses   = c12.getByID(-211  );
 			
