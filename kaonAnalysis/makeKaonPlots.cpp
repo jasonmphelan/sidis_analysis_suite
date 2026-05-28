@@ -58,11 +58,11 @@ int main( int argc, char** argv){
     TString out_name = argv[1];
 		
 	int type = atoi(argv[2]);
-
+	int matchType = atoi(argv[3]);
     double theta_cut = 0;
-	if( argc > 3 ){ theta_cut = atoi(argv[3]); }
+	if( argc > 4 ){ theta_cut = atoi(argv[4]); }
 	double Mx_2pi_cut = 1.25;
-	if( argc > 4 ){ Mx_2pi_cut = atof(argv[4]); }
+	if( argc > 5 ){ Mx_2pi_cut = atof(argv[5]); }
 
 	// Optional: specify Q2 and xB bin ranges to sum over (1-indexed, inclusive)
 	int Q2_bin_lo = 1, Q2_bin_hi = nBinsQ2;
@@ -119,7 +119,7 @@ int main( int argc, char** argv){
 			file->Add("../trees/final_skims/10.6/tight_skim.root");
 		}
 		if( target == 1 ){
-			file->Add("../trees/final_skims/10.6/final_skim_rga.root");
+			file->Add("/volatile/clas12/users/jphelan/SIDIS/rga/final_skims/10.2/final_skim.root");
 		}
 	}
 	if(type == 1){
@@ -130,7 +130,7 @@ int main( int argc, char** argv){
 			file->Add("../trees/final_skims/kaons_10.6/tight_skim.root");
 		}
 		if( target == 1 ){
-			file->Add("../trees/final_skims/kaons_10.6/final_skim_rga.root");
+			file->Add("/volatile/clas12/users/jphelan/SIDIS/rga/final_skims/kaons_10.2/final_skim.root");
 		}
 	}
 		//TTreeReader reader("ePi", file);
@@ -142,7 +142,7 @@ int main( int argc, char** argv){
 	
 	TTreeReaderArray<bool> isGoodPion_vec(reader, "isGoodPion");
 	//TTreeReaderArray<bool> isGoodPion_3d_vec(reader, "isGoodPion_3d");
-        //TTreeReaderArray<bool> isGoodPion_no_acc_vec(reader, "isGoodPion_no_acc");
+	TTreeReaderArray<bool> isGoodPion_vec_no_acc(reader, "isGoodPion_no_acc");
 
 	analyzer anal( 0, -1 );
 	anal.setAnalyzerLevel(0);
@@ -170,7 +170,7 @@ int main( int argc, char** argv){
 				 checkDiffractive(pi[0], pi[1], *e, Mx_2pi_cut)) continue;
 
 		for( int i = 0; i < (int) ( pi.end() - pi.begin() ); i++ ){
-			if( !isGoodPion_vec[i]) {continue;}
+			if( (matchType==2 && !isGoodPion_vec[i])||(matchType==0 && !isGoodPion_vec_no_acc[i]) ){continue;}
 			if(pi[i].getBeta_rich() < .0001){continue;}
 			
 			chargeIdx = (int)(pi[i].getCharge() < 1);
