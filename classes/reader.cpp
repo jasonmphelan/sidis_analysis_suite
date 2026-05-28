@@ -58,10 +58,12 @@ void reader::readRunFilesAllE(clas12root::HipoChain &fileList){
 
 void reader::setDataPaths(){
 
-	if(runType == 1 || runType == 2){
+	if(target != 1 && (runType == 1 || runType == 2)){
     		dataPath = "/volatile/clas12/osg/jphelan/";
 	}
-
+	if(target == 1 && (runType == 1 || runType == 2)){
+		dataPath = "/volatile/clas12/users/jphelan/SIDIS/rga/clasdis/recofiles/reco_";
+}
 
 	else if (runType == 0){//, ==4 is outbending
 		TString path_temp;
@@ -93,6 +95,10 @@ void reader::setDataPaths(){
 		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/recon/0";
 		//dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/background_hipo";
 	}
+	else if( runType == 5 ){
+		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_0";
+		//dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/background_hipo";
+	}
 }
 
 void reader::getRunList(){
@@ -117,7 +123,7 @@ void reader::getRunList(){
 		cout<<"Run List : "<<runList<<endl;
 	}
 
-	else if( runType == 4 || runType == 3){
+	else if( runType == 4 || runType == 3 || runType == 5){
 		runList = (TString) RUN_PATH+"/runLists/good_runs_10-4_pos.txt";
 	}
 }
@@ -133,7 +139,7 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 	int beamType =	(int) ( (EBeam - 10.2)/.2 );
 	cout<<runList<<std::endl;
 	if(!stream ){ cout<<"fAILEd TO open runlist\n";}
-	if(runType == 0 || runType == 3){
+	if(runType == 0 || runType == 3 || runType == 5){
 		int i = 0;
 		while(std::getline(stream, runNum)){
 			if(nFiles != 0 && i >= nFiles ) break;
@@ -145,7 +151,7 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 			i++;
 		}
 	}
-	else if (runType == 1){
+	else if (runType == 1 && target!=1){
 		for( int j = 0; j < nRuns[beamType]; j++ ){
 			for( int i = 0; i < 75000; i++){
 				if( nFiles != 0 && i >= nFiles ) break;
@@ -155,7 +161,17 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 			}
 		}
 	}
-	else if(runType == 4){
+	else if (runType == 1 && target==1){
+		
+		for( int i = 0; i < 75000; i++){
+			if( nFiles != 0 && i >= nFiles ) break;
+			inFile = dataPath + Form("%05i_10.1998.hipo", i);
+			if( gSystem->AccessPathName(inFile) ) continue;
+			files.Add(inFile.Data());
+		}
+		
+	}
+	else if(runType == 4 ){
 		int i = 0;
 		while(std::getline(stream, runNum)){
 			if(nFiles != 0 && i >= nFiles ) break;
@@ -228,7 +244,7 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 				}
 			//}
 		}
-		else if(runType == 4){
+		else if(runType == 4 || runType == 5){
 			int i = 0;
 			while(std::getline(stream, runNum)){
 				if(nFiles != 0 && i >= nFiles ) break;
