@@ -7,8 +7,11 @@ import matplotlib.ticker as ticker
 import math
 import sys
 
-def eval_func(params, xVal):
-	return params[0] + params[1]/xVal
+def eval_func_min(params, xVal):
+	return params[0] + params[1] * (xVal ** params[2])
+
+def eval_func_max(params, xVal):
+	return params[0] + params[1]*xVal + params[2]*xVal**2 + params[3]*xVal**3
 def poly3(params, xVal):
 	out = 0
 	for i in range(4):
@@ -71,8 +74,8 @@ for sec in range(nSec):
 			fMax[i] = inFile_R.Get( f"max_{sec}_{ch_string[i]};1" )
 			fMin[i] = inFile_R.Get( f"min_{sec}_{ch_string[i]};1" )
 			fAccMax[i] = inFile_max.Get( f"f_{ch_string[i]}_{sec+1}_param_max")
-		max_params[i] = [fMax[i].GetParameter(j) for j in range(2)]
-		min_params[i] = [fMin[i].GetParameter(j) for j in range(2)]
+		max_params[i] = [fMax[i].GetParameter(name) for name in ("a", "b", "c", "d")]
+		min_params[i] = [fMin[i].GetParameter(name) for name in ("a", "b", "c")]
 		acc_params[i] = [fAccMax[i].GetParameter(j) for j in range(4)]
 
 		xEdges = hist[i].axis(0).edges()
@@ -80,8 +83,8 @@ for sec in range(nSec):
 		values[i] = hist[i].values()
 		values[i][values[i] == 0] = np.nan
 		values[i] = np.reshape( values[i], (len(xEdges) - 1, len(yEdges) - 1) )
-		max_vals[i] = [eval_func(max_params[i], xVal) for xVal in xVals]
-		min_vals[i] = [eval_func(min_params[i], xVal) for xVal in xVals]
+		max_vals[i] = [eval_func_max(max_params[i], xVal) for xVal in xVals]
+		min_vals[i] = [eval_func_min(min_params[i], xVal) for xVal in xVals]
 		acc_max[i] = [poly3(acc_params[i], xVal) for xVal in xVals]
 
 	for i in range(2):

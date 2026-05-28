@@ -30,7 +30,13 @@ add_executable(mcKaonCorrections mcKaonCorrections.cpp ${CMAKE_SOURCE_DIR}/class
 target_link_libraries(mcKaonCorrections ${ROOT_LIBRARIES} clashit_tree) 
 
 add_executable(kaonSys kaonSys.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp )
-target_link_libraries(kaonSys ${ROOT_LIBRARIES} clashit_tree) 
+target_link_libraries(kaonSys ${ROOT_LIBRARIES} clashit_tree)
 
 add_executable(richKaonCorrections richKaonCorrections.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp )
 target_link_libraries(richKaonCorrections ${ROOT_LIBRARIES} clashit_tree)
+
+add_executable(richKaonCorrections_mt richKaonCorrections_mt.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp )
+target_link_libraries(richKaonCorrections_mt ${ROOT_LIBRARIES} clashit_tree)
+
+add_executable(makeKaonCompPlots makeKaonCompPlots.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp ${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp ${CMAKE_SOURCE_DIR}/classes/reader.cpp )
+target_link_libraries(makeKaonCompPlots ${ROOT_LIBRARIES} clashit_tree)

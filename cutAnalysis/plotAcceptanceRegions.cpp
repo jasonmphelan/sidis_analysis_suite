@@ -223,6 +223,116 @@ int main( int argc, char** argv ){
             delete c;
         }
 
+        // DeltaPhi vs theta: one canvas per momentum, all sectors overlaid
+        for( double p : pVals ){
+
+            TString cDPName = Form("c_dPhi_%s_p%.2f", parName[par].Data(), p);
+            TCanvas * cDP = new TCanvas( cDPName, cDPName, 900, 700 );
+
+            double theta_min_all =  999.;
+            double theta_max_all = -999.;
+            for( int sec = 0; sec < 6; sec++ ){
+                double tmin = mapFunc(par, sec, 4, p);
+                double tmax = mapFunc(par, sec, 5, p);
+                if( tmin < theta_min_all ) theta_min_all = tmin;
+                if( tmax > theta_max_all ) theta_max_all = tmax;
+            }
+            theta_min_all = std::max(0., theta_min_all - 1.);
+            theta_max_all = theta_max_all + 1.;
+
+            TH2F * hDPFrame = new TH2F( Form("hDPFrame_%s_p%.2f", parName[par].Data(), p),
+                                         Form("%s #Delta#phi vs #theta, p = %.2f GeV/c;#theta (deg);#Delta#phi (deg)",
+                                              parLabel[par].Data(), p),
+                                         1, theta_min_all, theta_max_all, 1, 0, 80 );
+            hDPFrame->Draw();
+
+            TLegend * legDP = new TLegend(0.75, 0.65, 0.92, 0.92);
+            legDP->SetBorderSize(0);
+            legDP->SetTextSize(0.03);
+
+            for( int sec = 0; sec < 6; sec++ ){
+                double tmin = mapFunc(par, sec, 4, p);
+                double tmax = mapFunc(par, sec, 5, p);
+                if( tmin >= tmax ) continue;
+
+                std::vector<double> theta_pts, dphi_pts;
+                for( int ti = 0; ti < nThetaPts; ti++ ){
+                    double theta = tmin + (tmax - tmin) * ti / (nThetaPts - 1.);
+                    double phi_min, phi_max;
+                    if( !getPhiBounds(par, sec, p, theta, phi_min, phi_max) ) continue;
+                    theta_pts.push_back( theta );
+                    dphi_pts.push_back( phi_max - phi_min );
+                }
+                if( theta_pts.empty() ) continue;
+
+                TGraph * gDP = new TGraph( theta_pts.size(), theta_pts.data(), dphi_pts.data() );
+                gDP->SetName( Form("gDPhi_%s_sec%i_p%.2f", parName[par].Data(), sec+1, p) );
+                gDP->SetLineColor( secColor[sec] );
+                gDP->SetLineWidth(2);
+                gDP->Draw("L SAME");
+
+                legDP->AddEntry( gDP, Form("Sec %i", sec+1), "l" );
+                gDP->Write();
+            }
+
+            legDP->Draw();
+            TLatex latDP;
+            latDP.SetNDC();
+            latDP.SetTextSize(0.04);
+            latDP.DrawLatex(0.12, 0.92, Form("%s, p = %.2f GeV/c", parLabel[par].Data(), p));
+
+            cDP->Write();
+            cDP->SaveAs( Form("dPhi_%s_p%.2f.pdf", parName[par].Data(), p) );
+            delete cDP;
+        }
+
+        // DeltaPhi vs theta: overlay all momenta for sector 1
+        {
+            int refSecDP = 0;
+            TCanvas * cDPOv = new TCanvas( Form("c_dPhi_%s_overlay_sec1", parName[par].Data()),
+                                           Form("%s sector 1 #Delta#phi overlay all p", parName[par].Data()),
+                                           900, 700 );
+            TH2F * hDPOvFrame = new TH2F( Form("hDPOvFrame_%s", parName[par].Data()),
+                                          Form("%s #Delta#phi vs #theta, sector 1;#theta (deg);#Delta#phi (deg)",
+                                               parLabel[par].Data()),
+                                          1, 0, 45, 1, 0, 80 );
+            hDPOvFrame->Draw();
+
+            TLegend * legDPOv = new TLegend(0.12, 0.65, 0.38, 0.92);
+            legDPOv->SetBorderSize(0);
+            legDPOv->SetTextSize(0.03);
+
+            int pColors[] = {kRed, kOrange+1, kYellow+2, kGreen+2, kCyan+2, kBlue+1, kViolet+1, kMagenta+1};
+            int pIdx = 0;
+            for( double p : pVals ){
+                double tmin = mapFunc(par, refSecDP, 4, p);
+                double tmax = mapFunc(par, refSecDP, 5, p);
+                if( tmin >= tmax ){ pIdx++; continue; }
+
+                std::vector<double> theta_pts, dphi_pts;
+                for( int ti = 0; ti < nThetaPts; ti++ ){
+                    double theta = tmin + (tmax - tmin)*ti/(nThetaPts-1.);
+                    double phi_min, phi_max;
+                    if( !getPhiBounds(par, refSecDP, p, theta, phi_min, phi_max) ) continue;
+                    theta_pts.push_back(theta);
+                    dphi_pts.push_back(phi_max - phi_min);
+                }
+                if( theta_pts.empty() ){ pIdx++; continue; }
+
+                TGraph * gDPOv = new TGraph(theta_pts.size(), theta_pts.data(), dphi_pts.data());
+                gDPOv->SetLineColor( pColors[pIdx % 8] );
+                gDPOv->SetLineWidth(2);
+                gDPOv->Draw("L SAME");
+                legDPOv->AddEntry(gDPOv, Form("p = %.2f GeV/c", p), "l");
+                gDPOv->Write( Form("gDPhiOv_%s_sec1_p%.2f", parName[par].Data(), p) );
+                pIdx++;
+            }
+            legDPOv->Draw();
+            cDPOv->Write();
+            cDPOv->SaveAs( Form("dPhi_%s_overlay_sec1.pdf", parName[par].Data()) );
+            delete cDPOv;
+        }
+
         // Also make a single canvas per particle showing all p values overlaid for one representative sector
         // (sector 0, i.e. sector 1)
         int refSec = 0;
@@ -240,8 +350,8 @@ int main( int argc, char** argv ){
         legOv->SetBorderSize(0);
         legOv->SetTextSize(0.03);
 
-        int pIdx = 0;
         int pColors[] = {kRed, kOrange+1, kYellow+2, kGreen+2, kCyan+2, kBlue+1, kViolet+1, kMagenta+1};
+        int pIdx = 0;
         for( double p : pVals ){
             double tmin = mapFunc(par, refSec, 4, p);
             double tmax = mapFunc(par, refSec, 5, p);
@@ -278,6 +388,146 @@ int main( int argc, char** argv ){
         cOverlay->Write();
         cOverlay->SaveAs( Form("accRegions_%s_overlay_sec1.pdf", parName[par].Data()) );
         delete cOverlay;
+    }
+
+    // pi+ / pi- DeltaPhi ratio vs theta
+    // par=1 -> pip, par=2 -> pim
+    {
+        int pip = 1, pim = 2;
+        int pColors[] = {kRed, kOrange+1, kYellow+2, kGreen+2, kCyan+2, kBlue+1, kViolet+1, kMagenta+1};
+
+        // One canvas per momentum: all sectors overlaid
+        for( double p : pVals ){
+
+            TString cRName = Form("c_dPhiRatio_p%.2f", p);
+            TCanvas * cR = new TCanvas( cRName, cRName, 900, 700 );
+
+            // Use the union theta range across both particle types
+            double theta_min_all =  999.;
+            double theta_max_all = -999.;
+            for( int sec = 0; sec < 6; sec++ ){
+                for( int par : {pip, pim} ){
+                    double tmin = mapFunc(par, sec, 4, p);
+                    double tmax = mapFunc(par, sec, 5, p);
+                    if( tmin < theta_min_all ) theta_min_all = tmin;
+                    if( tmax > theta_max_all ) theta_max_all = tmax;
+                }
+            }
+            theta_min_all = std::max(0., theta_min_all - 1.);
+            theta_max_all = theta_max_all + 1.;
+
+            TH2F * hRFrame = new TH2F( Form("hRFrame_p%.2f", p),
+                                        Form("#Delta#phi(#pi^{+}) / #Delta#phi(#pi^{-}), p = %.2f GeV/c;#theta (deg);#Delta#phi ratio",p),
+                                        1, theta_min_all, theta_max_all, 1, 0, 3 );
+            hRFrame->Draw();
+
+            // Draw a reference line at ratio=1
+            TLine * lOne = new TLine( theta_min_all, 1., theta_max_all, 1. );
+            lOne->SetLineStyle(2);
+            lOne->SetLineColor(kBlack);
+            lOne->Draw("SAME");
+
+            TLegend * legR = new TLegend(0.75, 0.65, 0.92, 0.92);
+            legR->SetBorderSize(0);
+            legR->SetTextSize(0.03);
+
+            for( int sec = 0; sec < 6; sec++ ){
+                double tmin_p = mapFunc(pip, sec, 4, p);
+                double tmax_p = mapFunc(pip, sec, 5, p);
+                double tmin_m = mapFunc(pim, sec, 4, p);
+                double tmax_m = mapFunc(pim, sec, 5, p);
+                // Use the intersection of valid theta ranges
+                double tmin = std::max(tmin_p, tmin_m);
+                double tmax = std::min(tmax_p, tmax_m);
+                if( tmin >= tmax ) continue;
+
+                std::vector<double> theta_pts, ratio_pts;
+                for( int ti = 0; ti < nThetaPts; ti++ ){
+                    double theta = tmin + (tmax - tmin) * ti / (nThetaPts - 1.);
+                    double phi_min_p, phi_max_p, phi_min_m, phi_max_m;
+                    if( !getPhiBounds(pip, sec, p, theta, phi_min_p, phi_max_p) ) continue;
+                    if( !getPhiBounds(pim, sec, p, theta, phi_min_m, phi_max_m) ) continue;
+                    double dphi_m = phi_max_m - phi_min_m;
+                    if( dphi_m == 0. ) continue;
+                    theta_pts.push_back( theta );
+                    ratio_pts.push_back( (phi_max_p - phi_min_p) / dphi_m );
+                }
+                if( theta_pts.empty() ) continue;
+
+                TGraph * gR = new TGraph( theta_pts.size(), theta_pts.data(), ratio_pts.data() );
+                gR->SetName( Form("gDPhiRatio_sec%i_p%.2f", sec+1, p) );
+                gR->SetLineColor( secColor[sec] );
+                gR->SetLineWidth(2);
+                gR->Draw("L SAME");
+                legR->AddEntry( gR, Form("Sec %i", sec+1), "l" );
+                gR->Write();
+            }
+
+            legR->Draw();
+            TLatex latR;
+            latR.SetNDC();
+            latR.SetTextSize(0.04);
+            latR.DrawLatex(0.12, 0.92, Form("#Delta#phi(#pi^{+}) / #Delta#phi(#pi^{-}), p = %.2f GeV/c", p));
+
+            cR->Write();
+            cR->SaveAs( Form("dPhiRatio_p%.2f.pdf", p) );
+            delete cR;
+        }
+
+        // Overlay all momenta for sector 1
+        {
+            int refSec = 0;
+            TCanvas * cROv = new TCanvas("c_dPhiRatio_overlay_sec1", "#Delta#phi ratio overlay all p, sector 1", 900, 700);
+            TH2F * hROvFrame = new TH2F("hROvFrame",
+                                         "#Delta#phi(#pi^{+}) / #Delta#phi(#pi^{-}), sector 1;#theta (deg);#Delta#phi ratio",
+                                         1, 0, 45, 1, 0, 3);
+            hROvFrame->Draw();
+
+            TLine * lOneOv = new TLine(0., 1., 45., 1.);
+            lOneOv->SetLineStyle(2);
+            lOneOv->SetLineColor(kBlack);
+            lOneOv->Draw("SAME");
+
+            TLegend * legROv = new TLegend(0.12, 0.65, 0.38, 0.92);
+            legROv->SetBorderSize(0);
+            legROv->SetTextSize(0.03);
+
+            int pIdx = 0;
+            for( double p : pVals ){
+                double tmin_p = mapFunc(pip, refSec, 4, p);
+                double tmax_p = mapFunc(pip, refSec, 5, p);
+                double tmin_m = mapFunc(pim, refSec, 4, p);
+                double tmax_m = mapFunc(pim, refSec, 5, p);
+                double tmin = std::max(tmin_p, tmin_m);
+                double tmax = std::min(tmax_p, tmax_m);
+                if( tmin >= tmax ){ pIdx++; continue; }
+
+                std::vector<double> theta_pts, ratio_pts;
+                for( int ti = 0; ti < nThetaPts; ti++ ){
+                    double theta = tmin + (tmax - tmin)*ti/(nThetaPts-1.);
+                    double phi_min_p, phi_max_p, phi_min_m, phi_max_m;
+                    if( !getPhiBounds(pip, refSec, p, theta, phi_min_p, phi_max_p) ) continue;
+                    if( !getPhiBounds(pim, refSec, p, theta, phi_min_m, phi_max_m) ) continue;
+                    double dphi_m = phi_max_m - phi_min_m;
+                    if( dphi_m == 0. ) continue;
+                    theta_pts.push_back(theta);
+                    ratio_pts.push_back((phi_max_p - phi_min_p) / dphi_m);
+                }
+                if( theta_pts.empty() ){ pIdx++; continue; }
+
+                TGraph * gROv = new TGraph(theta_pts.size(), theta_pts.data(), ratio_pts.data());
+                gROv->SetLineColor( pColors[pIdx % 8] );
+                gROv->SetLineWidth(2);
+                gROv->Draw("L SAME");
+                legROv->AddEntry(gROv, Form("p = %.2f GeV/c", p), "l");
+                gROv->Write( Form("gDPhiRatioOv_sec1_p%.2f", p) );
+                pIdx++;
+            }
+            legROv->Draw();
+            cROv->Write();
+            cROv->SaveAs("dPhiRatio_overlay_sec1.pdf");
+            delete cROv;
+        }
     }
 
     outf->Close();

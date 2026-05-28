@@ -66,7 +66,8 @@ inFile = [ uproot.open(i) for i in inFile_names ]
 for key in inFile[0].keys():
 	if "pim" in key:
 		continue
-	
+	if "_0" not in key:
+		continue
 	if isinstance( inFile[0][key], uproot.models.TH.Model_TH1F_v3): 
 		fig, ax = plt.subplots(2, 2, figsize=(12,6), height_ratios=[3,1], sharex='col', layout='constrained')
 		values_pip = np.empty( len(inFile), dtype='object')

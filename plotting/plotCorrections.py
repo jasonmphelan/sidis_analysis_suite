@@ -136,7 +136,7 @@ def makePlots( corrType, hist, ext):
 		ax.set_ylim( [yMin, yMax] )
 		ax.set_xlim( [0.3, 1] )
 		#ax.set_xlim( [2.5,  5] )
-		ax.set_ylim( [0,  1.01] )
+		#ax.set_ylim( [0,  1.01] )
 
 
 
@@ -200,10 +200,10 @@ print( energy )
 
 for key in keyList:
 	#if 'k2pi' in inFile_name or 'pi2k' in inFile_name or '4D' in inFile_name or 'phi_q' or 'pT' or 'sector_pi' in inFile_name:
-	#	for p in range(6):
+	#	for p in range(4):
 	#		hist = inFile[key+f'_{p};1']
-	#		makePlots( corrType, hist, energy)
+#			makePlots( corrType, hist, energy)
 			
-	#else:
+#	else:
 	hist = inFile[key]
 	makePlots( corrType, hist, energy)

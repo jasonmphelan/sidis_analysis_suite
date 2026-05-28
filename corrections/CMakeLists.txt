@@ -30,3 +30,10 @@ add_executable(calcCorrections4D calcCorrections_4D.cpp ${CMAKE_SOURCE_DIR}/clas
 
 target_link_libraries(calcCorrections4D ${ROOT_LIBRARIES} -lEG PkgConfig::hipo4 -L${CLAS12ROOT}/lib -lClas12Banks -lClas12Root clashit_tree genhit_tree)
 
+add_executable(calcPurityStability calcPurityStability.cpp ${CMAKE_SOURCE_DIR}/classes/electron.cpp ${CMAKE_SOURCE_DIR}/classes/pion.cpp
+								${CMAKE_SOURCE_DIR}/classes/DCfid_SIDIS.cpp
+								${CMAKE_SOURCE_DIR}/classes/analyzer.cpp ${CMAKE_SOURCE_DIR}/classes/reader.cpp
+								${CMAKE_SOURCE_DIR}/classes/genPion.cpp ${CMAKE_SOURCE_DIR}/classes/genElectron.cpp)
+
+target_link_libraries(calcPurityStability ${ROOT_LIBRARIES} -lEG PkgConfig::hipo4 -L${CLAS12ROOT}/lib -lClas12Banks -lClas12Root clashit_tree genhit_tree)
+

@@ -150,9 +150,9 @@ int main( int argc, char** argv){
 
 
 	//Load input tree
-        TTreeReader reader_rec( chain );
+    TTreeReader reader_rec( chain );
 	TTreeReaderValue<electron> e(reader_rec, "e");
-        TTreeReaderArray<pion> pi(reader_rec, "pi");
+    TTreeReaderArray<pion> pi(reader_rec, "pi");
 
        	int counts[2][10] = {0};
 

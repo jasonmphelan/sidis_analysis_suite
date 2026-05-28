@@ -62,7 +62,8 @@ int main(int argc, char** argv) {
 	analyzer anal(0, -1);
 	anal.setAnalyzerLevel(0);
 	anal.setTarget(target);
-	anal.loadMatchingFunctions(target == 1 ? "matchCut2D_rga.root" : "matchCut2D_map.root");
+	anal.loadSamplingFractionParams();  
+	anal.loadMatchingFunctions(target == 1 ? "matchCut2D_rga.root" : "matchCut2D_10.root");
 	anal.loadMatchingFunctions3D();
 	anal.loadAcceptanceMapContinuous((TString)_DATA + (TString)"/acceptance_map/acceptanceMap_allE_final.root");
 
@@ -120,8 +121,7 @@ int main(int argc, char** argv) {
 		inTree->GetEntry(ev);
 
 		// Tighter electron: kinematic + full detector cuts
-		bool e_pass     = anal.applyElectronKinematicCuts(*e);// &&
-		                  //anal.applyElectronDetectorCuts(*e);
+		bool e_pass     =  anal.applyElectronKinematicCuts(*e) && anal.applyElectronDetectorCuts(*e);// anal.applyElectronKinematicCuts(*e) &&
 		bool e_gen_pass = false;
 		if (runType == 1) e_gen_pass = anal.applyElectronKinematicCuts(*e_gen);
 
@@ -140,8 +140,7 @@ int main(int argc, char** argv) {
 			int chargeIdx = (int)((*pi)[i].getCharge() < 1);
 
 			// Tighter pion: kinematic + full detector cuts
-			bool pi_pass     = anal.applyPionKinematicCuts((*pi)[i]);// &&
-			                   //anal.applyPionDetectorCuts((*pi)[i], *e) && (*pi)[i].getMx() > 1.7;
+			bool pi_pass     =  anal.applyPionDetectorCuts((*pi)[i], *e) && (*pi)[i].getMx() > 1.7 && anal.applyPionKinematicCuts((*pi)[i]);
 			bool pi_gen_pass = false;
 			if (runType == 1) pi_gen_pass = anal.applyPionKinematicCuts((*pi_gen)[i]);
 

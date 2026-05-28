@@ -331,6 +331,16 @@ int main( int argc, char** argv){
 			pions.insert( pions.end(), kaons.begin(), kaons.end() );
 			pions.insert( pions.end(), protons.begin(), protons.end() );
 			Npi 	= pions.size();
+			Nka     = kaons.size();
+			Nkaps   = kapluses.size();
+			Nakms   = kaminuses.size();
+			Npr     = protons.size();
+			Nprps   = propluses.size();
+			Naprms  = prominuses.size();
+
+			pions.insert( pions.end(), kaons.begin(), kaons.end() );
+			pions.insert( pions.end(), protons.begin(), protons.end() );
+
 			
 			if(RunType == 1 && inclusive != 1){	
 				int nMcPart = c12.mcevent()->getNpart();	
