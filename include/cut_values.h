@@ -36,8 +36,11 @@ namespace cutVals{
 	
 	// Vertex cuts indexed by [target]: 0 = RGB/deuterium, 1 = RGA/proton
 	// RGA values (target=1) are placeholders — update after studying vertex distributions
-	const double Vz_e_min_inbending[2] = {-7,   -8.5}; // [target]
-	const double Vz_e_max_inbending[2] = { 2,    .5}; // [target]
+	const double Vz_e_min_inbending[2]  = { -7,  -8.5}; // [target]
+	const double Vz_e_max_inbending[2]  = {  2,    .5}; // [target]
+	// Outbending values are placeholders — update after studying outbending vertex distributions
+	const double Vz_e_min_outbending[2] = {-12,  -12.}; // [target]  TBD
+	const double Vz_e_max_outbending[2] = {  5,    5.}; // [target]  TBD
 
 	// [target][runType][charge]:  runType: 0=data, 1=gemc, 2=generator, 3=NA, 4=outbending
 	//                             charge:  0=pi+,  1=pi-

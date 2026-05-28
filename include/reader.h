@@ -16,6 +16,7 @@ public:
 	void setRunType( int i ){ runType = i; }
 	void setEnergy( double i ){ EBeam = i; }
 	void setTarget( int t ){ target = t; } // 0 = RGB/deuterium, 1 = RGA/proton
+	int  getTorusBending() const;           // -1 = inbending, +1 = outbending
 	void readRunFiles( clas12root::HipoChain &fileList);
 	
 	void getRunFiles( clas12root::HipoChain &files);

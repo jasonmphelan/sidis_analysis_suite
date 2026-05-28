@@ -30,6 +30,11 @@ int reader::getRunNum( int i ){
 	else{ return runNums[i]; }
 	return 0;
 }
+
+int reader::getTorusBending() const {
+	// RunTypes 3, 4, 5 use torus+1 (outbending) data paths
+	return (runType == 3 || runType == 4 || runType == 5 || runType == 6 || runType == 7) ? 1 : -1;
+}
 		
 
 
@@ -99,6 +104,9 @@ void reader::setDataPaths(){
 		dataPath = "/cache/clas12/rg-b/production/recon/fall2019/torus+1/pass2/v1/dst/train/sidisdvcs/sidisdvcs_0";
 		//dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/background_hipo";
 	}
+	else if( runType == 6 || runType == 7 ){ // outbending GEMC / generator -- update path when available
+		dataPath = "/volatile/clas12/osg/jphelan/outbending/";
+	}
 }
 
 void reader::getRunList(){
@@ -151,7 +159,7 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 			i++;
 		}
 	}
-	else if (runType == 1 && target!=1){
+	else if ((runType == 1 || runType == 6) && target!=1){
 		for( int j = 0; j < nRuns[beamType]; j++ ){
 			for( int i = 0; i < 75000; i++){
 				if( nFiles != 0 && i >= nFiles ) break;
@@ -161,15 +169,21 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 			}
 		}
 	}
-	else if (runType == 1 && target==1){
-		
+	else if ((runType == 1 || runType == 6) && target==1){
 		for( int i = 0; i < 75000; i++){
 			if( nFiles != 0 && i >= nFiles ) break;
 			inFile = dataPath + Form("%05i_10.1998.hipo", i);
 			if( gSystem->AccessPathName(inFile) ) continue;
 			files.Add(inFile.Data());
 		}
-		
+	}
+	else if (runType == 7){
+		for( int i = 0; i < 75000; i++){
+			if( nFiles != 0 && i >= nFiles ) break;
+			inFile = dataPath + Form("%i.hipo", i);
+			if( gSystem->AccessPathName(inFile) ) continue;
+			files.Add(inFile.Data());
+		}
 	}
 	else if(runType == 4 ){
 		int i = 0;
@@ -221,7 +235,7 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 		int beamType =	(int) ( (EBeam - 10.2)/.2 );
 		if(!stream ){ cout<<"Failed to open runlist\n";}
 		
-		if(runType == 0 || runType == 3){
+		if(runType == 0 || runType == 3 || runType == 5){
 			int i = 0;
 			while(std::getline(stream, runNum)){
 				if(nFiles != 0 && i >= nFiles ) break;
@@ -229,7 +243,7 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 				inFile = name + Form("_%i", atoi(run)) + ".root";
 				cout<<"Adding : "<<inFile<<endl;
 				if( gSystem->AccessPathName(inFile) ) continue;
-				chain->Add(inFile);		
+				chain->Add(inFile);
 				i++;
 			}
 		}
@@ -244,7 +258,7 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 				}
 			//}
 		}
-		else if(runType == 4 || runType == 5){
+		else if(runType == 4){
 			int i = 0;
 			while(std::getline(stream, runNum)){
 				if(nFiles != 0 && i >= nFiles ) break;

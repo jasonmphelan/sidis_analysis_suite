@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 
     // ── Open tree ─────────────────────────────────────────────────────────────
     TChain* chain = new TChain("ePi");
-    chain->Add(tree_name);
+    chain->Add("/volatile/clas12/users/jphelan/SIDIS/data/detector_skims/10.4/run_skim_*.root");
     long long nEntries = chain->GetEntries();
     std::cerr << "Entries   : " << nEntries << "\n";
     if (nEntries == 0) { std::cerr << "ERROR: no entries.\n"; return -1; }
@@ -79,9 +79,11 @@ int main(int argc, char** argv)
     TTreeReader reader(chain);
     TTreeReaderValue<electron>       e      (reader, "e");
     TTreeReaderArray<pion>           pi     (reader, "pi");
-    TTreeReaderArray<bool>           isGood (reader, "isGoodPion_no_acc");
+    //TTreeReaderArray<bool>           isGood (reader, "isGoodPion_no_acc");
     TTreeReaderArray<int>            pidRICH(reader, "pidRICH");
     TTreeReaderArray<double>         probICH(reader, "probRICH");
+    TTreeReaderArray<double>         nRICH(reader, "nRICH");
+
 
     // ── Allocate histograms for each cut ──────────────────────────────────────
     int nCuts = static_cast<int>(PROB_CUTS.size());
@@ -115,7 +117,7 @@ int main(int argc, char** argv)
         if (nProc % 200000 == 0)
             std::cout << "Events processed: " << nProc << "\n";
         ++nProc;
-
+        if(nProc == 50000000)break;
         // Electron acceptance check
         double p_e     = e->get3Momentum().Mag();
         double phi_e   = e->get3Momentum().Phi()   * rad_to_deg;
@@ -125,8 +127,8 @@ int main(int argc, char** argv)
         int nPions = static_cast<int>(pi.end() - pi.begin());
         for (int i = 0; i < nPions; ++i) {
 
-            if (!isGood[i]) continue;
-            if (pi[i].getCharge() < 0) continue;  // K+ only
+            //if (!isGood[i]) continue;
+            if (pi[i].getCharge() > 0) continue;  // K+ only
 
             double p_pi     = pi[i].get3Momentum().Mag();
             double theta_pi = pi[i].get3Momentum().Theta() * rad_to_deg;
@@ -136,15 +138,15 @@ int main(int argc, char** argv)
             if (theta_pi < TH_MIN || theta_pi >= TH_MAX) continue;
 
             // Pion acceptance check (chargeIdx 1 = pi+)
-            if (anal.applyAcceptanceMap(p_pi, phi_pi, theta_pi, 1) < 0) continue;
-            if( pi[i].getBeta_rich() < .01 || pidRICH[i] == 1) continue;
+            if (anal.applyAcceptanceMap(p_pi, phi_pi, theta_pi, 2) < 0) continue;
+            if( pi[i].getBeta_rich() < .01 || probICH[i] == 1 || nRICH[i] <= 2) continue;
             double prob = probICH[i];
             int    pid  = pidRICH[i];
 
             for (int ic = 0; ic < nCuts; ++ic) {
                 if (prob <= PROB_CUTS[ic]) continue;
                 hAll[ic]->Fill(p_pi, theta_pi);
-                if (pid == 211)
+                if (abs(pid) == 211)
                     hPi[ic]->Fill(p_pi, theta_pi);
             }
         }

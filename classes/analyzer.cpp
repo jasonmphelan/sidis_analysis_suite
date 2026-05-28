@@ -21,8 +21,8 @@ void analyzer::printCuts(){
 	}
 	std::cout<<"PCAL W : "<<mod_el_PCAL[0]*e_PCAL_W_min<<std::endl;
 	std::cout<<"PCAL V : "<<mod_el_PCAL[1]*e_PCAL_V_min<<std::endl;
-	std::cout<<"Electron Min Vertex : "<<mod_el_vtz[0]*Vz_e_min_inbending[target]<<std::endl;
-	std::cout<<"Electron Max Vertex : "<<mod_el_vtz[1]*Vz_e_max_inbending[target]<<std::endl;
+	std::cout<<"Electron Min Vertex : "<<mod_el_vtz[0]*((torusBending==-1)?Vz_e_min_inbending[target]:Vz_e_min_outbending[target])<<std::endl;
+	std::cout<<"Electron Max Vertex : "<<mod_el_vtz[1]*((torusBending==-1)?Vz_e_max_inbending[target]:Vz_e_max_outbending[target])<<std::endl;
 	std::cout<<"Minimum Edep : "<<mod_el_Edep*e_E_PCAL_min<<std::endl;
 	std::cout<<"SF Sigma : "<<mod_SF_sigma*3.5<<std::endl;	
 	std::cout<<"SF Correlation : "<<mod_el_corr*PCAL_ECIN_SF_min<<std::endl;
@@ -115,9 +115,9 @@ void analyzer::writeCutsToFile(std::ofstream& txtFile){
 	//pcal V
 	txtFile<<mod_el_PCAL[1]*e_PCAL_V_min<<"\t";
 	//e vt min
-	txtFile<<mod_el_vtz[0]*Vz_e_min_inbending[target]<<"\t";
+	txtFile<<mod_el_vtz[0]*((torusBending==-1)?Vz_e_min_inbending[target]:Vz_e_min_outbending[target])<<"\t";
 	//e vt max
-	txtFile<<mod_el_vtz[1]*Vz_e_max_inbending[target]<<"\t";
+	txtFile<<mod_el_vtz[1]*((torusBending==-1)?Vz_e_max_inbending[target]:Vz_e_max_outbending[target])<<"\t";
 	//edep
 	txtFile<<mod_el_Edep*e_E_PCAL_min<<"\t";
 	//sf
@@ -192,7 +192,7 @@ void analyzer::randomizeCuts(){
 
 
 	cut_vals.push_back(e_PCAL_V_min);
-	cut_vals.push_back(Vz_e_max_inbending[target]);
+	cut_vals.push_back((torusBending==-1) ? Vz_e_max_inbending[target] : Vz_e_max_outbending[target]);
 	cut_vals.push_back(P_pi_max);
 	cut_vals.push_back(P_e_max);
 
@@ -275,6 +275,7 @@ double analyzer::Chi2PID_pion_upperBound( Double_t p, Double_t C){
 }
 
 void analyzer::loadCutValues(int torusBending, double EBeam){
+	SetTorusBending(torusBending);
 }
 
 
@@ -321,22 +322,22 @@ void analyzer::loadSamplingFractionParams(TString sfFile_name){
 }
 
 void analyzer::loadSamplingFractionParams(){
-	if( target == 1 ){ // RGA/proton
-		TString rgaFile = (TString) CUT_PATH + "/SF_fits_RGA.root";
-		// Fall back to RGB file if RGA-specific file doesn't exist
-		FILE * f = fopen( rgaFile.Data(), "r" );
-		if( f ){
-			fclose(f);
-			loadSamplingFractionParams( rgaFile );
-		}
-		else{
-			std::cout<<"Warning: RGA SF fits file not found ("<<rgaFile<<")."
-				<<" Using RGB SF fits as placeholder.\n";
-			loadSamplingFractionParams( (TString) CUT_PATH + "/SF_fits.root" );
-		}
+	// Build candidate file name: SF_fits[_rga][_outbending].root
+	TString base = (target == 1) ? "SF_fits_rga" : "SF_fits";
+	if( torusBending != -1 ) base += "_outbending";
+	TString sfFile = (TString) CUT_PATH + "/" + base + ".root";
+
+	FILE * f = fopen( sfFile.Data(), "r" );
+	if( f ){
+		fclose(f);
+		loadSamplingFractionParams( sfFile );
 	}
-	else{ // RGB/deuterium (target == 0)
-		loadSamplingFractionParams( (TString) CUT_PATH + "/SF_fits.root" );
+	else{
+		// Fall back: for outbending use inbending file until outbending fits are derived
+		TString fallback = (TString) CUT_PATH + "/" + ((target == 1) ? "SF_fits_rga" : "SF_fits") + ".root";
+		std::cout<<"Warning: SF fits file not found ("<<sfFile<<")."
+			<<" Falling back to "<<fallback<<" as placeholder.\n";
+		loadSamplingFractionParams( fallback );
 	}
 }
 
@@ -366,8 +367,9 @@ bool analyzer::applyElectronCorrelation( electron e ){
 
 
 bool analyzer::applyElectronVertex( electron e ){
-	//ELECTRON VERTEX CUT
-	return ((e.getVt().Z() > mod_el_vtz[0]*Vz_e_min_inbending[target]) && (e.getVt().Z() < mod_el_vtz[1]*Vz_e_max_inbending[target]));
+	const double vz_min = (torusBending == -1) ? Vz_e_min_inbending[target]  : Vz_e_min_outbending[target];
+	const double vz_max = (torusBending == -1) ? Vz_e_max_inbending[target]  : Vz_e_max_outbending[target];
+	return (e.getVt().Z() > mod_el_vtz[0]*vz_min) && (e.getVt().Z() < mod_el_vtz[1]*vz_max);
 }
 
 bool analyzer::applyElectronDetectorCuts( electron e ){

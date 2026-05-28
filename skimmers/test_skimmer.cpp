@@ -69,15 +69,17 @@ int main( int argc, char** argv){
 		cout<<"Outputting single file\n";
 	}
 
-	// Read cut values
-	double torusBending = -1; //outBending = -1, inBending = 1
+	// Derive torus bending from run type: RunTypes 3/4/5 are torus+1 (outbending)
+	int torusBending = (RunType == 3 || RunType == 4 || RunType == 5 || RunType == 6 || RunType == 7) ? 1 : -1;
 	analyzer anal(0, torusBending);
-	if( RunType == 4 || RunType == 3){
-		anal.setAnalyzerLevel(0);
+	if( RunType == 3 || RunType == 4 || RunType == 5){
+		anal.setAnalyzerLevel(4); // index 4 in Vz_pi_mean = outbending pion vertex values
 	}
+	else if( RunType == 6 ){ anal.setAnalyzerLevel(1); } // outbending GEMC: use GEMC vertex values
+	else if( RunType == 7 ){ anal.setAnalyzerLevel(2); } // outbending generator: wide sigma
 	else{ anal.setAnalyzerLevel(RunType); }
 	anal.setTarget( target );
-	anal.loadCutValues(-1, Ebeam);
+	anal.loadCutValues(torusBending, Ebeam);
 	anal.loadSamplingFractionParams();
 	anal.printCuts();
 
@@ -155,7 +157,7 @@ int main( int argc, char** argv){
 		outTree->Branch("nRICH", &nRICH);
 
 		outTree->Branch("pi", &pi);
-		if( RunType == 1 ){
+		if( RunType == 1 || RunType == 6 ){
 			outTree->Branch("e_gen", &e_gen);
 			outTree->Branch("pi_gen", &pi_gen);
 			outTree->Branch("isDIS", &isDIS);
@@ -204,7 +206,7 @@ int main( int argc, char** argv){
 			outTree->Branch("pidRICH", &pidRICH);
 			outTree->Branch("nRICH", &nRICH);
 			outTree->Branch("pi", &pi);
-			if( RunType == 1 ){
+			if( RunType == 1 || RunType == 6 ){
 				outTree->Branch("target", &target_nucl);
 				outTree->Branch("e_gen", &e_gen);
 				outTree->Branch("pi_gen", &pi_gen);
@@ -235,8 +237,8 @@ int main( int argc, char** argv){
 			event++;
 			evnum  = c12.runconfig()->getEvent();
 			runnum = c12.runconfig()->getRun();
-           	if( RunType == 1 && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
-           	if( ( RunType == 0 || RunType == 4 || RunType ==3) && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
+           	if( (RunType == 1 || RunType == 6 || RunType == 7) && event%1000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
+           	if( ( RunType == 0 || RunType == 3 || RunType == 4 || RunType == 5) && event%100000 == 0){cout<<"Processing Event: "<<event<< "/"<<NeventsTotal<<" in run "<<runnum<<endl; }
 			
 			//For outbending, we want to use the hadron trigger, so check trigger bits
 			if( RunType == 4 ){ 
@@ -342,7 +344,7 @@ int main( int argc, char** argv){
 			pions.insert( pions.end(), protons.begin(), protons.end() );
 
 			
-			if(RunType == 1 && inclusive != 1){	
+			if((RunType == 1 || RunType == 6) && inclusive != 1){
 				int nMcPart = c12.mcevent()->getNpart();	
 				int mcId;
 				std::vector<int> pipsMC;
@@ -374,7 +376,7 @@ int main( int argc, char** argv){
 			int e_idx = GetLeadingElectron(electrons, Ne);	
 			e.setElectron( Ebeam, electrons[e_idx]);
 			if( !anal.applyElectronDetectorCuts( e )){continue;}
-			if( RunType == 1 ){
+			if( RunType == 1 || RunType == 6 ){
 				int e_match = anal.FindMatch(e.get3Momentum(), mcparts, electronsMC );
 				mcparts->setEntry(e_match);
 				if( e_match > -1 ){ e_gen.setKinematicInformation(Ebeam, mcparts); }
@@ -399,15 +401,15 @@ int main( int argc, char** argv){
 				nRICH.push_back(RICH_info->getBest_ntot());
 
 				//Do MC Matching if skimming monte carlo
-				if( RunType == 1 ){
+				if( RunType == 1 || RunType == 6 ){
 					int chargeIdx = (int) (pi_dummy.getCharge() < 0);
 					int pi_match = anal.FindMatch(pi_dummy.get3Momentum(), mcparts, pionsMC[chargeIdx] );
 					mcparts->setEntry(pi_match);
-					if( pi_match > -1  ){ //&& abs( mcparts->getPid() )!=321  ){ 
+					if( pi_match > -1  ){ //&& abs( mcparts->getPid() )!=321  ){
 						genPi_dummy.Clear();
 						genPi_dummy.setKinematicInformation(e_gen.getQ(), e_gen.get4Momentum(), mcparts);
 						pi_dummy.setPID( abs(mcparts->getPid() ) ); //Set "real" ID
-						pi_gen.push_back(genPi_dummy); 
+						pi_gen.push_back(genPi_dummy);
 					}
 					else { continue; }
 				}
