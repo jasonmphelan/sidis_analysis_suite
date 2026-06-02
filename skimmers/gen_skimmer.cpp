@@ -72,7 +72,7 @@ int main( int argc, char** argv){
 	
 	reader runReader;
 	runReader.setNumFiles( nFiles);
-	runReader.setRunType( 1 );
+	runReader.setRunType( 7 );
 	runReader.setEnergy( Ebeam );
 	runReader.setTarget( target );
 	clas12root::HipoChain files;
@@ -131,7 +131,7 @@ int main( int argc, char** argv){
 		//Only skim desired number of files
 		if(nFiles != 0 && i > nFiles){break;}	
 	
-		if( i == 8000 )break;
+		//if( i == 8000 )break;
 		if( singleFile == 0 ){
 			cout<<"Declare output file\n";	
 			outputFile = new TFile(outFileName + Form("_%i.root", runReader.getRunNum(i) ), "RECREATE");

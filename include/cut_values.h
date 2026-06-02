@@ -39,37 +39,43 @@ namespace cutVals{
 	const double Vz_e_min_inbending[2]  = { -7,  -8.5}; // [target]
 	const double Vz_e_max_inbending[2]  = {  2,    .5}; // [target]
 	// Outbending values are placeholders — update after studying outbending vertex distributions
-	const double Vz_e_min_outbending[2] = {-12,  -12.}; // [target]  TBD
-	const double Vz_e_max_outbending[2] = {  5,    5.}; // [target]  TBD
+	const double Vz_e_min_outbending[2] = {-7,  -12.}; // [target]  TBD
+	const double Vz_e_max_outbending[2] = {  2,    5.}; // [target]  TBD
 
 	// [target][runType][charge]:  runType: 0=data, 1=gemc, 2=generator, 3=NA, 4=outbending
 	//                             charge:  0=pi+,  1=pi-
-	const double Vz_pi_mean[2][5][2] = {
+	const double Vz_pi_mean[2][7][2] = {
 		{ {-1, -0.15},   // RGB data
 		  {-0.15, -0.02},// RGB gemc
 		  {0,0},         // RGB generator
 		  {0,0},         // RGB NA
-		  {-3.6, -1.9}   // RGB outbending
+		  {.6, .15},   // RGB outbending
+		  {0, -1.9},   // RGB outbending GEMC
+		  {0, 0}   // RGB outbending generator
 		},
 		{ {0.3, 0.8},        // RGA data     -- TBD from data
 		  {0, 0},        // RGA gemc     -- TBD
 		  {0, 0},        // RGA generator
-		  {0, 0},        // RGA NA
-		  {0, 0}         // RGA outbending -- TBD
+		  {0, 0},         // RGA outbending -- TBD
+		  {-3.6, -1.9},   // RGB outbending
+		  {-3.6, -1.9},   // RGB outbending GEMC
+		  {0, 0}   // RGB outbending generator
 		}
 	};
-	const double Vz_pi_sigma[2][5][2] = {
+	const double Vz_pi_sigma[2][6][2] = {
 		{ {1.4, 1.2},    // RGB data
 		  {0.9, 0.85},   // RGB gemc
 		  {10,  10},     // RGB generator
 		  {10,  10},     // RGB NA
-		  {1.9, 1.9}     // RGB outbending
+		  {1.3, 1.45},     // RGB outbending
+		  {.75, .6}
 		},
 		{ {1.8, 1.5},      // RGA data     -- TBD from data
 		  {10, 10},      // RGA gemc     -- TBD
 		  {10, 10},      // RGA generator
 		  {10, 10},      // RGA NA
-		  {10, 10}       // RGA outbending -- TBD
+		  {10, 10},       // RGA outbending -- TBD
+		  {.75, .6}
 		}
 	};
 

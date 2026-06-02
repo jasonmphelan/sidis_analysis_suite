@@ -105,7 +105,7 @@ void reader::setDataPaths(){
 		//dataPath = "/volatile/clas12/users/jphelan/SIDIS/data/background_hipo";
 	}
 	else if( runType == 6 || runType == 7 ){ // outbending GEMC / generator -- update path when available
-		dataPath = "/volatile/clas12/osg/jphelan/outbending/";
+		dataPath = "/volatile/clas12/osg/jphelan/";
 	}
 }
 
@@ -139,7 +139,8 @@ void reader::getRunList(){
 
 void reader::getRunFiles( clas12root::HipoChain &files){
 
-	//clas12root::HipoChain files;
+	/////////////////DATA//////////////////////////
+	
 	std::ifstream stream;
 	stream.open(runList);
 	string runNum;
@@ -159,6 +160,8 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 			i++;
 		}
 	}
+		/////////////////RGB GEMC//////////////////////////
+
 	else if ((runType == 1 || runType == 6) && target!=1){
 		for( int j = 0; j < nRuns[beamType]; j++ ){
 			for( int i = 0; i < 75000; i++){
@@ -180,7 +183,7 @@ void reader::getRunFiles( clas12root::HipoChain &files){
 	else if (runType == 7){
 		for( int i = 0; i < 75000; i++){
 			if( nFiles != 0 && i >= nFiles ) break;
-			inFile = dataPath + Form("%i.hipo", i);
+			inFile = dataPath + Form("%i/%i-%i.hipo", monteCarloRuns[1][0], monteCarloRuns[1][0], i+1);
 			if( gSystem->AccessPathName(inFile) ) continue;
 			files.Add(inFile.Data());
 		}
@@ -235,12 +238,24 @@ void reader::getSkimsByName( TChain * chain, TString name ){
 		int beamType =	(int) ( (EBeam - 10.2)/.2 );
 		if(!stream ){ cout<<"Failed to open runlist\n";}
 		
-		if(runType == 0 || runType == 3 || runType == 5){
+		if(runType == 0 || runType == 3 ){
 			int i = 0;
 			while(std::getline(stream, runNum)){
 				if(nFiles != 0 && i >= nFiles ) break;
 				TString run(runNum);
 				inFile = name + Form("_%i", atoi(run)) + ".root";
+				cout<<"Adding : "<<inFile<<endl;
+				if( gSystem->AccessPathName(inFile) ) continue;
+				chain->Add(inFile);
+				i++;
+			}
+		}
+		else if( runType == 5){
+			int i = 0;
+			while(std::getline(stream, runNum)){
+				if(nFiles != 0 && i >= nFiles ) break;
+				TString run(runNum);
+				inFile = name + Form("_%i", i) + ".root";
 				cout<<"Adding : "<<inFile<<endl;
 				if( gSystem->AccessPathName(inFile) ) continue;
 				chain->Add(inFile);

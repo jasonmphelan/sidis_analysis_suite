@@ -133,7 +133,7 @@ int main( int argc, char** argv){
 		//Only skim desired number of files
 		if(nFiles != 0 && i > nFiles){break;}	
 	
-			
+		if( i == 2 ) break;
 		//create the event reader
 		clas12reader c12(files.GetFileName(i).Data());
 		auto mcparts = c12.mcparts();		
